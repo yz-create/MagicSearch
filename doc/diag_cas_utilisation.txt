@@ -10,21 +10,35 @@ actor "Admin"   as admin
 
 
 rectangle {
-  usecase "Search cards according to: text, id, name"        as Search
-  usecase "View all card features"    as View
+  usecase "Search cards "        as Search
+  
   usecase "Show a random card"           as Show
   usecase "Upload a new card"    as Upload
+  usecase "Filter" as filter
+  usecase "Semantic search" as semantic
+  usecase "Edit a card" as edit
+  usecase "Remove a card" as remove
+ 
+
 
 }
 
 
 user --> Search
-user --> View
+
 user --> Show
 
 
 
+
 admin --> Upload
+
+Search ..> filter : "include"
+
+Search ..> semantic : "include"
+
+admin --> edit
+admin --> remove
 
 
 @enduml
