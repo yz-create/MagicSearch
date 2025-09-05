@@ -5,24 +5,28 @@
 
 left to right direction
 
-actor "Utilisateur"      as user
-actor "Administrateur"   as admin
-actor "Joueur"           as joueur
+actor "User"      as user
+actor "Admin"   as admin
+
 
 rectangle {
-  usecase "S'inscrire"        as inscription
-  usecase "S'authentifier"    as authentification
-  usecase "Quitter"           as quitter
-  usecase "Lister joueurs"    as lister_joueurs
+  usecase "Search cards according to: text, id, name"        as Search
+  usecase "View all card features"    as View
+  usecase "Show a random card"           as Show
+  usecase "Upload a new card"    as Upload
+
 }
 
-joueur --> quitter
 
-user --> inscription
-user --> authentification
-user --> quitter
+user --> Search
+user --> View
+user --> Show
 
-admin --> quitter
-admin --> lister_joueurs
+
+
+admin --> Upload
+
 
 @enduml
+
+#à coller sur : https://www.plantuml.com/plantuml/uml/
