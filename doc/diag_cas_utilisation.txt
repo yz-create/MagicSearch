@@ -1,0 +1,32 @@
+@startuml
+' à coller ici pour visualiser : https://www.plantuml.com/plantuml/uml/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000
+' doc : https://plantuml.com/fr/use-case-diagram
+
+
+left to right direction
+
+actor "User"      as user
+actor "Admin"   as admin
+
+
+rectangle {
+  usecase "Search cards according to: text, id, name"        as Search
+  usecase "View all card features"    as View
+  usecase "Show a random card"           as Show
+  usecase "Upload a new card"    as Upload
+
+}
+
+
+user --> Search
+user --> View
+user --> Show
+
+
+
+admin --> Upload
+
+
+@enduml
+
+#à coller sur : https://www.plantuml.com/plantuml/uml/
