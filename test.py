@@ -6,4 +6,9 @@ data = json.loads(file.read())
 data = data['data']
 
 
-print(data['Zoologist'][0]['identifiers'])
+for i in data:
+    card = data[i][0]
+    try:
+        print(card['rulings'])
+    except:
+        print("", end="")
