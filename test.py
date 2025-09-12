@@ -9,6 +9,6 @@ data = data['data']
 for i in data:
     card = data[i][0]
     try:
-        print(card['rulings'])
+        print(card['colorIdentity'])
     except:
         print("", end="")
