@@ -18,11 +18,16 @@ Pour afficher ce diagramme dans VScode :
 
 ```mermaid
 stateDiagram
+    menu_joueur : Player menu
+    search_card : Search a card
+    search_card_name : Search a card with its name or number
+    semantic_search : Semantic search
+    radom_card : View a random card
+    proposition: Proposition de carte ressemblant
+    semantic_search_description  :Saisir une description peu précise
     login : Se connecter
-    menu_joueur : Menu Joueur
     logon : Créer un compte
-    player_list : Lister les joueurs
-    poke_list : Lister les pokemons
+
     logout : Se déconnecter
 
     [*] --> Accueil
@@ -35,10 +40,29 @@ stateDiagram
     Accueil --> quitter
     quitter --> [*]
 
+
+
+
+
+
     state menu_joueur {
-    	[*] --> player_list
-    	[*] --> poke_list
+        [*] --> search_card
+    	search_card --> search_card_name
+        search_card --> radom_card
+    	search_card --> semantic_search
     	[*] --> logout
+
+
+
+
+        search_card_name --> proposition: saisie invalide
+        proposition --> search_card
+
+        semantic_search --> semantic_search_description: utiliser des filtres si besoin
+
+
+
         logout --> [*]:retour accueil
     }
+
 ```
