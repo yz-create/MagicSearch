@@ -1,3 +1,6 @@
+# Exemple d'utilisation de l'API 
+# Ne rien pas modifier
+
 import requests
 import os
 

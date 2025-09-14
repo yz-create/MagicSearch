@@ -7,9 +7,8 @@ import os
 token = os.getenv("API_TOKEN")
 # à mettre sur le terminal via https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé d'API
 # si besoin mettre un export
-#print("API_TOKEN:", token)
-
-url = "https://1lm.lab.sspcloud.fr/ollama/api/embed"
+# print("API_TOKEN:", token)
+url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
 headers = {
     "Authorization": f"Bearer {token}",
     "Content-type": "application/json"
@@ -22,7 +21,7 @@ def embedding(text: str):
         "input": text
     }
     response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
+    #response.raise_for_status()
     json_response = response.json()
     return json_response["embeddings"][0]  # vecteur (liste de floats)
 
