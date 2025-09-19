@@ -1,18 +1,6 @@
-"""import json
-
-file = open("AtomicCards.json")
-data = json.loads(file.read())
-
-data = data['data']
-
-for i in data:
-    card = data[i][0]
-    try:
-        print(card['colorIdentity'])
-    except:
-        print("", end="")"""
-
 import json
+import requests
+import os
 
 # Charger le JSON
 with open("AtomicCards.json", "r", encoding="utf-8") as f:
@@ -22,11 +10,8 @@ cards = data["data"]  # accède au dictionnaire des cartes
 first_card_name, first_card_list = next(iter(cards.items()))
 first_card = first_card_list[0]
 
-#print("Nom de la carte :", first_card_name)
-#print("Infos :", first_card)
-
-import requests
-import os
+# print("Nom de la carte :", first_card_name)
+# print("Infos :", first_card)
 
 token = os.getenv("API_TOKEN")
 
@@ -36,7 +21,6 @@ headers = {
     "Authorization": f"Bearer {token}",
     "Content-type": "application/json"}
 
-import json
 
 def card_to_text_full(card: dict) -> str:
     """
@@ -45,16 +29,17 @@ def card_to_text_full(card: dict) -> str:
     """
     # Faire une copie pour ne pas modifier l'objet original
     card_copy = card.copy()
-    
+
     # Supprimer les champs à ignorer
     card_copy.pop("printings", None)
     card_copy.pop("purchaseUrls", None)
-    
+
     # Convertir en JSON texte pour garder toutes les infos restantes
     # ensure_ascii=False pour garder les accents et caractères spéciaux
     text_repr = json.dumps(card_copy, ensure_ascii=False)
-    
+
     return text_repr
+
 
 # Exemple d'utilisation
 card_info = {
@@ -77,7 +62,8 @@ card_info = {
 }
 
 text_for_embedding = card_to_text_full(card_info)
-#print(text_for_embedding)
+# print(text_for_embedding)
+
 
 def embedding(text: str):
 
