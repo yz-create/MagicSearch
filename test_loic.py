@@ -11,14 +11,14 @@ c = 0
 fore = []
 for i in data:
     card = data[i][0]
-    for j in list(card.keys()):
-        fore.append(j)
     try:
-        # fore.append(card["power"])
-        print(card["relatedCards"])
-        """for j in list(card["purchaseUrls"].keys()):
+        # fore.append(card["side"])
+        """for j in card["supertypes"]:
             fore.append(j)"""
+        print(card["types"])
         c += 1
+        if c > 9:
+            break
     except:
         b += 1
 
