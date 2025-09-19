@@ -26,4 +26,5 @@ def embedding(text: str):
     return json_response
 
 
-print(embedding("The sky is blue")["embeddings"])
+print(embedding("The sky is blue"))
+# print(embedding("The sky is blue")["embeddings"])
