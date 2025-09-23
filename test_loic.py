@@ -12,13 +12,13 @@ fore = []
 for i in data:
     card = data[i][0]
     try:
-        # fore.append(card["side"])
+        fore.append(card["layout"])
         """for j in card["supertypes"]:
-            fore.append(j)"""
+            fore.append(j)""""""
         print(card["types"])
         c += 1
         if c > 9:
-            break
+            break"""
     except:
         b += 1
 
