@@ -5,6 +5,7 @@ import os
 
 # ---- CONFIG ----
 token = os.getenv("API_TOKEN")
+# (pour lucile : dans le terminal tu copies : export API_TOKEN= )
 # à mettre sur le terminal via https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé
 # d'API
 # si besoin mettre un export
