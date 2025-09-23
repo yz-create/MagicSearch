@@ -16,52 +16,94 @@ Pour afficher ce diagramme dans VScode :
 
 ```mermaid
 classDiagram
-    class Joueur {
-        +id_joueur: int
-        +pseudo: string
-        +mdp: string
-        +age: int
-        +mail: string
-        +fan_pokemon: bool
+    class Card {
+        # id_card: int
+        # name: string
+        # embedded: string
+
+        + show_card() :: str
+        + get_embedded() :: list[float]
     }
 
-    class JoueurDao {
-        +creer(Joueur): bool
-        +trouver_par_id(int): Joueur
-        +lister_tous(): list[Joueur]
-        +supprimer(Joueur): bool
-        +se_connecter(str,str): Joueur
+    class CardDAO{
+        + id_search(int) :: Card
+        + name_search(str) :: Card
+        + create_card(Card) :: bool
+        + update_card(Card) :: bool
+        + delete_card(Card) :: bool
     }
 
-    class JoueurService {
-        +creer(str...): Joueur
-        +trouver_par_id(int): Joueur
-        +lister_tous(): list[Joueur]
-        +afficher_tous(): str
-        +supprimer(Joueur): bool
-        +se_connecter(str,str): Joueur
+    class CardSevice{
+        + id_search(int) :: Card
+        + name_search(str) :: Card
+        + semantic_search(str) :: list[Card]
+        + view_random_card() :: Card  
+
+        + filtered_search(list[AbstractFilter]) :: list[Card]
+        + exclude_specific_cards_fo3b()
+        + search_using_thematic_description()
     }
 
-    class AccueilVue {
+    class AbstractFilter{
+        # nom_colonne : str
+        + add_nom_colonne(str) 
+        + get_filter() :: AbstractFilter
+        
     }
 
-    class ConnexionVue {
+    class FiltreNum{
+        - value_num : float
+        + add_value_num(float) 
+        + add_filtre(nom_colonne, value_num) 
     }
 
-    class MenuJoueurVue {
+    class FiltreCategory{
+        - value_cat : str
+        + add_value_num(str) -> FiltreCat
+        + add_filtre(nom_colonne, value_cat) -> Filtre
+
     }
 
-    class VueAbstraite{
-      +afficher()
-      +choisir_menu()
+    class AbstractUser{
+        + user_name : str 
+        + use_class_card(pseudo)
     }
 
-    VueAbstraite <|-- AccueilVue
-    VueAbstraite <|-- ConnexionVue
-    VueAbstraite <|-- MenuJoueurVue
-    MenuJoueurVue ..> JoueurService : appelle
-    ConnexionVue ..> JoueurService : appelle
-    JoueurService ..> JoueurDao : appelle
-    Joueur <.. JoueurService: utilise
-    Joueur <.. JoueurDao: utilise
+    class User{}
+    class Admin{}
+
+    class UserDAO {
+        + add_user(AbstractUser) :: bool
+        + delete_user(AbstractUser) :: bool
+        + add_fav(AbstractUser, Card) :: bool
+        + delete_fav(AbstractUser, Card) :: bool
+        + read_all_user(AbstractUser) : bool
+        + read_all_fav(AbstractUser) : bool
+    }
+
+    class UserService {
+        + add_user(str) :: bool
+        + delete_user(str) :: bool
+        + add_fav(AbstractUser, Card) :: bool
+        + delete_fav(AbstractUser, Card) :: bool
+        + read_all_user(AbstractUser) : bool
+        + read_all_fav(AbstractUser) : bool
+        +login(str): User
+    }
+
+
+    
+
+    CardService ..> CardDao : appelle
+    Card <.. CardService: utilise
+    Card <.. CardDAO: utilise
+    AbstractFilter <|-- FiltreCategory
+    AbstractFilter <|-- FiltreNum
+    CardSevice <.. AbstractFilter: use
+
+    AbstractUser <|-- User
+    AbstractUser <|-- Admin
+    AbstractUser <.. UserService: utilise
+    AbstractUser <.. UserDAO: utilise
+    UserService 
 ```
