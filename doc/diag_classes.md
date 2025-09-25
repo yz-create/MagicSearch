@@ -15,7 +15,7 @@ Pour afficher ce diagramme dans VScode :
   * faire **CTRL + K**, puis **V**
 
 ```mermaid
-  classDiagram 
+   classDiagram 
  
     class Card {
         # id_card: int
@@ -102,7 +102,7 @@ Pour afficher ce diagramme dans VScode :
     
     CardDAO "1" --> "0..*" Card : create/find/update
     CardService ..> CardDAO : use
-    CardService "1" --> "0..*" Card : 
+    CardService "1" --> "0..*" Card : handle
     CardService "1" --> "0..*" AbstractFilter : use
 
     AbstractFilter <|-- FilterCategory
@@ -113,7 +113,7 @@ Pour afficher ce diagramme dans VScode :
     UserDAO --> AbstractUser : create/find/update
     UserDAO "1" --> "0..*" Card : create/find/update favorites
     UserService ..> UserDAO : use
-    UserService "1" --> "0..*" AbstractUser : 
+    UserService "1" --> "0..*" AbstractUser : handle
     UserService "1" --> "0..*" Card : add to favorites
     
     UserDAO ..> DBConnection : use to connect the database
