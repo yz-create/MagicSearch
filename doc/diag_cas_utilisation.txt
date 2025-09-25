@@ -12,35 +12,52 @@ actor "Admin"   as admin
 rectangle {
   usecase "Search cards "        as Search
   
-  usecase "Show a random card"           as Show
+  usecase "Show a random card"   as Show
   usecase "Upload a new card"    as Upload
   usecase "Filter" as filter
   usecase "Semantic search" as semantic
+  usecase "Search by id" as id_search
+  usecase "Search by name" as name_search
   usecase "Edit a card" as edit
   usecase "Remove a card" as remove
- 
-
+  usecase "Add to favorite" as add_favorite
+  usecase "Remove from favorite" as remove_favorite
+  usecase "Read all users" as list_users
+  usecase "Read all favorites" as list_favorites
+  usecase "Add user" as add_user
+  usecase "Remove user" as remove_user
+  usecase "Login" as login
+  usecase "Create an account" as create_account
+  usecase "Login" as login_admin
+  usecase "Exclude specific cards" as exclude
+  usecase "Classic filters" as classic
 
 }
 
 
-user --> Search
+login --> Search
 
-user --> Show
+login --> Show
+login --> add_favorite
+login --> remove_favorite
+login --> list_users
+login --> list_favorites
+user --> login
+user --> create_account
 
+admin --> login_admin
+login_admin --> Upload
+login_admin --> add_user
+login_admin --> remove_user
+login_admin --> edit
+login_admin --> remove
 
-
-
-admin --> Upload
 
 Search ..> filter : "include"
-
+filter ..> exclude : "include"
+filter ..> classic : "include"
 Search ..> semantic : "include"
-
-admin --> edit
-admin --> remove
-
-
+Search ..> id_search : "include"
+Search ..> name_search : "include"
 @enduml
-
 #à coller sur : https://www.plantuml.com/plantuml/uml/
