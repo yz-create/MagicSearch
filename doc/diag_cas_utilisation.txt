@@ -8,6 +8,7 @@ left to right direction
 actor "User"      as user
 actor "Admin"   as admin
 
+user <|-- admin
 
 rectangle {
   usecase "Search cards "        as Search
@@ -40,10 +41,10 @@ login --> Search
 login --> Show
 login --> add_favorite
 login --> remove_favorite
-login --> list_users
 login --> list_favorites
 user --> login
 user --> create_account
+
 
 admin --> login_admin
 login_admin --> Upload
@@ -51,6 +52,7 @@ login_admin --> add_user
 login_admin --> remove_user
 login_admin --> edit
 login_admin --> remove
+login_admin --> list_users
 
 
 Search ..> filter : "include"
