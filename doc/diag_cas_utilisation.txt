@@ -21,10 +21,10 @@ rectangle {
   usecase "Search by name" as name_search
   usecase "Edit a card" as edit
   usecase "Remove a card" as remove
-  usecase "Add to favorite" as add_favorite
-  usecase "Remove from favorite" as remove_favorite
+  usecase "Add to favourite" as add_favourite
+  usecase "Remove from favourite" as remove_favourite
   usecase "Read all users" as list_users
-  usecase "Read all favorites" as list_favorites
+  usecase "Read all favourites" as list_favourites
   usecase "Add user" as add_user
   usecase "Remove user" as remove_user
   usecase "Login" as login
@@ -39,9 +39,9 @@ rectangle {
 login --> Search
 
 login --> Show
-login --> add_favorite
-login --> remove_favorite
-login --> list_favorites
+login --> add_favourite
+login --> remove_favourite
+login --> list_favourites
 user --> login
 user --> create_account
 
