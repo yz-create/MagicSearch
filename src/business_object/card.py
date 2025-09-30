@@ -13,7 +13,7 @@ class Card:
         - peut être appeler la méthode __repr__ (ou __str__) ?
         - choisir les attribut à présenter
         """
-        return f"MagicTG Card {self._id_card}, {self._name}" 
+        return f"MagicTG Card : {self._name}" 
 
     def get_embedded(self) -> list[float]:
         """
