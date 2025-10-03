@@ -4,34 +4,34 @@ CREATE TABLE "Card" (
   "layout" int NOT NULL,
   "legalities" int NOT NULL,
   "manaValue" float NOT NULL,
-  "name" str NOT NULL,
-  "type" str NOT NULL,
-  "text_to_embed" str NOT NULL,
+  "name" VARCHAR(500) NOT NULL,
+  "type" VARCHAR(500) NOT NULL,
+  "text_to_embed" VARCHAR(500) NOT NULL,
   "embed" float[] NOT NULL,
-  "asciiName" str,
+  "asciiName" VARCHAR(500),
   "defense" int,
   "edhrecRank" int,
   "edhrecSaltiness" float,
   "faceManaValue" float,
-  "faceName" str,
+  "faceName" VARCHAR(500),
   "firstPrinting" int,
   "hand" int,
   "hasAlternativeDeckLimit" bool,
   "isFunny" bool,
   "isReserved" bool,
   "life" int,
-  "loyalty" str,
-  "manaCost" str,
-  "power" str,
-  "side" str,
-  "text" str,
-  "toughness" str
+  "loyalty" VARCHAR(500),
+  "manaCost" VARCHAR(500),
+  "power" VARCHAR(500),
+  "side" VARCHAR(500),
+  "text" VARCHAR(500),
+  "toughness" VARCHAR(500)
 );
 
 CREATE TABLE "User" (
   "idUser" int PRIMARY KEY NOT NULL,
-  "username" string NOT NULL,
-  "password" string NOT NULL,
+  "username" VARCHAR(500) NOT NULL,
+  "password" VARCHAR(500) NOT NULL,
   "isAdmin" bool NOT NULL
 );
 
@@ -43,7 +43,7 @@ CREATE TABLE "Favourite" (
 
 CREATE TABLE "Color" (
   "idColor" int PRIMARY KEY NOT NULL,
-  "colorName" str NOT NULL
+  "colorName" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "Colors" (
@@ -67,17 +67,17 @@ CREATE TABLE "ColorIndicator" (
 CREATE TABLE "ForeignData" (
   "idForeign" int PRIMARY KEY NOT NULL,
   "idCard" int NOT NULL,
-  "language" str NOT NULL,
-  "name" str NOT NULL,
-  "faceName" str,
-  "flavorText" str,
-  "text" str,
-  "type" str
+  "language" VARCHAR(500) NOT NULL,
+  "name" VARCHAR(500) NOT NULL,
+  "faceName" VARCHAR(500),
+  "flavorText" VARCHAR(500),
+  "text" VARCHAR(500),
+  "type" VARCHAR(500)
 );
 
 CREATE TABLE "Keyword" (
   "idKeyword" int PRIMARY KEY NOT NULL,
-  "name" str NOT NULL
+  "name" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "Keywords" (
@@ -88,12 +88,12 @@ CREATE TABLE "Keywords" (
 
 CREATE TABLE "Set" (
   "idSet" int PRIMARY KEY NOT NULL,
-  "name" str NOT NULL
+  "name" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "Layout" (
   "idLayout" int PRIMARY KEY NOT NULL,
-  "name" str NOT NULL
+  "name" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "Leadership" (
@@ -135,7 +135,7 @@ CREATE TABLE "Legality" (
 
 CREATE TABLE "LegalityType" (
   "idLegalityType" int PRIMARY KEY NOT NULL,
-  "type" str NOT NULL
+  "type" VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE "Printings" (
@@ -147,24 +147,24 @@ CREATE TABLE "Printings" (
 CREATE TABLE "PurchaseURLs" (
   "idPurchaseURLs" int PRIMARY KEY NOT NULL,
   "idCard" int NOT NULL,
-  "tcgplayer" str,
-  "cardKingdom" str,
-  "cardmarket" str,
-  "cardKingdomFoil" str,
-  "cardKingdromEtched" str,
-  "tcgplayerEteched" str
+  "tcgplayer" VARCHAR(500),
+  "cardKingdom" VARCHAR(500),
+  "cardmarket" VARCHAR(500),
+  "cardKingdomFoil" VARCHAR(500),
+  "cardKingdromEtched" VARCHAR(500),
+  "tcgplayerEteched" VARCHAR(500)
 );
 
 CREATE TABLE "Ruling" (
   "idRuling" int PRIMARY KEY NOT NULL,
   "date" date NOT NULL,
-  "text" str NOT NULL,
+  "text" VARCHAR(500) NOT NULL,
   "idCard" int NOT NULL
 );
 
 CREATE TABLE "Subtype" (
   "idSubtype" int PRIMARY KEY,
-  "name" str
+  "name" VARCHAR(500)
 );
 
 CREATE TABLE "Subtypes" (
@@ -175,7 +175,7 @@ CREATE TABLE "Subtypes" (
 
 CREATE TABLE "Supertype" (
   "idSupertype" int PRIMARY KEY,
-  "name" str
+  "name" VARCHAR(500)
 );
 
 CREATE TABLE "Supertypes" (
@@ -186,7 +186,7 @@ CREATE TABLE "Supertypes" (
 
 CREATE TABLE "Type" (
   "idType" int PRIMARY KEY,
-  "name" str
+  "name" VARCHAR(500)
 );
 
 CREATE TABLE "Types" (
