@@ -14,7 +14,7 @@ class ResetDatabase(metaclass=Singleton):
     def lancer(self):
         """Lancement de la réinitialisation des données
         Si test_dao = True : réinitialisation des données de test"""
-        mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": "projet_test_dao"}).start()
+        mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": "defaultdb"}).start()
 
         dotenv.load_dotenv()
 
