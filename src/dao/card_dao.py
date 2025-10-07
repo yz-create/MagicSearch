@@ -9,9 +9,9 @@ class CardDao(metaclass=Singleton):
         """
         Add a card to the database
         """
+        pass
 
-
-    def update_card(Card) -> bool:
+    def update_card(card : Card) -> bool:
         pass
     
     def delete_card(Card) -> bool:
