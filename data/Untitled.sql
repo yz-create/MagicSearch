@@ -5,7 +5,7 @@ CREATE TABLE "Card" (
   "legalities" int NOT NULL,
   "manaValue" float NOT NULL,
   "name" VARCHAR(500) NOT NULL,
-  "type" VARCHAR(500) NOT NULL,
+  "type" int NOT NULL,
   "text_to_embed" VARCHAR(500) NOT NULL,
   "embed" float[] NOT NULL,
   "asciiName" VARCHAR(500),
@@ -19,6 +19,7 @@ CREATE TABLE "Card" (
   "hasAlternativeDeckLimit" bool,
   "isFunny" bool,
   "isReserved" bool,
+  "leadershipSkills" int,
   "life" int,
   "loyalty" VARCHAR(500),
   "manaCost" VARCHAR(500),
@@ -96,17 +97,11 @@ CREATE TABLE "Layout" (
   "name" VARCHAR(500) NOT NULL
 );
 
-CREATE TABLE "Leadership" (
+CREATE TABLE "LeadershipSkills" (
   "idLeadership" int PRIMARY KEY NOT NULL,
   "brawl" bool NOT NULL,
   "commander" bool NOT NULL,
   "oathbreaker" bool NOT NULL
-);
-
-CREATE TABLE "LeadershipSkills" (
-  "idLeadership" int NOT NULL,
-  "idCard" int NOT NULL,
-  PRIMARY KEY ("idLeadership", "idCard")
 );
 
 CREATE TABLE "Legality" (
@@ -201,6 +196,10 @@ ALTER TABLE "Card" ADD FOREIGN KEY ("legalities") REFERENCES "Legality" ("idLega
 
 ALTER TABLE "Card" ADD FOREIGN KEY ("firstPrinting") REFERENCES "Set" ("idSet");
 
+ALTER TABLE "Card" ADD FOREIGN KEY ("type") REFERENCES "Type" ("idType");
+
+ALTER TABLE "Card" ADD FOREIGN KEY ("leadershipSkills") REFERENCES "LeadershipSkills" ("idLeadership");
+
 ALTER TABLE "Favourite" ADD FOREIGN KEY ("idUser") REFERENCES "User" ("idUser");
 
 ALTER TABLE "Favourite" ADD FOREIGN KEY ("idCard") REFERENCES "Card" ("idCard");
@@ -222,10 +221,6 @@ ALTER TABLE "ForeignData" ADD FOREIGN KEY ("idCard") REFERENCES "Card" ("idCard"
 ALTER TABLE "Keywords" ADD FOREIGN KEY ("idCard") REFERENCES "Card" ("idCard");
 
 ALTER TABLE "Keywords" ADD FOREIGN KEY ("idKeyword") REFERENCES "Keyword" ("idKeyword");
-
-ALTER TABLE "LeadershipSkills" ADD FOREIGN KEY ("idLeadership") REFERENCES "Leadership" ("idLeadership");
-
-ALTER TABLE "LeadershipSkills" ADD FOREIGN KEY ("idCard") REFERENCES "Card" ("idCard");
 
 ALTER TABLE "Legality" ADD FOREIGN KEY ("commander") REFERENCES "LegalityType" ("idLegalityType");
 

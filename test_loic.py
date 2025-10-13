@@ -5,16 +5,15 @@ with open('AtomicCards.json', 'r') as file:
     data = json.load(file)
 
 count = []
+c = 0
 
 for i in data['data']:
-    count.append(len(data['data'][i]))
-    if len(data['data'][i]) == 5:
-        for card in data['data'][i]:
-            print(card)
-            print("==============================")
-    """card = data['data'][i][0]
-    if card['colors'] != card['colorIdentity']:
-        print("colors :", card['colors'])
-        print("colorIdentity", card['colorIdentity'])"""
+    for card in data['data'][i]:
+        if 'legalities' in card:
+            for j in card['legalities']:
+                count.append(card['legalities'][j])
+            c += 1
+    """if c > 100:
+        break"""
 
 print(Counter(count))
