@@ -1,92 +1,93 @@
 from tabulate import tabulate
 
 from utils.log_decorator import log
-from utils.securite import hash_password
+from utils.security import hash_password
 
-from business_object.utlisateur import User
-from dao.joueur_dao import JoueurDao
+from business_object.user import User
+from dao.user_dao import UserDao
 
 
-class JoueurService:
-    """Classe contenant les méthodes de service des Joueurs"""
+class UserService:
+    """Class containing user service methods"""
 
     @log
-    def creer(self, pseudo, mdp) -> User:
-        """Création d'un joueur à partir de ses attributs"""
+    def create(self, username, password) -> User:
+        """Create a user from its attributes"""
 
-        nouveau_user = User(
-            pseudo=pseudo,
-            mdp=hash_password(mdp, pseudo)
+        new_user = User(
+            username=username,
+            password=hash_password(password, username)
         )
 
-        return nouveau_user if JoueurDao().creer(nouveau_user) else None
+        return new_user if UserDao().create(new_user) else None
 
     @log
-    def lister_tous(self, inclure_mdp=False) -> list[User]:
-        """Lister tous les joueurs
-        Si inclure_mdp=True, les mots de passe seront inclus
-        Par défaut, tous les mdp des joueurs sont à None
+    def list_all(self, include_password=False) -> list[User]:
+        """List all users
+        If include_password=True, passwords will be included.
+        By default, all user passwords are set to None.
         """
-        joueurs = JoueurDao().lister_tous()
-        if not inclure_mdp:
-            for j in joueurs:
-                j.mdp = None
-        return joueurs
+        users = UserDao().list_all()
+        if not include_password:
+            for u in users:
+                u.password = None
+        return users
 
     @log
-    def trouver_par_id(self, id_user) -> User:
-        """Trouver un joueur à partir de son id"""
-        return JoueurDao().trouver_par_id(id_user)
+    def find_by_id(self, user_id) -> User:
+        """Find a user by its ID"""
+        return UserDao().find_by_id(user_id)
 
     @log
-    def modifier(self, joueur) -> User:
-        """Modification d'un joueur"""
+    def update(self, user) -> User:
+        """Update a user"""
 
-        joueur.mdp = hash_password(joueur.mdp, joueur.pseudo)
-        return joueur if JoueurDao().modifier(joueur) else None
-
-    @log
-    def supprimer(self, joueur) -> bool:
-        """Supprimer le compte d'un joueur"""
-        return JoueurDao().supprimer(joueur)
+        user.password = hash_password(user.password, user.username)
+        return user if UserDao().update(user) else None
 
     @log
-    def afficher_tous(self) -> str:
-        """Afficher tous les joueurs
-        Sortie : Une chaine de caractères mise sous forme de tableau
+    def delete(self, user) -> bool:
+        """Delete a user account"""
+        return UserDao().delete(user)
+
+    @log
+    def display_all(self) -> str:
+        """Display all users
+        Output: A formatted string table
         """
-        entetes = ["pseudo", "age", "mail", "est fan de Pokemon"]
+        headers = ["username", "age", "email", "is admin"]
 
-        joueurs = JoueurDao().lister_tous()
+        users = UserDao().list_all()
 
-        for j in joueurs:
-            if j.pseudo == "admin":
-                joueurs.remove(j)
+        for u in users:
+            if u.username == "admin":
+                users.remove(u)
 
-        joueurs_as_list = [j.as_list() for j in joueurs]
+        users_as_list = [u.as_list() for u in users]
 
-        str_joueurs = "-" * 100
-        str_joueurs += "\nListe des joueurs \n"
-        str_joueurs += "-" * 100
-        str_joueurs += "\n"
-        str_joueurs += tabulate(
-            tabular_data=joueurs_as_list,
-            headers=entetes,
+        str_users = "-" * 100
+        str_users += "\nList of users\n"
+        str_users += "-" * 100
+        str_users += "\n"
+        str_users += tabulate(
+            tabular_data=users_as_list,
+            headers=headers,
             tablefmt="psql",
             floatfmt=".2f",
         )
-        str_joueurs += "\n"
+        str_users += "\n"
 
-        return str_joueurs
-
-    @log
-    def se_connecter(self, pseudo, mdp) -> User:
-        """Se connecter à partir de pseudo et mdp"""
-        return JoueurDao().se_connecter(pseudo, hash_password(mdp, pseudo))
+        return str_users
 
     @log
-    def pseudo_deja_utilise(self, pseudo) -> bool:
-        """Vérifie si le pseudo est déjà utilisé
-        Retourne True si le pseudo existe déjà en BDD"""
-        joueurs = JoueurDao().lister_tous()
-        return pseudo in [j.pseudo for j in joueurs]
+    def login(self, username, password) -> User:
+        """Login using username and password"""
+        return UserDao().login(username, hash_password(password, username))
+
+    @log
+    def username_already_used(self, username) -> bool:
+        """Check if the username is already used.
+        Returns True if the username already exists in the database.
+        """
+        users = UserDao().list_all()
+        return username in [u.username for u in users]
