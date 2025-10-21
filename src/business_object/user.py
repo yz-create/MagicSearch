@@ -1,28 +1,30 @@
 class User:
     """
-    Classe représentant un Utilisateur
+    Class representing a User
 
-    Attributs
+    Attributes
     ----------
-    id_utilisateur : int
-        identifiant
-    pseudo : str
-        pseudo du joueur
-    mdp : str
-        le mot de passe du joueur
-    
+    user_id : int
+        Unique identifier of the user
+    username : str
+        Username of the user
+    password : str
+        User's password (hashed)
+    is_admin : bool
+        Indicates if the user is an admin
     """
 
-    def __init__(self, pseudo, mdp=None, id_user=None):
-        """Constructeur"""
-        self.id_user = id_user
-        self.pseudo = pseudo
-        self.mdp = mdp
+    def __init__(self, username, password=None, user_id=None, age=None, email=None, is_admin=False):
+        """Constructor"""
+        self.user_id = user_id
+        self.username = username
+        self.password = password
+        self.is_admin = is_admin
 
     def __str__(self):
-        """Permet d'afficher les informations du joueur"""
-        return f"User({self.pseudo})"
+        """Return a string representation of the user"""
+        return f"User({self.username})"
 
     def as_list(self) -> list[str]:
-        """Retourne les attributs du joueur dans une liste"""
-        return [self.pseudo, self.age]
+        """Return the user's attributes as a list (used for display in tables)"""
+        return [self.username, self.is_admin]
