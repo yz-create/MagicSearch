@@ -14,7 +14,7 @@ class User:
         Indicates if the user is an admin
     """
 
-    def __init__(self, username, password=None, user_id=None, age=None, email=None, is_admin=False):
+    def __init__(self, username, password=None, user_id=None, is_admin=False):
         """Constructor"""
         self.user_id = user_id
         self.username = username

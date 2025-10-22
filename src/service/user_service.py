@@ -55,7 +55,7 @@ class UserService:
         """Display all users
         Output: A formatted string table
         """
-        headers = ["username", "age", "email", "is admin"]
+        headers = ["username", "is admin"]
 
         users = UserDao().list_all()
 
