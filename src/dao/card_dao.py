@@ -1,17 +1,19 @@
 from business_object.card import Card
 from dao.db_connection import DBConnection
+from business_objects.filter.abstract_filter import Abstractfilter
+
 
 class CardDao(metaclass=Singleton):
     # Pattern Singleton : empêche la création de plusieurs objets,
     # renvoie toujours la même instance existante
 
-    def create_card(card : Card) -> bool:
+    def create_card(card: Card) -> bool:
         """
         Add a card to the database
         """
         pass
 
-    def update_card(card : Card) -> bool:
+    def update_card(card: Card) -> bool:
         pass
     
     def delete_card(Card) -> bool:
@@ -43,7 +45,7 @@ class CardDao(metaclass=Singleton):
                     cursor.execute(
                         "SELECT *                                                        "
                         "  FROM AtomicCards c                                            "
-                        #"  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
+                        # "  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
                         " WHERE c.name = %(name)s                                        ",
                         {"name": name},
                 )
@@ -55,7 +57,6 @@ class CardDao(metaclass=Singleton):
                 embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
             return embedding
         
-    
     def find_all() -> list(Card):
         pass
     
@@ -64,3 +65,58 @@ class CardDao(metaclass=Singleton):
 
     def name_search(str) -> Card:
         pass
+
+    def filter_cat(self, filter: Abstractfilter):
+        variable_filtered = filter.variable_filtered
+        type_of_filtering = filter.type_of_filtering
+        filtering_value = filter.filtering_value
+        if type_of_filtering=="positive":
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT *                                       "
+                        "  FROM  Card                                   ",# remplacer nom de la database
+                        "  WHERE variable_filtered LIKE filtering_value "
+                    )
+                    res = cursor.fetchall()
+        if type_of_filtering=="negative":
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT *                                       "
+                        "  FROM  Card                                   ",
+                        "  WHERE variable_filtered NOT LIKE filtering_value "
+                    )
+                    res = cursor.fetchall()
+
+    def filter_num(self, filter: Abstractfilter): 
+        variable_filtered = filter.variable_filtered
+        type_of_filtering = filter.type_of_filtering
+        filtering_value = filter.filtering_value
+        if type_of_filtering=="higher_than":
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT *                                       "
+                        "  FROM  Card                                   ",
+                        "  WHERE variable_filtered < filtering_value "
+                    )
+                    res = cursor.fetchall()
+        if type_of_filtering=="lower_than":
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT *                                       "
+                        "  FROM Card                                    ",
+                        "  WHERE variable_filtered > filtering_value "
+                    )
+                    res = cursor.fetchall()
+        if type_of_filtering=="equal_to":
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT *                                       "
+                        "  FROM Card                                    ",
+                        "  WHERE variable_filtered = filtering_value "
+                    )
+                    res = cursor.fetchall()
