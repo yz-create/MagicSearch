@@ -66,20 +66,20 @@ class CardDao(metaclass=Singleton):
     def name_search(str) -> Card:
         pass
 
-    def filter_cat(self, filter: Abstractfilter):
+    def filter_cat_dao(self, filter: Abstractfilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
-        if type_of_filtering=="positive":
+        if type_of_filtering == "positive":
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         "SELECT *                                       "
-                        "  FROM  Card                                   ",# remplacer nom de la database
+                        "  FROM  Card                                   ",
                         "  WHERE variable_filtered LIKE filtering_value "
                     )
                     res = cursor.fetchall()
-        if type_of_filtering=="negative":
+        if type_of_filtering == "negative":
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -88,12 +88,13 @@ class CardDao(metaclass=Singleton):
                         "  WHERE variable_filtered NOT LIKE filtering_value "
                     )
                     res = cursor.fetchall()
+        return res
 
-    def filter_num(self, filter: Abstractfilter): 
+    def filter_num_dao(self, filter: Abstractfilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
-        if type_of_filtering=="higher_than":
+        if type_of_filtering == "higher_than":
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -102,7 +103,7 @@ class CardDao(metaclass=Singleton):
                         "  WHERE variable_filtered < filtering_value "
                     )
                     res = cursor.fetchall()
-        if type_of_filtering=="lower_than":
+        if type_of_filtering == "lower_than":
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -111,7 +112,7 @@ class CardDao(metaclass=Singleton):
                         "  WHERE variable_filtered > filtering_value "
                     )
                     res = cursor.fetchall()
-        if type_of_filtering=="equal_to":
+        if type_of_filtering == "equal_to":
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -120,3 +121,4 @@ class CardDao(metaclass=Singleton):
                         "  WHERE variable_filtered = filtering_value "
                     )
                     res = cursor.fetchall()
+        return res            

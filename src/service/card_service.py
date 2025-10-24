@@ -44,7 +44,10 @@ class User_Service():
     def view_random_card() -> Card:
         pass
 
-    def filter_cat(self, filter: Abstractfilter):
+    def filter_cat_service(self, filter: Abstractfilter):
+        """
+
+        """
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -54,14 +57,15 @@ class User_Service():
             raise ValueError("type_of_filtering can only take 'positive' or 'negative' as input")
         if not isinstance(filtering_value, str):
             raise ValueError("filtering_value must be a string")
-        return CardDAO().filter_cat()
+        return CardDAO().filter_cat_dao(filter)
 
-    def filter_num(self, filter: Abstractfilter):
+    def filter_num_service(self, filter: Abstractfilter):
+        """
+        """
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
-        if variable_filtered not in ["power", "toughness" ]:
+        if variable_filtered not in ["power", "toughness"]:
             raise ValueError("variable_filtered must be in the following list : ")
         if type_of_filtering not in ["higher_than", "lower_than", "equal_to"]:
             raise ValueError("type_of_filtering can only take 'higher_than', 'lower_than' or 'equal_to' as input")
-        return CardDAO().filter_num()
-
+        return CardDAO().filter_num_dao(filter)
