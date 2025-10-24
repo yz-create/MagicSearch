@@ -1,3 +1,0 @@
-import re
-import pytest
-from nomdocumentdanslequelestdéfinielafonction import nomdelafonctio
