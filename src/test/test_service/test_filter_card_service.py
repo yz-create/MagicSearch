@@ -3,10 +3,6 @@ import pytest
 from service.card_service import filter_cat_service, filter_num_service
 
 
-# 1. vérifier les inputs
-# 2. vérifier que des cartes qui ne sont pas censés y être n'y sont pas
-# 3. vérifier que des cartes qui sont censés y être y sont
-
 # input test on filter_cat_service
 @pytest.mark.parametrize(
     "params, error, error_message",
@@ -59,9 +55,3 @@ def test_filter_cat_service_input(params, error, error_message):
 def test_filter_num_service_input(params, error, error_message):
     with pytest.raises(error, match=re.escape(error_message)):
         filter_num_service(**params)
-
-
-# test of output of filter_cat_service
-
-
-# test of output of filter_num_service
