@@ -121,4 +121,6 @@ class CardDao(metaclass=Singleton):
                         "  WHERE variable_filtered = filtering_value "
                     )
                     res = cursor.fetchall()
-        return res            
+        return res
+
+        
