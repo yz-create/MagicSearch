@@ -10,19 +10,19 @@ from service.card_service import filter_cat_service, filter_num_service
         (
             {"variable_filtered": "toughness", 
              "type_of_filtering": "positive", 
-             "filtering_value": "halfling scout"},
+             "filtering_value": "Legendary Creature - Halfling Scout"},
             ValueError,
             "variable_filtered must be in the following list : "
         ),
         (
-            {"variable_filtered": "subtype", 
+            {"variable_filtered": "type", 
              "type_of_filtering": "random", 
-             "filtering_value": "halfling scout"},
-            ValueError,
+             "filtering_value": "Legendary Creature - Halfling Scout"},
+            ValueEror,
             "type_of_filtering can only take 'positive' or 'negative' as input"
         ),
         (
-            {"variable_filtered": "subtype", 
+            {"variable_filtered": "type", 
              "type_of_filtering": "positive", 
              "filtering_value": 9},
             TypeError,
