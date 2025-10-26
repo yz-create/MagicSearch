@@ -1,6 +1,6 @@
 import re
 import pytest
-from service.card_service import filter_cat_service, filter_num_service
+from src.service.card_service import filter_cat_service, filter_num_service
 
 
 # input test on filter_cat_service
@@ -18,7 +18,7 @@ from service.card_service import filter_cat_service, filter_num_service
             {"variable_filtered": "type", 
              "type_of_filtering": "random", 
              "filtering_value": "Legendary Creature - Halfling Scout"},
-            ValueEror,
+            ValueError,
             "type_of_filtering can only take 'positive' or 'negative' as input"
         ),
         (
