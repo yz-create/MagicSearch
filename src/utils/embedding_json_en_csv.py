@@ -19,7 +19,6 @@ headers = {
 }
 
 
-
 # ---- Fonction pour appeler l'API d'embedding ----
 def embedding(text: str):
     data = {
@@ -99,9 +98,3 @@ with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
             ])
         except Exception as e:
             print(f"Erreur avec la carte {card.get('name', '')}: {e}")
-
-
-
-
-
-

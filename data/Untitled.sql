@@ -2,7 +2,6 @@ CREATE TABLE "Card" (
   "idCard" int PRIMARY KEY NOT NULL,
   "convertedManaCost" float NOT NULL,
   "layout" int NOT NULL,
-  "legalities" int NOT NULL,
   "manaValue" float NOT NULL,
   "name" VARCHAR(500) NOT NULL,
   "type" int NOT NULL,
@@ -20,6 +19,7 @@ CREATE TABLE "Card" (
   "isFunny" bool,
   "isReserved" bool,
   "leadershipSkills" int,
+  "legalities" int,
   "life" int,
   "loyalty" VARCHAR(500),
   "manaCost" VARCHAR(500),
@@ -107,7 +107,7 @@ CREATE TABLE "LeadershipSkills" (
 CREATE TABLE "Legality" (
   "idLegality" int PRIMARY KEY NOT NULL,
   "commander" int,
-  "oathbreker" int,
+  "oathbreaker" int,
   "duel" int,
   "legacy" int,
   "vintage" int,
@@ -124,6 +124,7 @@ CREATE TABLE "Legality" (
   "premodern" int,
   "future" int,
   "standardbrawl" int,
+  "standard" int,
   "alchemy" int,
   "oldschool" int
 );
@@ -224,7 +225,7 @@ ALTER TABLE "Keywords" ADD FOREIGN KEY ("idKeyword") REFERENCES "Keyword" ("idKe
 
 ALTER TABLE "Legality" ADD FOREIGN KEY ("commander") REFERENCES "LegalityType" ("idLegalityType");
 
-ALTER TABLE "Legality" ADD FOREIGN KEY ("oathbreker") REFERENCES "LegalityType" ("idLegalityType");
+ALTER TABLE "Legality" ADD FOREIGN KEY ("oathbreaker") REFERENCES "LegalityType" ("idLegalityType");
 
 ALTER TABLE "Legality" ADD FOREIGN KEY ("duel") REFERENCES "LegalityType" ("idLegalityType");
 
@@ -257,6 +258,8 @@ ALTER TABLE "Legality" ADD FOREIGN KEY ("premodern") REFERENCES "LegalityType" (
 ALTER TABLE "Legality" ADD FOREIGN KEY ("future") REFERENCES "LegalityType" ("idLegalityType");
 
 ALTER TABLE "Legality" ADD FOREIGN KEY ("standardbrawl") REFERENCES "LegalityType" ("idLegalityType");
+
+ALTER TABLE "Legality" ADD FOREIGN KEY ("standard") REFERENCES "LegalityType" ("idLegalityType");
 
 ALTER TABLE "Legality" ADD FOREIGN KEY ("alchemy") REFERENCES "LegalityType" ("idLegalityType");
 
