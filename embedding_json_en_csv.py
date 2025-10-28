@@ -5,16 +5,19 @@ import os
 
 # ---- CONFIG ----
 token = os.getenv("API_TOKEN")
-# (pour lucile : dans le terminal tu copies : export API_TOKEN= )
+# (dans le terminal tu copies : export API_TOKEN= )
 # à mettre sur le terminal via https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé
 # d'API
 # si besoin mettre un export
 # print("API_TOKEN:", token)
+
+
 url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
 headers = {
     "Authorization": f"Bearer {token}",
     "Content-type": "application/json"
 }
+
 
 
 # ---- Fonction pour appeler l'API d'embedding ----
@@ -24,7 +27,6 @@ def embedding(text: str):
         "input": text
     }
     response = requests.post(url, headers=headers, json=data)
-    # response.raise_for_status()
     json_response = response.json()
     return json_response["embeddings"][0]  # vecteur (liste de floats)
 
@@ -34,13 +36,20 @@ def card_to_text(card: dict) -> str:
     fields = [
         card.get("name", ""),
         card.get("type", ""),
+        card.get("type_line", ""),
+        " ".join(card.get("supertypes", [])),
         " ".join(card.get("types", [])),
         " ".join(card.get("subtypes", [])),
         card.get("text", ""),
-        card.get("manaCost", ""),
+        f"Mana cost: {card.get('manaCost', '')}",
         f"Colors: {', '.join(card.get('colors', []))}",
+        f"Rarity: {card.get('rarity', '')}",
+        f"Power: {card.get('power', '')}",
+        f"Toughness: {card.get('toughness', '')}",
+        f"Defense: {card.get('defense', '')}",
+        f"Loyalty: {card.get('loyalty', '')}"
     ]
-    return " | ".join([f for f in fields if f])  # concaténation
+    return " | ".join([f for f in fields if f])  # concaténation lisible
 
 
 # ---- Charger le JSON ----
@@ -59,9 +68,11 @@ print(f"Nombre de cartes : {len(cards)}")
 with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
-    # Header CSV
+    # Header CSV enrichi
     writer.writerow([
-        "name", "type", "manaCost", "colors", "text", "embedding"
+        "name", "type", "type_line", "supertypes", "types", "subtypes",
+        "manaCost", "colors", "rarity", "power", "toughness", "defense", "loyalty",
+        "text", "embedding"
     ])
 
     # Pour chaque carte
@@ -72,10 +83,25 @@ with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
             writer.writerow([
                 card.get("name", ""),
                 card.get("type", ""),
+                card.get("type_line", ""),
+                " ".join(card.get("supertypes", [])),
+                " ".join(card.get("types", [])),
+                " ".join(card.get("subtypes", [])),
                 card.get("manaCost", ""),
                 ",".join(card.get("colors", [])),
+                card.get("rarity", ""),
+                card.get("power", ""),
+                card.get("toughness", ""),
+                card.get("defense", ""),
+                card.get("loyalty", ""),
                 card.get("text", ""),
-                json.dumps(emb)  # stockage du vecteur en JSON dans une cellule CSV
+                json.dumps(emb)
             ])
         except Exception as e:
             print(f"Erreur avec la carte {card.get('name', '')}: {e}")
+
+
+
+
+
+
