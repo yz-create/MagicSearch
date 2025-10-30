@@ -27,6 +27,17 @@ def embedding(text: str):
     }
     response = requests.post(url, headers=headers, json=data)
     json_response = response.json()
+    """if response.status_code != 200:
+        print("❌ API Error:", response.status_code)
+        print("Response text:", response.text)
+        raise SystemExit()
+
+    try:
+        json_response = response.json()
+    except Exception:
+        print("❌ Could not decode JSON response")
+        print("Response text:", response.text)
+        raise"""
     return json_response["embeddings"][0]  # vecteur (liste de floats)
 
 
@@ -51,50 +62,51 @@ def card_to_text(card: dict) -> str:
     return " | ".join([f for f in fields if f])  # concaténation lisible
 
 
-# ---- Charger le JSON ----
-with open("AtomicCards.json", "r", encoding="utf-8") as f:
-    data = json.load(f)
+def main():
+    # ---- Charger le JSON ----
+    with open("AtomicCards.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-# Format attendu : {"data": { "setName": [CardAtomic, ...], ...}}
-cards = []
-for set_name, card_list in data["data"].items():
-    for card in card_list:
-        cards.append(card)
+    # Format attendu : {"data": { "setName": [CardAtomic, ...], ...}}
+    cards = []
+    for set_name, card_list in data["data"].items():
+        for card in card_list:
+            cards.append(card)
 
-print(f"Nombre de cartes : {len(cards)}")
+    print(f"Nombre de cartes : {len(cards)}")
 
-# ---- Écriture du CSV ----
-with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f)
+    # ---- Écriture du CSV ----
+    with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
 
-    # Header CSV enrichi
-    writer.writerow([
-        "name", "type", "type_line", "supertypes", "types", "subtypes",
-        "manaCost", "colors", "rarity", "power", "toughness", "defense", "loyalty",
-        "text", "embedding"
-    ])
+        # Header CSV enrichi
+        writer.writerow([
+            "name", "type", "type_line", "supertypes", "types", "subtypes",
+            "manaCost", "colors", "rarity", "power", "toughness", "defense", "loyalty",
+            "text", "embedding"
+        ])
 
-    # Pour chaque carte
-    for card in cards:
-        try:
-            text_repr = card_to_text(card)
-            emb = embedding(text_repr)  # liste de floats
-            writer.writerow([
-                card.get("name", ""),
-                card.get("type", ""),
-                card.get("type_line", ""),
-                " ".join(card.get("supertypes", [])),
-                " ".join(card.get("types", [])),
-                " ".join(card.get("subtypes", [])),
-                card.get("manaCost", ""),
-                ",".join(card.get("colors", [])),
-                card.get("rarity", ""),
-                card.get("power", ""),
-                card.get("toughness", ""),
-                card.get("defense", ""),
-                card.get("loyalty", ""),
-                card.get("text", ""),
-                json.dumps(emb)
-            ])
-        except Exception as e:
-            print(f"Erreur avec la carte {card.get('name', '')}: {e}")
+        # Pour chaque carte
+        for card in cards:
+            try:
+                text_repr = card_to_text(card)
+                emb = embedding(text_repr)  # liste de floats
+                writer.writerow([
+                    card.get("name", ""),
+                    card.get("type", ""),
+                    card.get("type_line", ""),
+                    " ".join(card.get("supertypes", [])),
+                    " ".join(card.get("types", [])),
+                    " ".join(card.get("subtypes", [])),
+                    card.get("manaCost", ""),
+                    ",".join(card.get("colors", [])),
+                    card.get("rarity", ""),
+                    card.get("power", ""),
+                    card.get("toughness", ""),
+                    card.get("defense", ""),
+                    card.get("loyalty", ""),
+                    card.get("text", ""),
+                    json.dumps(emb)
+                ])
+            except Exception as e:
+                print(f"Erreur avec la carte {card.get('name', '')}: {e}")

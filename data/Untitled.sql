@@ -1,13 +1,12 @@
 CREATE TABLE "Card" (
   "idCard" int PRIMARY KEY NOT NULL,
-  "convertedManaCost" float NOT NULL,
   "layout" int NOT NULL,
-  "manaValue" float NOT NULL,
   "name" VARCHAR(500) NOT NULL,
   "type" int NOT NULL,
-  "text_to_embed" VARCHAR(500) NOT NULL,
+  "text_to_embed" VARCHAR(10000) NOT NULL,
   "embed" float[] NOT NULL,
   "asciiName" VARCHAR(500),
+  "convertedManaCost" float,
   "defense" int,
   "edhrecRank" int,
   "edhrecSaltiness" float,
@@ -23,9 +22,10 @@ CREATE TABLE "Card" (
   "life" int,
   "loyalty" VARCHAR(500),
   "manaCost" VARCHAR(500),
+  "manaValue" float,
   "power" VARCHAR(500),
   "side" VARCHAR(500),
-  "text" VARCHAR(500),
+  "text" VARCHAR(10000),
   "toughness" VARCHAR(500)
 );
 
@@ -72,7 +72,7 @@ CREATE TABLE "ForeignData" (
   "name" VARCHAR(500) NOT NULL,
   "faceName" VARCHAR(500),
   "flavorText" VARCHAR(500),
-  "text" VARCHAR(500),
+  "text" VARCHAR(10000),
   "type" VARCHAR(500)
 );
 
@@ -135,8 +135,8 @@ CREATE TABLE "LegalityType" (
 );
 
 CREATE TABLE "Printings" (
-  "idSet" int NOT NULL,
   "idCard" int NOT NULL,
+  "idSet" int NOT NULL,
   PRIMARY KEY ("idSet", "idCard")
 );
 
@@ -147,15 +147,15 @@ CREATE TABLE "PurchaseURLs" (
   "cardKingdom" VARCHAR(500),
   "cardmarket" VARCHAR(500),
   "cardKingdomFoil" VARCHAR(500),
-  "cardKingdromEtched" VARCHAR(500),
-  "tcgplayerEteched" VARCHAR(500)
+  "cardKingdomEtched" VARCHAR(500),
+  "tcgplayerEtched" VARCHAR(500)
 );
 
 CREATE TABLE "Ruling" (
   "idRuling" int PRIMARY KEY NOT NULL,
+  "idCard" int NOT NULL,
   "date" date NOT NULL,
-  "text" VARCHAR(500) NOT NULL,
-  "idCard" int NOT NULL
+  "text" VARCHAR(10000) NOT NULL
 );
 
 CREATE TABLE "Subtype" (
@@ -164,8 +164,8 @@ CREATE TABLE "Subtype" (
 );
 
 CREATE TABLE "Subtypes" (
-  "idSubtype" int NOT NULL,
   "idCard" int NOT NULL,
+  "idSubtype" int NOT NULL,
   PRIMARY KEY ("idSubtype", "idCard")
 );
 
@@ -175,8 +175,8 @@ CREATE TABLE "Supertype" (
 );
 
 CREATE TABLE "Supertypes" (
-  "idSupertype" int NOT NULL,
   "idCard" int NOT NULL,
+  "idSupertype" int NOT NULL,
   PRIMARY KEY ("idSupertype", "idCard")
 );
 
@@ -186,8 +186,8 @@ CREATE TABLE "Type" (
 );
 
 CREATE TABLE "Types" (
-  "idType" int NOT NULL,
   "idCard" int NOT NULL,
+  "idType" int NOT NULL,
   PRIMARY KEY ("idType", "idCard")
 );
 
