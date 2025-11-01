@@ -1,5 +1,6 @@
 from db_connection import DBConnection
 
+
 class UserDao:
     """Communication between UserService and the DBConnexion"""
     def __init__(self, db):
