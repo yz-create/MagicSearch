@@ -14,7 +14,7 @@ class FilterCategory(AbstractFilter):
         Parameters
         ----------
         variable_filtered: str
-            is a categorical variable chosen among the following :
+            is a categorical variable chosen among the following :type
 
         type_of_filtering: str
             defines the way we want to filter the variable.

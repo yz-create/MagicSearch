@@ -17,8 +17,7 @@ class FilterNumeric(AbstractFilter):
             (this parameter is not defined with an int type because the variables toughness and
             power have some str values
             despite being numerical variables)
-            is a numerical variable chosen among the following : "power", "toughness"
-
+            is a numerical variable chosen among the following : manaValue, defense, edhrecRank, toughness, power
         type_of_filtering: str
             defines the way we want to filter the variable. It can only take "higher_than",
             "lower_than" or "equal_to" as input

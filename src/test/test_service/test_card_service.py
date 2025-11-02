@@ -12,7 +12,7 @@ from src.service.card_service import filter_cat_service, filter_num_service
              "type_of_filtering": "positive", 
              "filtering_value": "Legendary Creature - Halfling Scout"},
             ValueError,
-            "variable_filtered must be in the following list : "
+            "variable_filtered must be in the following list : type"
         ),
         (
             {"variable_filtered": "type", 
@@ -43,7 +43,7 @@ def test_filter_cat_service_input(params, error, error_message):
         (
             {"variable_filtered": "type", "type_of_filtering": "equal_to", "filtering_value": 9},
             ValueError,
-            "variable_filtered must be in the following list : "
+            "variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power"
         ),
         (
             {"variable_filtered": "power", "type_of_filtering": "positive", "filtering_value": 9},
