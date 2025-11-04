@@ -9,12 +9,6 @@ class CardDao:
     # Pattern Singleton : empêche la création de plusieurs objets,
     # renvoie toujours la même instance existante
 
-    def create_card(card: Card) -> bool:
-        """
-        Add a card to the database
-        """
-        pass
-
     def create_card(self, card: Card) -> bool:
         """
         Add a card to the database
@@ -44,9 +38,9 @@ class CardDao:
                         ) VALUES (
                             %(layout)s, %(name)s, %(type)s, %(text_to_embed)s, %(embed)s,
                             %(asciiName)s, %(convertedManaCost)s, %(defense)s, %(edhrecRank)s,
-                            %(edhrecSaltiness)s, %(faceManaValue)s, %(faceName)s, 
-                            %(firstPrinting)s, %(hand)s, %(hasAlternativeDeckLimit)s, 
-                            %(isFunny)s, %(isReserved)s, %(leadershipSkills)s, 
+                            %(edhrecSaltiness)s, %(faceManaValue)s, %(faceName)s,
+                            %(firstPrinting)s, %(hand)s, %(hasAlternativeDeckLimit)s,
+                            %(isFunny)s, %(isReserved)s, %(leadershipSkills)s,
                             %(legalities)s, %(life)s, %(loyalty)s, %(manaCost)s,
                             %(manaValue)s, %(power)s, %(side)s, %(text)s, %(toughness)s
                         ) RETURNING "idCard";
@@ -133,7 +127,7 @@ class CardDao:
         except Exception as e:
             logging.error(f"Error updating card: {e}")
             return False
-    
+
     def delete_card(self, card_id: int) -> bool:
         """
         Delete a card from the database
@@ -159,7 +153,7 @@ class CardDao:
         except Exception as e:
             logging.error(f"Error deleting card: {e}")
             return False
-    
+
     def find_all_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
         request = (
             f"SELECT embedded                                                  "
@@ -179,7 +173,7 @@ class CardDao:
         for row in res:
             embedding.append(row)
         return embedding
-        
+
     def find_by_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -189,8 +183,8 @@ class CardDao:
                     # "  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
                     " WHERE c.name = %(name)s                                        ",
                     {"name": name},
-            )
-            res = cursor.fetchone()
+                )
+                res = cursor.fetchone()
 
         embedding = None
 
@@ -206,12 +200,15 @@ class CardDao:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
                 cursor.execute(
-                    'SELECT * '
+                    'SELECT "asciiName", "convertedManaCost", "defense", "edhrecRank", '
+                    '"edhrecSaltiness", "faceManaValue", "faceName", "hand", '
+                    '"hasAlternativeDeckLimit", "isFunny", "isReserved", "life", "loyalty", '
+                    '"manaCost", "manaValue", "name", "power", "side", "text", "toughness"'
                     '  FROM "Card"       '
                     '  WHERE "idCard" = %(idCard)s',
                     {"idCard": id_card}
                 )
-                res = cursor.fetchall()
+                res = cursor.fetchone()
 
         return res
 
