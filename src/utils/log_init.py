@@ -8,7 +8,7 @@ def initialize_logs(name):
     """Initialize logs from the config file"""
     os.makedirs("logs", exist_ok=True)
 
-    with open("logging_config.yml", encoding="utf-8") as stream:
+    with open("src/logging_config.yml", encoding="utf-8") as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
     logging.config.dictConfig(config)
 
