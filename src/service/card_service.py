@@ -1,6 +1,6 @@
 from business_object.card import Card
 from dao.card_dao import CardDao
-from business_object.filters.abstract_filter import Abstractfilter
+from business_object.filters.abstract_filter import AbstractFilter
 
 import random
 import psycopg
@@ -9,7 +9,7 @@ import requests
 import os
 
 # Set the following env. variables for this to work: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
-conn = psycopg.connect(dbname="vector", autocommit=True)
+conn = psycopg.connect(dbname="defaultdb", autocommit=True)
 register_vector(conn)
 
 
@@ -104,7 +104,7 @@ class Card_Service():
         idrand = random.randint(0, idmax)
         Card_Service.id_search(idrand)
 
-    def filter_cat_service(self, filter: Abstractfilter):
+    def filter_cat_service(self, filter: AbstractFilter):
         """
         Service method for numerical filtering : raises errors and calls the corresponding DAO
         method
@@ -130,7 +130,7 @@ class Card_Service():
             raise ValueError("filtering_value must be a string")
         return CardDao().filter_cat_dao(filter)
 
-    def filter_num_service(self, filter: Abstractfilter):
+    def filter_num_service(self, filter: AbstractFilter):
         """
         Service method for numerical filtering : raises errors and calls the corresponding DAO
         method
