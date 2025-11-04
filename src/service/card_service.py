@@ -2,6 +2,7 @@ from business_object.card import Card
 from dao.card_dao import CardDao
 from business_object.filters.abstract_filter import Abstractfilter
 
+import random
 import psycopg
 from pgvector.psycopg import register_vector
 import requests
@@ -91,8 +92,17 @@ class Card_Service():
         return get_similar_entries(search_emb)
 
     def view_random_card() -> Card:
+        """
+        Allows to show a random card
+
+        Returns:
+        --------
+        Card
+            The random card obtained
+        """
         idmax = CardDao.get_highest_id()
-        Card_Service.id_search(idmax)
+        idrand = random.randint(0, idmax)
+        Card_Service.id_search(idrand)
 
     def filter_cat_service(self, filter: Abstractfilter):
         """

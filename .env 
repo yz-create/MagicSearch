@@ -1,7 +1,0 @@
-POSTGRES_HOST=postgresql-874507.user-poulpy
-POSTGRES_PORT=5432
-POSTGRES_DATABASE=defaultdb
-POSTGRES_USER=user-poulpy
-POSTGRES_PASSWORD=nbwxdxaizmm67ioly9qe
-POSTGRES_SCHEMA=projet
-PYTHONPATH="/home/onyxia/work/MagicSearch/src"

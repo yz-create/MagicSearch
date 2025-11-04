@@ -197,17 +197,28 @@ class CardDao:
         if res:
             embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
         return embedding
-        
-    def find_all() -> list(Card):
+
+    def find_all():
         pass
-    
-    def id_search(int) -> Card:
-        pass
+
+    def id_search(id_card: int) -> Card:
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
+                cursor.execute(
+                    'SELECT * '
+                    '  FROM "Card"       '
+                    '  WHERE "idCard" = %(idCard)s',
+                    {"idCard": id_card}
+                )
+                res = cursor.fetchall()
+
+        return res
 
     def name_search(str) -> Card:
         pass
 
-    def filter_cat_dao(self, filter: Abstractfilter):
+    def filter_cat_dao(self, filter: AbstractFilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -231,7 +242,7 @@ class CardDao:
                     res = cursor.fetchall()
         return res
 
-    def filter_num_dao(self, filter: Abstractfilter):
+    def filter_num_dao(self, filter: AbstractFilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -275,3 +286,7 @@ class CardDao:
                 res = cursor.fetchone()
 
         return res['max']
+
+
+if __name__ == "__main__":
+    print(CardDao.id_search(3))
