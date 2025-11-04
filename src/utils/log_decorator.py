@@ -71,4 +71,12 @@ def log(func):
         elif isinstance(result, str) and len(result) > 50:
             result_str = result[:50] + f" ... ({len(result)} characters)"
         else:
-            result
+            result_str = str(result)
+
+        logger.info(f"{indentation}   └─> Output: {result_str}")
+
+        LogIndentation.decrease_indentation()
+
+        return result
+
+    return wrapper
