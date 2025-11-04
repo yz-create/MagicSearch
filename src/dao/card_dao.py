@@ -192,10 +192,10 @@ class CardDao:
             embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
         return embedding
 
-    def find_all():
+    def find_all(self):
         pass
 
-    def id_search(id_card: int) -> Card:
+    def id_search(self, id_card: int) -> Card:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
@@ -309,7 +309,7 @@ class CardDao:
             returned_list.append(value[column_name])
         return returned_list
 
-    def name_search(str) -> Card:
+    def name_search(self, str) -> Card:
         pass
 
     def filter_cat_dao(self, filter: AbstractFilter):
@@ -369,7 +369,7 @@ class CardDao:
                     res = cursor.fetchall()
         return res
 
-    def get_highest_id():
+    def get_highest_id(self):
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
