@@ -1,5 +1,6 @@
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 import unittest
 from unittest.mock import MagicMock, patch
@@ -40,5 +41,5 @@ class TestUserDao(unittest.TestCase):
         self.assertFalse(result)
         self.assertIsNone(user.user_id)
 
-    if __name__ == "__main__":
-        unittest.main()
+if __name__ == "__main__":
+    unittest.main()

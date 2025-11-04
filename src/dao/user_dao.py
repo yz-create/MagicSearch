@@ -4,6 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.log_decorator import log
 from db_connection import DBConnection
 import logging
+from business_object.user import User
 
 class UserDao:
     """Communication between UserService and the DBConnexion"""
@@ -19,49 +20,45 @@ class UserDao:
         pass
 
     @log
-    def create(self, username: str, email: str, password: str) -> bool:
+    def create(self, user: User) -> bool:
         """
-        Crée un nouvel utilisateur (joueur) dans la base de données.
+        Create a new user in the database.
 
         Parameters
         ----------
-        username : str
-        Le nom d'utilisateur du joueur
-        email : str
-        L'adresse e-mail du joueur
-        password : str
-        Le mot de passe du joueur (idéalement déjà haché)
+        user : User
+            The User object to insert into the database.
 
         Returns
         -------
         created : bool
-        True si la création est un succès, False sinon
+            True if created successfully, False otherwise
         """
         res = None
 
         try:
-            with DBConnection().connection as connection:
+            with self.db.connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        INSERT INTO joueur (pseudo, mail, mdp)
-                        VALUES (%(pseudo)s, %(mail)s, %(mdp)s)
-                        RETURNING user_id;
+                        INSERT INTO "User" (username, password, isAdmin)
+                        VALUES (%(username)s, %(password)s, False)
+                        RETURNING idUser;
                         """,
                         {
-                            "username": username,
-                            "mail": email,
-                            "password": password,
+                            "username": user.username,
+                            "password": user.password,
+                            "isAdmin": False
                         },
                     )
                     res = cursor.fetchone()
 
         except Exception as e:
-            logging.error(f"Erreur lors de la création du joueur : {e}")
+            logging.error(f"Error while creating a user: {e}")
 
         created = False
         if res:
-            self.id_joueur = res["id_joueur"]
+            user.user_id = res["idUser"]
             created = True
 
         return created
