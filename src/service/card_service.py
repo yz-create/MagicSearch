@@ -2,6 +2,7 @@ from business_object.card import Card
 from dao.card_dao import CardDao
 from business_object.filters.abstract_filter import AbstractFilter
 
+from dotenv import load_dotenv
 import random
 import psycopg
 from pgvector.psycopg import register_vector
@@ -9,7 +10,17 @@ import requests
 import os
 
 # Set the following env. variables for this to work: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
-conn = psycopg.connect(dbname="defaultdb", autocommit=True)
+# conn = psycopg.connect(dbname="defaultdb", autocommit=True)
+load_dotenv()
+
+conn = psycopg.connect(
+    host=os.getenv("POSTGRES_HOST"),
+    port=os.getenv("POSTGRES_PORT"),
+    dbname=os.getenv("POSTGRES_DATABASE"),
+    user=os.getenv("POSTGRES_USER"),
+    password=os.getenv("POSTGRES_PASSWORD"),
+    autocommit=True
+)
 register_vector(conn)
 
 
