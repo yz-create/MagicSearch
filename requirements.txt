@@ -5,6 +5,6 @@ tabulate
 pytest
 logging
 logging.config
-yaml
+PyYAML
 pydantic
 pgvector

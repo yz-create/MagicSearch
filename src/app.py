@@ -73,16 +73,16 @@ async def semantic_search(search):
 # Card_Service().filter_num_service(self, filter: AbstractFilter)
 #card_service().filter_cat_service(self, filter: AbstractFilter)
 @app.get("/card/{filter}", tags=["Cards"]) 
-async def filter_numerical(filter: AbstractFilter):
+async def filter_numerical(filter):
     """Filters the database based on a numerical criterion"""
     logging.info("Filters the database based on a numerical criterion")
-    return card_service.filter_num_service(filter: AbstractFilter)
+    return card_service.filter_num_service(filter)
 
 @app.get("/card/{filter}", tags=["Cards"]) 
-async def filter_categorical(filter: AbstractFilter):
+async def filter_categorical(filter):
     """Filters the database based on a categorical criterion"""
     logging.info("Filters the database based on a categorical criterion")
-    return card_service.filter_cat_service(filter: AbstractFilter)
+    return card_service.filter_cat_service(filter)
 
 # database management tools (create a card, delete a card, update a card)
 
