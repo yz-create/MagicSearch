@@ -3,7 +3,6 @@ psycopg
 dotenv
 tabulate
 pytest
-logging
 logging.config
 PyYAML
 pydantic
