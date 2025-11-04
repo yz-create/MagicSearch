@@ -86,9 +86,3 @@ class UserService:
         if user.password == hashed_input_pw:
             return user
         return None
-
-    @log
-    def username_already_used(self, username: str) -> bool:
-        """Check if a username is already used."""
-        existing_user = self.user_dao.get_by_username(username)
-        return existing_user is not None
