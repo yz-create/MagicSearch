@@ -5,41 +5,86 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from service.user_service import UserService
-# from service.card_service import Card_Service
-from utils.log_init import initialiser_logs
+from service.card_service import Card_Service
+from utils.log_init import initialize_logs
+from business_object.filters.abstract_filter import AbstractFilter #pour les fonctions de filtrages
 
-app = FastAPI(title="MagicSearch", root_path="/api")
 
+## SETTING UP THE API
+# root_path = 
+app = FastAPI(
+    title="MagicSearch",
+    # root_path=root_path+"\docs",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
 
-initialiser_logs("WebserviceOK")
-
-user_service = UserService()
+initialize_logs("WebserviceOK")
 
 # path to the documentation
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
     """Redirect to the API documentation"""
-    return RedirectResponse(url=str(Request.base_url) + "docs")
+    return RedirectResponse(url="docs")
+
+user_service = UserService()
+card_service = Card_Service()
+
 
 ## CARD FUNCTIONALITIES
-# database management tools (create a card, delete a card, update a card)
+
 # list all cards ?
-
-# get a card by its id 
-# Card_Service().id_search(id)
-
-# get a card by its name
-# Card_Service().name_search(name)
 
 # get a random card
 # Card_Service().view_random_card()
+@app.get("/card/", tags=["Cards"]) #  
+async def view_random():
+    """get a random card"""
+    logging.info("get a random card")
+    return card_service.view_random_card()
 
-# get the result of a sementic search
+# get a card by its id 
+# Card_Service().id_search(id)
+@app.get("/card/{id}", tags=["Cards"])
+async def id_search(id: int):
+    """Finds a card based on its id """
+    logging.info("Finds a card based on its id ")
+    return card_service.id_search(id)
+
+# get a card by its name
+# Card_Service().name_search(name)
+@app.get("/card/{name}", tags=["Cards"]) #  
+async def name_search(name:str):
+    """Finds a card based on its name """
+    logging.info("Finds a card based on its name")
+    return card_service.name_search(name)
+
+# get the result of a semantic search
 # Card_Service().semantic_search(search)
+@app.get("/card/{search}", tags=["Cards"]) #  
+async def semantic_search(search):
+    """Finds a card based on its a semantic search"""
+    logging.info("Finds a card based on its a semantic search")
+    return card_service.semantic_search(search)
 
+    
 # get a filtered list of cards
-# Card_Service().filter_cat_service
+# Card_Service().filter_num_service(self, filter: AbstractFilter)
+#card_service().filter_cat_service(self, filter: AbstractFilter)
+@app.get("/card/{filter}", tags=["Cards"]) 
+async def filter_numerical(filter):
+    """Filters the database based on a numerical criterion"""
+    logging.info("Filters the database based on a numerical criterion")
+    return card_service.filter_num_service(filter)
 
+@app.get("/card/{filter}", tags=["Cards"]) 
+async def filter_categorical(filter):
+    """Filters the database based on a categorical criterion"""
+    logging.info("Filters the database based on a categorical criterion")
+    return card_service.filter_cat_service(filter)
+
+# database management tools (create a card, delete a card, update a card)
 
 
 ## USER FUNCTIONALITIES
@@ -58,9 +103,10 @@ async def list_all_users():
 
     return liste_model
 
+
 # get a user by their id
 @app.get("/user/{user_id}", tags=["Users"])
-async def user_par_id(user_id: int):
+async def user_by_id(user_id: int):
     """Finds a user based on their id """
     logging.info("Finds a user based on their id")
     return user_service.find_by_id(user_id)
@@ -124,13 +170,12 @@ def supprimer_user(id_user: int):
     return f"user {user.pseudo} deleted"
 
 
-# route simple pour tester l'api
+## API TEST
 @app.get("/hello/{name}")
 async def hello_name(name: str):
     """Afficher Hello"""
     logging.info(f"Afficher Hello {name}")
     return f"message : Hello {name}"
-
 
 # Run the FastAPI application
 if __name__ == "__main__":

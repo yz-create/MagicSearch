@@ -201,16 +201,84 @@ class CardDao:
                 cursor.execute('SET search_path TO defaultdb, public;')
                 cursor.execute(
                     'SELECT "asciiName", "convertedManaCost", "defense", "edhrecRank", '
-                    '"edhrecSaltiness", "faceManaValue", "faceName", "hand", '
+                    '"edhrecSaltiness", "embed", "faceManaValue", "faceName", "hand", '
                     '"hasAlternativeDeckLimit", "isFunny", "isReserved", "life", "loyalty", '
-                    '"manaCost", "manaValue", "name", "power", "side", "text", "toughness"'
-                    '  FROM "Card"       '
+                    '"manaCost", "manaValue", c."name", "power", "side", "text", "toughness", '
+                    'l."name" layout, t."name" type, s."name" firstPrinting'
+                    '  FROM "Card" c       '
+                    '  JOIN "Layout" l ON l."idLayout" = c."layout"'
+                    '  JOIN "Type" t ON t."idType" = c."type"'
+                    '  JOIN "Set" s ON s."idSet" = c."firstPrinting"'
                     '  WHERE "idCard" = %(idCard)s',
                     {"idCard": id_card}
                 )
-                res = cursor.fetchone()
+                res_card = cursor.fetchone()
+                cursor.execute(
+                    '''
+                    SELECT "colorName"
+                    FROM "Color" c
+                    JOIN "ColorIdentity" ci ON ci."idColor" = c."idColor"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_color_identity = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "colorName"
+                    FROM "Color" c
+                    JOIN "ColorIndicator" ci ON ci."idColor" = c."idColor"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_color_indicator = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "colorName"
+                    FROM "Color" c
+                    JOIN "Colors" cs ON cs."idColor" = c."idColor"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_colors = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "language", "name", "faceName", "flavorText", "text", "type"
+                    FROM "ForeignData"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_foreign_data = cursor.fetchall()
 
-        return res
+        color_identity = CardDao.get_list_from_fetchall(res_color_identity, 'colorName')
+        color_indicator = CardDao.get_list_from_fetchall(res_color_indicator, 'colorName')
+        colors = CardDao.get_list_from_fetchall(res_colors, 'colorName')
+        foreign_data = [dict(r) for r in res_foreign_data]
+
+        card = Card(
+            res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
+            res_card["asciiName"], color_identity, color_indicator, colors,
+            res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
+            res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
+            res_card["firstprinting"], foreign_data
+            )
+
+        return (
+            res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
+            res_card["asciiName"], color_identity, color_indicator, colors,
+            res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
+            res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
+            res_card["firstprinting"], foreign_data
+            )
+
+    def get_list_from_fetchall(res, column_name) -> list:
+        returned_list = []
+        for value in res:
+            returned_list.append(value[column_name])
+        return returned_list
 
     def name_search(self, str) -> Card:
         pass
@@ -286,4 +354,4 @@ class CardDao:
 
 
 if __name__ == "__main__":
-    print(CardDao.id_search(3))
+    print(CardDao.id_search(9))

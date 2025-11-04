@@ -23,15 +23,20 @@ class UserService:
 
     @log
     def create_user(self, username: str, password: str) -> User | None:
-        """Create a new user and handle duplicate username."""
         hashed_password = hash_password(password, username)
-        new_user = User(username=username, password=hashed_password)       
-        if self.dao.create(new_user):
+        new_user = User(username=username, password=hashed_password)
+    
+        result = self.user_dao.create(new_user)
+        if result == "CREATED":
             print(f"User '{username}' created successfully!")
             return new_user
-        else:
+        elif result == "EXISTS":
             print(f"Username '{username}' already exists!")
             return None
+        else:
+            print(f"Error creating user '{username}'. Please try again later.")
+            return None
+
 
     @log
     def list_all(self, include_password: bool = False) -> list[User]:
