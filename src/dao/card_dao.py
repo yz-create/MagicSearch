@@ -1,3 +1,5 @@
+import logging
+
 from business_object.card import Card
 from db_connection import DBConnection
 from business_object.filters.abstract_filter import AbstractFilter
@@ -13,11 +15,150 @@ class CardDao:
         """
         pass
 
-    def update_card(card: Card) -> bool:
-        pass
+    def create_card(self, card: Card) -> bool:
+        """
+        Add a card to the database
+
+        Parameters
+        ----------
+        card : Card
+            The card to add
+
+        Returns
+        -------
+        bool
+            True if creation succeeded, False otherwise
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        INSERT INTO "Card" (
+                            "layout", "name", "type", "text_to_embed", "embed",
+                            "asciiName", "convertedManaCost", "defense", "edhrecRank",
+                            "edhrecSaltiness", "faceManaValue", "faceName", "firstPrinting",
+                            "hand", "hasAlternativeDeckLimit", "isFunny", "isReserved",
+                            "leadershipSkills", "legalities", "life", "loyalty", "manaCost",
+                            "manaValue", "power", "side", "text", "toughness"
+                        ) VALUES (
+                            %(layout)s, %(name)s, %(type)s, %(text_to_embed)s, %(embed)s,
+                            %(asciiName)s, %(convertedManaCost)s, %(defense)s, %(edhrecRank)s,
+                            %(edhrecSaltiness)s, %(faceManaValue)s, %(faceName)s, 
+                            %(firstPrinting)s, %(hand)s, %(hasAlternativeDeckLimit)s, 
+                            %(isFunny)s, %(isReserved)s, %(leadershipSkills)s, 
+                            %(legalities)s, %(life)s, %(loyalty)s, %(manaCost)s,
+                            %(manaValue)s, %(power)s, %(side)s, %(text)s, %(toughness)s
+                        ) RETURNING "idCard";
+                        """,
+                        {
+                            "layout": card.layout,
+                            "name": card.name,
+                            "type": card.type_line,
+                            "text_to_embed": card.text or "",
+                            "embed": card.get_embedded() or [],
+                            "asciiName": card.ascii_name,
+                            "convertedManaCost": card.converted_mana_cost,
+                            "defense": card.defense,
+                            "edhrecRank": card.edhrec_rank,
+                            "edhrecSaltiness": card.edhrec_saltiness,
+                            "faceManaValue": card.face_mana_value,
+                            "faceName": card.face_name,
+                            "firstPrinting": card.first_printing,
+                            "hand": card.hand,
+                            "hasAlternativeDeckLimit": card.has_alternative_deck_limit,
+                            "isFunny": card.is_funny,
+                            "isReserved": card.is_reserved,
+                            "leadershipSkills": None,  # À gérer séparément
+                            "legalities": None,  # À gérer séparément
+                            "life": card.life,
+                            "loyalty": card.loyalty,
+                            "manaCost": card.mana_cost,
+                            "manaValue": card.mana_value,
+                            "power": card.power,
+                            "side": None,
+                            "text": card.text,
+                            "toughness": card.toughness
+                        }
+                    )
+                    result = cursor.fetchone()
+                    return result is not None
+        except Exception as e:
+            logging.error(f"Error creating card: {e}")
+            return False
+
+    def update_card(self, card: Card) -> bool:
+        """
+        Update an existing card in the database
+
+        Parameters
+        ----------
+        card : Card
+            The card with updated information
+
+        Returns
+        -------
+        bool
+            True if update succeeded, False otherwise
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        UPDATE "Card" SET
+                            "name" = %(name)s,
+                            "text" = %(text)s,
+                            "manaCost" = %(manaCost)s,
+                            "manaValue" = %(manaValue)s,
+                            "power" = %(power)s,
+                            "toughness" = %(toughness)s,
+                            "text_to_embed" = %(text_to_embed)s,
+                            "embed" = %(embed)s
+                        WHERE "idCard" = %(idCard)s;
+                        """,
+                        {
+                            "idCard": card.ascii_name,  # Besoin d'un ID dans Card
+                            "name": card.name,
+                            "text": card.text,
+                            "manaCost": card.mana_cost,
+                            "manaValue": card.mana_value,
+                            "power": card.power,
+                            "toughness": card.toughness,
+                            "text_to_embed": card.text or "",
+                            "embed": card.get_embedded() or []
+                        }
+                    )
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error updating card: {e}")
+            return False
     
-    def delete_card(Card) -> bool:
-        pass
+    def delete_card(self, card_id: int) -> bool:
+        """
+        Delete a card from the database
+
+        Parameters
+        ----------
+        card_id : int
+            ID of the card to delete
+
+        Returns
+        -------
+        bool
+            True if deletion succeeded, False otherwise
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'DELETE FROM "Card" WHERE "idCard" = %(idCard)s;',
+                        {"idCard": card_id}
+                    )
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error deleting card: {e}")
+            return False
     
     def find_all_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
         request = (
@@ -39,23 +180,23 @@ class CardDao:
             embedding.append(row)
         return embedding
         
-        def find_by_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                                                        "
-                        "  FROM AtomicCards c                                            "
-                        # "  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
-                        " WHERE c.name = %(name)s                                        ",
-                        {"name": name},
-                )
-                res = cursor.fetchone()
+    def find_by_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT *                                                        "
+                    "  FROM AtomicCards c                                            "
+                    # "  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
+                    " WHERE c.name = %(name)s                                        ",
+                    {"name": name},
+            )
+            res = cursor.fetchone()
 
-            embedding = None
+        embedding = None
 
-            if res:
-                embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
-            return embedding
+        if res:
+            embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
+        return embedding
         
     def find_all() -> list(Card):
         pass
