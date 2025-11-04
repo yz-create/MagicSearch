@@ -13,7 +13,7 @@ class ResetDatabase(metaclass=Singleton):
     """
     Reinitialisation de la base de données
     """
-    def lancer(self, data):
+    def start(self, data):
         """
         Reset the database, and import everything from the .json back
 
@@ -401,4 +401,4 @@ class ResetDatabase(metaclass=Singleton):
 if __name__ == "__main__":
     with open('AtomicCards.json', 'r') as file:
         data = json.load(file)
-    ResetDatabase().lancer(data)
+    ResetDatabase().start(data)

@@ -1,7 +1,7 @@
 import os
 import logging
 import logging.config
-import yaml
+import yaml 
 
 
 def initialize_logs(name):
@@ -14,8 +14,13 @@ def initialize_logs(name):
     # Create the logs folder at the root if it doesn't exist
     os.makedirs("logs", exist_ok=True)
 
+<<<<<<< HEAD
     with open("logging_config.yml", encoding="utf-8") as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
+=======
+    stream = open("src/logging_config.yml", encoding="utf-8")
+    config = yaml.load(stream, Loader=yaml.FullLoader)
+>>>>>>> 12248afe07b5b593d21f4f0cf34c8613ff72721f
     logging.config.dictConfig(config)
 
     logging.info("-" * 50)

@@ -70,3 +70,48 @@ class UserDao:
     def list_all(self):
         """Lister tous les utilisateurs"""
         pass
+
+    @log
+    def login(self, username, password) -> User:
+        """To connect with username and password
+
+        Parameters
+        ----------
+        pseudo : str
+            pseudo du joueur que l'on souhaite trouver
+        mdp : str
+            mot de passe du joueur
+
+        Returns
+        -------
+        joueur : Joueur
+            renvoie le joueur que l'on cherche
+        """
+        res = None
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT *                           "
+                        "  FROM joueur                      "
+                        " WHERE pseudo = %(pseudo)s         "
+                        "   AND mdp = %(mdp)s;              ",
+                        {"pseudo": pseudo, "mdp": mdp},
+                    )
+                    res = cursor.fetchone()
+        except Exception as e:
+            logging.info(e)
+
+        joueur = None
+
+        if res:
+            joueur = Joueur(
+                pseudo=res["pseudo"],
+                mdp=res["mdp"],
+                age=res["age"],
+                mail=res["mail"],
+                fan_pokemon=res["fan_pokemon"],
+                id_joueur=res["id_joueur"],
+            )
+
+        return joueur

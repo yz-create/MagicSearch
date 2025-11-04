@@ -22,15 +22,16 @@ class UserService:
             self.user_dao = UserDao(db)
 
     @log
-    def create(self, username: str, password: str) -> User | None:
-        """Create a user from its attributes"""
-        new_user = User(
-            username=username,
-            password=hash_password(password, username),
-        )
-
-        created = self.user_dao.create(new_user)
-        return new_user if created else None
+    def create_user(self, username: str, password: str) -> User | None:
+        """Create a new user and handle duplicate username."""
+        hashed_password = hash_password(password, username)
+        new_user = User(username=username, password=hashed_password)       
+        if self.dao.create(new_user):
+            print(f"User '{username}' created successfully!")
+            return new_user
+        else:
+            print(f"Username '{username}' already exists!")
+            return None
 
     @log
     def list_all(self, include_password: bool = False) -> list[User]:
@@ -85,9 +86,3 @@ class UserService:
         if user.password == hashed_input_pw:
             return user
         return None
-
-    @log
-    def username_already_used(self, username: str) -> bool:
-        """Check if a username is already used."""
-        existing_user = self.user_dao.get_by_username(username)
-        return existing_user is not None
