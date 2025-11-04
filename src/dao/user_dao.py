@@ -6,9 +6,10 @@ from db_connection import DBConnection
 import logging
 from business_object.user import User
 
+
 class UserDao:
     """Communication between UserService and the DBConnexion"""
-    def __init__(self, db):
+    def __init__(self, db: DBConnection):
         self.db = db
 
     def read_all_user(self):
@@ -30,7 +31,7 @@ class UserDao:
             "ERROR" if some other DB error occurs
         """
         try:
-            with self.db.connection as connection:
+            with self.db_connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         'SELECT 1 FROM "User" WHERE username = %(username)s;',
