@@ -1,4 +1,6 @@
 psycopg2
+psycopg
 dotenv
 tabulate
 pytest
+pgvector
