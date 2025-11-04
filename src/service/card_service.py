@@ -24,10 +24,10 @@ conn = psycopg.connect(
 register_vector(conn)
 
 
-class Card_Service():
+class CardService():
     """Class containing the service methods of Cards"""
 
-    def id_search(id: int) -> Card:
+    def id_search(self, id: int) -> Card:
         """
         Searches for a card based on its id
 
@@ -41,9 +41,15 @@ class Card_Service():
         Card
             The Card with the id given
         """
-        return CardDao().id_search(id)
+        try:
+            return CardDao().id_search(id)
+        except (ValueError, TypeError):
+            # id invalid, return None instead of crashing
+            return None
+        
+        
 
-    def name_search(name: str) -> Card:
+    def name_search(self, name: str) -> Card:
         """
         Searches for a card based on its name
 
@@ -59,7 +65,7 @@ class Card_Service():
         """
         return CardDao().name_search(name)
 
-    def semantic_search(search: str) -> list[Card]:
+    def semantic_search(self, search: str) -> list[Card]:
 
         # étape 1 : obtenir l'embedding de "search"
         token = os.getenv("API_TOKEN")
@@ -102,7 +108,7 @@ class Card_Service():
 
         return get_similar_entries(search_emb)
 
-    def view_random_card() -> Card:
+    def view_random_card(self) -> Card:
         """
         Allows to show a random card
 
@@ -135,7 +141,7 @@ class Card_Service():
         filtering_value = filter.filtering_value
         if variable_filtered not in ["type"]:
             raise ValueError("variable_filtered must be in the following list : type")
-        if type_of_filtering != "positive" & type_of_filtering != "negative":
+        if type_of_filtering != "positive" and type_of_filtering != "negative":
             raise ValueError("type_of_filtering can only take 'positive' or 'negative' as input")
         if not isinstance(filtering_value, str):
             raise ValueError("filtering_value must be a string")
