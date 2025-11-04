@@ -24,7 +24,7 @@ class TestUserDao(unittest.TestCase):
 
         result = dao.create(user)
 
-        self.assertTrue(result)
+        self.assertEqual(result, "CREATED")
         self.assertEqual(user.user_id, 42)
         mock_cursor.execute.assert_called_once()
         mock_cursor.fetchone.assert_called_once()
@@ -33,12 +33,12 @@ class TestUserDao(unittest.TestCase):
     def test_create_user_failure(self, mock_db_conn):
         mock_db_conn.return_value.connection.__enter__.side_effect = Exception("DB error")
 
-        user = User(username="test_password", password="test_password")
+        user = User(username="test_username", password="test_password")
         dao = UserDao(mock_db_conn())
 
         result = dao.create(user)
 
-        self.assertFalse(result)
+        self.assertEQUAL(result, "ERROR")
         self.assertIsNone(user.user_id)
 
 if __name__ == "__main__":

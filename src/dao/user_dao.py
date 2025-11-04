@@ -20,48 +20,40 @@ class UserDao:
         pass
 
     @log
-    def create(self, user: User) -> bool:
+    def create(self, user: User) -> str:
         """
-        Create a new user in the database.
+        Create a User in the database.
 
-        Parameters
-        ----------
-        user : User
-            The User object to insert into the database.
-
-        Returns
-        -------
-        created : bool
-            True if created successfully, False otherwise
+          Returns:
+            "CREATED" if successful
+            "EXISTS" if username already exists
+            "ERROR" if some other DB error occurs
         """
-        res = None
-
         try:
             with self.db.connection as connection:
                 with connection.cursor() as cursor:
+                    cursor.execute(
+                        'SELECT 1 FROM "User" WHERE username = %(username)s;',
+                        {"username": user.username}
+                    )
+                    if cursor.fetchone() is not None:
+                        return "EXISTS"
+
                     cursor.execute(
                         """
                         INSERT INTO "User" (username, password, isAdmin)
                         VALUES (%(username)s, %(password)s, False)
                         RETURNING idUser;
                         """,
-                        {
-                            "username": user.username,
-                            "password": user.password,
-                            "isAdmin": False
-                        },
+                        {"username": user.username, "password": user.password}
                     )
                     res = cursor.fetchone()
-
+                    if res:
+                        user.user_id = res["idUser"]
+                        return "CREATED"
         except Exception as e:
             logging.error(f"Error while creating a user: {e}")
-
-        created = False
-        if res:
-            user.user_id = res["idUser"]
-            created = True
-
-        return created
+            return "ERROR"
 
     def delete(self, user_id: int):
         """Supprimer un utilisateur"""
