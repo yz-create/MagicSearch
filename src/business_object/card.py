@@ -27,6 +27,7 @@ class Card:
         printings: list = None,
         purchase_urls: dict = None,
         rulings: list = None,
+        side: str = None,
         subtypes: list = None,
         supertypes: list = None,
         text: str = None,
@@ -64,6 +65,7 @@ class Card:
         self.printings = printings or []
         self.purchase_urls = purchase_urls or {}
         self.rulings = rulings or []
+        self.side = side
         self.subtypes = subtypes or []
         self.supertypes = supertypes or []
         self.text = text
@@ -101,6 +103,7 @@ class Card:
     def get_printings(self): return self.printings
     def get_purchase_urls(self): return self.purchase_urls
     def get_rulings(self): return self.rulings
+    def get_side(self): return self.side
     def get_subtypes(self): return self.subtypes
     def get_supertypes(self): return self.supertypes
     def get_text(self): return self.text
