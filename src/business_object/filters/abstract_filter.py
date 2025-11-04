@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from cards import Card
+from business_object.card import Card
 
 
 class AbstractFilter(ABC):

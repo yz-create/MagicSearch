@@ -2,8 +2,17 @@ from business_object.card import Card
 from dao.card_dao import CardDAO
 from business_object.filters.abstract_filter import Abstractfilter
 
+import psycopg
+from pgvector.psycopg import register_vector
+import requests
+import os
 
-class User_Service():
+# Set the following env. variables for this to work: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
+conn = psycopg.connect(dbname="vector", autocommit=True)
+register_vector(conn)
+
+
+class Card_Service():
     """Class containing the service methods of Cards"""
 
     def id_search(id: int) -> Card:
@@ -39,7 +48,47 @@ class User_Service():
         return CardDAO().name_search(name)
 
     def semantic_search(search: str) -> list[Card]:
-        pass
+
+        # étape 1 : obtenir l'embedding de "search"
+        token = os.getenv("API_TOKEN")
+        url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
+        
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-type": "application/json"}
+
+        def embedding(text: str):
+
+            data = {
+                "model": "bge-m3:latest",
+                "input": text
+            }
+
+            response = requests.post(url, headers=headers, json=data)
+            json_response = response.json()
+            # res = json_response[ "embeddings"]
+            return json_response
+
+        search_emb = embedding(search)
+    
+        # étape 2 : obtenir la correspondance entre search_emb et au moins 5 de nos cartes 
+
+        def get_similar_entries(embedding):
+            """
+            Returns the 5 entries from the database with the embedding closest to the given [search_emb].
+            """
+            results = conn.execute("""
+                SELECT
+                    embed,
+                    search_emb <-> %s as dst
+                FROM Card
+                ORDER BY dst
+                LIMIT 5
+                """, (search_emb,))
+            return results.fetchall()
+
+        return get_similar_entries(search_emb)
+
 
     def view_random_card() -> Card:
         pass

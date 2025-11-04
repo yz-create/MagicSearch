@@ -1,6 +1,6 @@
 from business_object.card import Card
-from dao.db_connection import DBConnection
-from business_objects.filter.abstract_filter import Abstractfilter
+from db_connection import DBConnection
+from business_object.filters.abstract_filter import AbstractFilter
 
 
 class CardDao(metaclass=Singleton):
