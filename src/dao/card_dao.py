@@ -15,10 +15,10 @@ class CardDao:
 
     def update_card(card: Card) -> bool:
         pass
-    
+
     def delete_card(Card) -> bool:
         pass
-    
+
     def find_all_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
         request = (
             f"SELECT embedded                                                  "
@@ -38,7 +38,7 @@ class CardDao:
         for row in res:
             embedding.append(row)
         return embedding
-        
+
         def find_by_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
@@ -48,25 +48,25 @@ class CardDao:
                         # "  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
                         " WHERE c.name = %(name)s                                        ",
                         {"name": name},
-                )
-                res = cursor.fetchone()
+                    )
+                    res = cursor.fetchone()
 
             embedding = None
 
             if res:
                 embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
             return embedding
-        
+
     def find_all() -> list(Card):
         pass
-    
+
     def id_search(int) -> Card:
         pass
 
     def name_search(str) -> Card:
         pass
 
-    def filter_cat_dao(self, filter: Abstractfilter):
+    def filter_cat_dao(self, filter: AbstractFilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -90,7 +90,7 @@ class CardDao:
                     res = cursor.fetchall()
         return res
 
-    def filter_num_dao(self, filter: Abstractfilter):
+    def filter_num_dao(self, filter: AbstractFilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -123,4 +123,14 @@ class CardDao:
                     res = cursor.fetchall()
         return res
 
-        
+    def get_highest_id():
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
+                cursor.execute(
+                    'SELECT MAX("idCard") '
+                    '  FROM "Card"       '
+                )
+                res = cursor.fetchone()
+
+        return res['max']

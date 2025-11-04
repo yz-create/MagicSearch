@@ -26,8 +26,7 @@ def embedding(text: str):
         "input": text
     }
     response = requests.post(url, headers=headers, json=data)
-    json_response = response.json()
-    """if response.status_code != 200:
+    if response.status_code != 200:
         print("❌ API Error:", response.status_code)
         print("Response text:", response.text)
         raise SystemExit()
@@ -37,7 +36,7 @@ def embedding(text: str):
     except Exception:
         print("❌ Could not decode JSON response")
         print("Response text:", response.text)
-        raise"""
+        raise
     return json_response["embeddings"][0]  # vecteur (liste de floats)
 
 
@@ -87,26 +86,15 @@ if __name__ == "__main__":
         ])
 
         # Pour chaque carte
+        idCard = 0
         for card in cards:
             try:
                 text_repr = card_to_text(card)
                 emb = embedding(text_repr)  # liste de floats
                 writer.writerow([
-                    card.get("name", ""),
-                    card.get("type", ""),
-                    card.get("type_line", ""),
-                    " ".join(card.get("supertypes", [])),
-                    " ".join(card.get("types", [])),
-                    " ".join(card.get("subtypes", [])),
-                    card.get("manaCost", ""),
-                    ",".join(card.get("colors", [])),
-                    card.get("rarity", ""),
-                    card.get("power", ""),
-                    card.get("toughness", ""),
-                    card.get("defense", ""),
-                    card.get("loyalty", ""),
-                    card.get("text", ""),
+                    idCard,
                     json.dumps(emb)
                 ])
+                idCard += 1
             except Exception as e:
                 print(f"Erreur avec la carte {card.get('name', '')}: {e}")
