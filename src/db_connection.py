@@ -29,3 +29,4 @@ class DBConnection(metaclass=Singleton):
     @property
     def connection(self):
         return self.__connection
+

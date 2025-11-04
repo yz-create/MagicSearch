@@ -55,3 +55,5 @@ def test_filter_cat_service_input(params, error, error_message):
 def test_filter_num_service_input(params, error, error_message):
     with pytest.raises(error, match=re.escape(error_message)):
         filter_num_service(**params)
+
+

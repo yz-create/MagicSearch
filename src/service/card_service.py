@@ -91,3 +91,4 @@ class User_Service():
         if type_of_filtering not in ["higher_than", "lower_than", "equal_to"]:
             raise ValueError("type_of_filtering can only take 'higher_than', 'lower_than' or 'equal_to' as input")
         return CardDAO().filter_num_dao(filter)
+
