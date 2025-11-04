@@ -62,7 +62,7 @@ def card_to_text(card: dict) -> str:
     return " | ".join([f for f in fields if f])  # concaténation lisible
 
 
-def main():
+if __name__ == "__main__":
     # ---- Charger le JSON ----
     with open("AtomicCards.json", "r", encoding="utf-8") as f:
         data = json.load(f)
