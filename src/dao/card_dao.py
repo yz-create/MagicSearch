@@ -256,15 +256,14 @@ class CardDao:
         color_identity = CardDao.get_list_from_fetchall(res_color_identity, 'colorName')
         color_indicator = CardDao.get_list_from_fetchall(res_color_indicator, 'colorName')
         colors = CardDao.get_list_from_fetchall(res_colors, 'colorName')
-
-        for foreign in res_foreign_data:
+        foreign_data = [dict(r) for r in res_foreign_data]
 
         card = Card(
             res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
             res_card["asciiName"], color_identity, color_indicator, colors,
             res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
             res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            res_card["firstprinting"]
+            res_card["firstprinting"], foreign_data
             )
 
         return (
@@ -272,7 +271,7 @@ class CardDao:
             res_card["asciiName"], color_identity, color_indicator, colors,
             res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
             res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            res_card["firstprinting"]
+            res_card["firstprinting"], foreign_data
             )
 
     def get_list_from_fetchall(res, column_name) -> list:
@@ -355,4 +354,4 @@ class CardDao:
 
 
 if __name__ == "__main__":
-    print(CardDao.id_search(12))
+    print(CardDao.id_search(9))
