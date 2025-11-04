@@ -5,7 +5,6 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from utils.singleton import Singleton
 
-
 class DBConnection(metaclass=Singleton):
     """
     Classe de connexion à la base de données
@@ -30,3 +29,5 @@ class DBConnection(metaclass=Singleton):
     def connection(self):
         return self.__connection
 
+dotenv.load_dotenv()
+print("POSTGRES_HOST =", os.getenv("POSTGRES_HOST"))

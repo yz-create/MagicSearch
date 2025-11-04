@@ -2,3 +2,6 @@ psycopg2
 dotenv
 tabulate
 pytest
+logging
+logging.config
+yaml

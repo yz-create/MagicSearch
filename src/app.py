@@ -1,16 +1,16 @@
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from service.user_service import UserService
 from utils.log_init import initialiser_logs
 
-app = FastAPI(title="MagicSearch")
+app = FastAPI(title="MagicSearch", root_path="/api")
 
 
-initialiser_logs("Webservice")
+initialiser_logs("WebserviceOK")
 
 user_service = UserService()
 
@@ -18,9 +18,10 @@ user_service = UserService()
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
     """Redirect to the API documentation"""
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url=str(Request.base_url) + "docs")
 
 # routes utilisateurs : get user et get user id
+# list the users
 @app.get("/user/", tags=["Users"])
 async def list_all_users():
     """Lister tous les users"""
