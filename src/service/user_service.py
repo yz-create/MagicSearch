@@ -26,7 +26,7 @@ class UserService:
         hashed_password = hash_password(password, username)
         new_user = User(username=username, password=hashed_password)
     
-        result = self.dao.create(new_user)
+        result = self.user_dao.create(new_user)
         if result == "CREATED":
             print(f"User '{username}' created successfully!")
             return new_user
