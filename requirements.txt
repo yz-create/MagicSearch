@@ -3,4 +3,8 @@ psycopg
 dotenv
 tabulate
 pytest
+logging
+logging.config
+yaml
+pydantic
 pgvector
