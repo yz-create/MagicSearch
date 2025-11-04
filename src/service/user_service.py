@@ -5,10 +5,21 @@ from utils.security import hash_password
 
 from business_object.user import User
 from dao.user_dao import UserDao
+from db_connection import DBConnection
 
 
 class UserService:
     """Class containing user service methods"""
+
+    def __init__(self, user_dao: UserDao = None):
+        """Initialize the service with a DAO (can be injected for testing)."""
+        if user_dao:
+            # Mock or custom DAO for testing
+            self.user_dao = user_dao
+        else:
+            # Default: create a real DAO with a DB connection
+            db = DBConnection()
+            self.user_dao = UserDao(db)
 
     @log
     def create_user(self, username: str, password: str) -> User | None:
@@ -23,72 +34,61 @@ class UserService:
             return None
 
     @log
-    def list_all(self, include_password=False) -> list[User]:
-        """List all users
-        If include_password=True, passwords will be included.
-        By default, all user passwords are set to None.
-        """
-        users = UserDao().list_all()
+    def list_all(self, include_password: bool = False) -> list[User]:
+        """List all users. Hide passwords by default."""
+        users = self.user_dao.list_all() or []
+
         if not include_password:
-            for u in users:
-                u.password = None
+            for user in users:
+                user.password = None
+
         return users
 
     @log
-    def find_by_id(self, user_id) -> User:
-        """Find a user by its ID"""
-        return UserDao().find_by_id(user_id)
+    def find_by_username(self, username: str) -> User | None:
+        """Find a user by their username."""
+        return self.user_dao.get_by_username(username)
 
     @log
-    def update(self, user) -> User:
-        """Update a user"""
-
-        user.password = hash_password(user.password, user.username)
-        return user if UserDao().update(user) else None
-
-    @log
-    def delete(self, user) -> bool:
-        """Delete a user account"""
-        return UserDao().delete(user)
+    def delete(self, user_id: int) -> bool:
+        """Delete a user account."""
+        return self.user_dao.delete(user_id)
 
     @log
     def display_all(self) -> str:
-        """Display all users
-        Output: A formatted string table
-        """
-        headers = ["username", "is admin"]
+        """Display all users as a formatted table."""
+        headers = ["Username", "Is Admin"]
 
-        users = UserDao().list_all()
-
-        for u in users:
-            if u.username == "admin":
-                users.remove(u)
+        users = self.user_dao.list_all() or []
+        # Filter out admin user if needed
+        users = [u for u in users if u.username != "admin"]
 
         users_as_list = [u.as_list() for u in users]
 
-        str_users = "-" * 100
-        str_users += "\nList of users\n"
-        str_users += "-" * 100
-        str_users += "\n"
-        str_users += tabulate(
+        output = "-" * 100 + "\nList of users\n" + "-" * 100 + "\n"
+        output += tabulate(
             tabular_data=users_as_list,
             headers=headers,
             tablefmt="psql",
             floatfmt=".2f",
         )
-        str_users += "\n"
-
-        return str_users
-
-    @log
-    def login(self, username, password) -> User:
-        """Login using username and password"""
-        return UserDao().login(username, hash_password(password, username))
+        output += "\n"
+        return output
 
     @log
-    def username_already_used(self, username) -> bool:
-        """Check if the username is already used.
-        Returns True if the username already exists in the database.
-        """
-        users = UserDao().list_all()
-        return username in [u.username for u in users]
+    def login(self, username: str, password: str) -> User | None:
+        """Login using username and password."""
+        user = self.user_dao.get_by_username(username)
+        if not user:
+            return None
+
+        hashed_input_pw = hash_password(password, username)
+        if user.password == hashed_input_pw:
+            return user
+        return None
+
+    @log
+    def username_already_used(self, username: str) -> bool:
+        """Check if a username is already used."""
+        existing_user = self.user_dao.get_by_username(username)
+        return existing_user is not None
