@@ -29,7 +29,7 @@ class UserService:
         if self.dao.create(new_user):
             print(f"User '{username}' created successfully!")
             return new_user
-        else:    
+        else:
             print(f"Username '{username}' already exists!")
             return None
 
