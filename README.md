@@ -1,6 +1,9 @@
 # MagicSearch
 Projet info 2A 
 
+In the .env : PYTHONPATH="/home/onyxia/work/MagicSearch/src"
+Then do : export PYTHONPATH=/home/onyxia/work/MagicSearch/src:$PYTHONPATH
+
 ## To use the app :
 Install all modules in requirements.txt
 Have the src folder as the root for executing files
