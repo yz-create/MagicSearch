@@ -128,6 +128,7 @@ class CardDao:
             logging.error(f"Error updating card: {e}")
             return False
 
+    
     def delete_card(self, card_id: int) -> bool:
         """
         Delete a card from the database

@@ -29,7 +29,7 @@ class UserService:
         result = self.user_dao.create(new_user)
         if result == "CREATED":
             print(f"User '{username}' created successfully!")
-            return new_user
+            return new_user # j'ai limprssion que ça fait pas le lien avec la couche DAO (lucile)
         elif result == "EXISTS":
             print(f"Username '{username}' already exists!")
             return None
