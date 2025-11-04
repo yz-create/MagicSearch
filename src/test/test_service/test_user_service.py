@@ -1,5 +1,4 @@
 from unittest.mock import MagicMock
-
 from service.user_service import UserService
 from dao.user_dao import UserDao
 from business_object.user import User
@@ -20,26 +19,33 @@ def test_create_success():
 
     # GIVEN
     username, password = "jp", "1234"
-    UserDao().create = MagicMock(return_value=True)
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.create.return_value = True
+    service = UserService(user_dao=mock_dao)
 
     # WHEN
-    user = UserService().create(username, password)
+    user = service.create(username, password)
 
     # THEN
+    mock_dao.create.assert_called_once()
+    assert isinstance(user, User)
     assert user.username == username
 
 
 def test_create_failure():
-    """User creation failed (because UserDao().create returns False)"""
+    """User creation failed (because UserDao.create returns False)"""
 
     # GIVEN
     username, password = "jp", "1234"
-    UserDao().create = MagicMock(return_value=False)
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.create.return_value = False
+    service = UserService(user_dao=mock_dao)
 
     # WHEN
-    user = UserService().create(username, password)
+    user = service.create(username, password)
 
     # THEN
+    mock_dao.create.assert_called_once()
     assert user is None
 
 
@@ -47,12 +53,15 @@ def test_list_all_include_password_true():
     """List users including passwords"""
 
     # GIVEN
-    UserDao().list_all = MagicMock(return_value=user_list)
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.list_all.return_value = user_list
+    service = UserService(user_dao=mock_dao)
 
     # WHEN
-    res = UserService().list_all(include_password=True)
+    res = service.list_all(include_password=True)
 
     # THEN
+    mock_dao.list_all.assert_called_once()
     assert len(res) == 3
     for user in res:
         assert user.password is not None
@@ -62,43 +71,50 @@ def test_list_all_include_password_false():
     """List users excluding passwords"""
 
     # GIVEN
-    UserDao().list_all = MagicMock(return_value=user_list)
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.list_all.return_value = [User(u.username, u.password) for u in user_list]
+    service = UserService(user_dao=mock_dao)
 
     # WHEN
-    res = UserService().list_all()
+    res = service.list_all(include_password=False)
 
     # THEN
+    mock_dao.list_all.assert_called_once()
     assert len(res) == 3
     for user in res:
-        assert not user.password
+        assert user.password is None
 
 
 def test_username_already_used_yes():
-    """Username already exists in user_list"""
+    """Username already exists"""
 
     # GIVEN
-    username = "lea"
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.get_by_username.return_value = user_list[1]  # user "lea"
+    service = UserService(user_dao=mock_dao)
 
     # WHEN
-    UserDao().list_all = MagicMock(return_value=user_list)
-    res = UserService().username_already_used(username)
+    res = service.username_already_used("lea")
 
     # THEN
-    assert res
+    mock_dao.get_by_username.assert_called_once_with("lea")
+    assert res is True
 
 
 def test_username_already_used_no():
-    """Username does not exist in user_list"""
+    """Username does not exist"""
 
     # GIVEN
-    username = "kitten"
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.get_by_username.return_value = None
+    service = UserService(user_dao=mock_dao)
 
     # WHEN
-    UserDao().list_all = MagicMock(return_value=user_list)
-    res = UserService().username_already_used(username)
+    res = service.username_already_used("kitten")
 
     # THEN
-    assert not res
+    mock_dao.get_by_username.assert_called_once_with("kitten")
+    assert res is False
 
 
 if __name__ == "__main__":
