@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from service.user_service import UserService
+# from service.card_service import Card_Service
 from utils.log_init import initialiser_logs
 
 app = FastAPI(title="MagicSearch", root_path="/api")
@@ -14,13 +15,36 @@ initialiser_logs("WebserviceOK")
 
 user_service = UserService()
 
-# route vers la documentation 
+# path to the documentation
 @app.get("/", include_in_schema=False)
 async def redirect_to_docs():
     """Redirect to the API documentation"""
     return RedirectResponse(url=str(Request.base_url) + "docs")
 
+## CARD FUNCTIONALITIES
+# database management tools (create a card, delete a card, update a card)
+# list all cards ?
+
+# get a card by its id 
+# Card_Service().id_search(id)
+
+# get a card by its name
+# Card_Service().name_search(name)
+
+# get a random card
+# Card_Service().view_random_card()
+
+# get the result of a sementic search
+# Card_Service().semantic_search(search)
+
+# get a filtered list of cards
+# Card_Service().filter_cat_service
+
+
+
+## USER FUNCTIONALITIES
 # routes utilisateurs : get user et get user id
+
 # list the users
 @app.get("/user/", tags=["Users"])
 async def list_all_users():
@@ -34,20 +58,20 @@ async def list_all_users():
 
     return liste_model
 
-
+# get a user by their id
 @app.get("/user/{user_id}", tags=["Users"])
 async def user_par_id(user_id: int):
-    """Trouver un user à partir de son id"""
-    logging.info("Trouver un user à partir de son id")
+    """Finds a user based on their id """
+    logging.info("Finds a user based on their id")
     return user_service.find_by_id(user_id)
 
 
-# librairie Pydantic BaseModel
+# librairie Pydantic BaseModel 
 class userModel(BaseModel):
     """
-    Définir un modèle Pydantic pour les users
-    Modèle Pydantic pour valider et documenter les 
-    objets utilisateur reçus en entrée ou envoyés en sortie.
+    defines a Pydantic model for the users
+    Pydantic model to validate and document the user objects 
+    received as input and returned as output
     """
 
     user_id: int | None = None  # Champ optionnel
@@ -55,49 +79,49 @@ class userModel(BaseModel):
     mdp: str
 
 
-# création d'un user 
+# creating a user
 @app.post("/user/", tags=["Users"])
 async def create_user(j: userModel):
-    """Créer un user"""
-    logging.info("Create user")
+    """creating a user"""
+    logging.info("creating a user")
     if user_service.pseudo_deja_utilise(j.pseudo):
-        raise HTTPException(status_code=404, detail="Pseudo déjà utilisé")
+        raise HTTPException(status_code=404, detail="Pseudo already used")
 
     user = user_service.creer(j.pseudo, j.mdp)
     if not user:
-        raise HTTPException(status_code=404, detail="Erreur lors de la création du user")
+        raise HTTPException(status_code=404, detail="Error while creating the user")
 
     return user
 
-# modification d"un user
+# updating of a user
 @app.put("/user/{id_user}", tags=["users"])
 def modifier_user(id_user: int, j: userModel):
-    """Modifier un user"""
-    logging.info(f"Modifier user {id_user}")
+    """updating of a user"""
+    logging.info(f"updating of user {id_user}")
     user = user_service.trouver_par_id(id_user)
     if not user:
-        raise HTTPException(status_code=404, detail="user non trouvé")
+        raise HTTPException(status_code=404, detail="user not found")
 
     user.pseudo = j.pseudo
     user.mdp = j.mdp
     user = user_service.modifier(user)
     if not user:
-        raise HTTPException(status_code=404, detail="Erreur lors de la modification du user")
+        raise HTTPException(status_code=404, detail="Error while updating user")
 
-    return f"user {j.pseudo} modifié"
+    return f"user {j.pseudo} updated"
 
 
-# suppression d'un user
+# deleting a user
 @app.delete("/user/{id_user}", tags=["users"])
 def supprimer_user(id_user: int):
-    """Supprimer un user"""
-    logging.info(f"Supprimer un user {id_user}")
+    """Deleting a user"""
+    logging.info(f"Deleting user {id_user}")
     user = user_service.trouver_par_id(id_user)
     if not user:
-        raise HTTPException(status_code=404, detail="user non trouvé")
+        raise HTTPException(status_code=404, detail="user not found")
 
     user_service.supprimer(user)
-    return f"user {user.pseudo} supprimé"
+    return f"user {user.pseudo} deleted"
 
 
 # route simple pour tester l'api

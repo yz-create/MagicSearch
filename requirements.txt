@@ -5,3 +5,4 @@ pytest
 logging
 logging.config
 yaml
+pydantic
