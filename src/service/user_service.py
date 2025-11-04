@@ -11,15 +11,16 @@ class UserService:
     """Class containing user service methods"""
 
     @log
-    def create(self, username, password) -> User:
-        """Create a user from its attributes"""
-
-        new_user = User(
-            username=username,
-            password=hash_password(password, username)
-        )
-
-        return new_user if UserDao().create(new_user) else None
+    def create_user(self, username: str, password: str) -> User | None:
+        """Create a new user and handle duplicate username."""
+        hashed_password = hash_password(password, username)
+        new_user = User(username=username, password=hashed_password)       
+        if self.dao.create(new_user):
+            print(f"User '{username}' created successfully!")
+            return new_user
+        else:    
+            print(f"Username '{username}' already exists!")
+            return None
 
     @log
     def list_all(self, include_password=False) -> list[User]:
