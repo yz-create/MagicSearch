@@ -1,5 +1,5 @@
 from business_object.card import Card
-from dao.card_dao import CardDAO
+from dao.card_dao import CardDao
 from business_object.filters.abstract_filter import Abstractfilter
 
 import psycopg
@@ -29,7 +29,7 @@ class Card_Service():
         Card
             The Card with the id given
         """
-        return CardDAO().id_search(id)
+        return CardDao().id_search(id)
 
     def name_search(name: str) -> Card:
         """
@@ -45,14 +45,14 @@ class Card_Service():
         Card
             The Card with the name given
         """
-        return CardDAO().name_search(name)
+        return CardDao().name_search(name)
 
     def semantic_search(search: str) -> list[Card]:
 
         # étape 1 : obtenir l'embedding de "search"
         token = os.getenv("API_TOKEN")
         url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
-        
+
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-type": "application/json"}
@@ -70,12 +70,13 @@ class Card_Service():
             return json_response
 
         search_emb = embedding(search)
-    
-        # étape 2 : obtenir la correspondance entre search_emb et au moins 5 de nos cartes 
+
+        # étape 2 : obtenir la correspondance entre search_emb et au moins 5 de nos cartes
 
         def get_similar_entries(embedding):
             """
-            Returns the 5 entries from the database with the embedding closest to the given [search_emb].
+            Returns the 5 entries from the database with the embedding closest to the given
+            [search_emb].
             """
             results = conn.execute("""
                 SELECT
@@ -89,13 +90,14 @@ class Card_Service():
 
         return get_similar_entries(search_emb)
 
-
     def view_random_card() -> Card:
-        pass
+        idmax = CardDao.get_highest_id()
+        Card_Service.id_search(idmax)
 
     def filter_cat_service(self, filter: Abstractfilter):
         """
-        Service method for numerical filtering : raises errors and calls the corresponding DAO method
+        Service method for numerical filtering : raises errors and calls the corresponding DAO
+        method
 
         Parameters :
         ------------
@@ -106,7 +108,6 @@ class Card_Service():
         --------
         Card
             The Cards corresponding to our filter
-        
         """
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
@@ -117,11 +118,12 @@ class Card_Service():
             raise ValueError("type_of_filtering can only take 'positive' or 'negative' as input")
         if not isinstance(filtering_value, str):
             raise ValueError("filtering_value must be a string")
-        return CardDAO().filter_cat_dao(filter)
+        return CardDao().filter_cat_dao(filter)
 
     def filter_num_service(self, filter: Abstractfilter):
         """
-        Service method for numerical filtering : raises errors and calls the corresponding DAO method
+        Service method for numerical filtering : raises errors and calls the corresponding DAO
+        method
 
         Parameters :
         ------------
@@ -131,7 +133,7 @@ class Card_Service():
         Return :
         --------
         Card
-            The Cards corresponding to our filter        
+            The Cards corresponding to our filter
         """
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
@@ -139,5 +141,4 @@ class Card_Service():
             raise ValueError("variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power")
         if type_of_filtering not in ["higher_than", "lower_than", "equal_to"]:
             raise ValueError("type_of_filtering can only take 'higher_than', 'lower_than' or 'equal_to' as input")
-        return CardDAO().filter_num_dao(filter)
-
+        return CardDao().filter_num_dao(filter)

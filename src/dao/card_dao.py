@@ -264,4 +264,14 @@ class CardDao:
                     res = cursor.fetchall()
         return res
 
-        
+    def get_highest_id():
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
+                cursor.execute(
+                    'SELECT MAX("idCard") '
+                    '  FROM "Card"       '
+                )
+                res = cursor.fetchone()
+
+        return res['max']
