@@ -3,7 +3,7 @@ from db_connection import DBConnection
 from business_object.filters.abstract_filter import AbstractFilter
 
 
-class CardDao(metaclass=Singleton):
+class CardDao:
     # Pattern Singleton : empêche la création de plusieurs objets,
     # renvoie toujours la même instance existante
 
