@@ -11,7 +11,12 @@ for i in data['data']:
     for card in data['data'][i]:
         if "foreignData" in card:
             for url in card['foreignData']:
-                print(url)
+                c += 1
 
 
 print(Counter(count))
+
+for i in None:
+    print("a")
+
+print("b")
