@@ -10,7 +10,7 @@ from datetime import timedelta
 from service.user_service import UserService
 from service.card_service import CardService
 from utils.log_init import initialize_logs
-# from business_object.filters.abstract_filter import AbstractFilter 
+from business_object.filters.abstract_filter import AbstractFilter 
 # pour les fonctions de filtrages
 
 
@@ -106,20 +106,14 @@ async def semantic_search(search):
 
     
 # get a filtered list of cards
-# Card_Service().filter_num_service(self, filter: AbstractFilter)
-# card_service().filter_cat_service(self, filter: AbstractFilter)
-@app.get("/card/{filter}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_numerical(filter):
-    """Filters the database based on a numerical criterion"""
-    logging.info("Filters the database based on a numerical criterion")
-    return card_service.filter_num_service(filter)
+# card_Service().filter_num_service(self, filter: AbstractFilter)
 
+@app.get("/card/{filters}", tags=["Roaming in the MagicSearch Database"]) 
+async def filter_search(filters):
+    """Filters the database based on a list of filters"""
+    logging.info("Filters the database based on a list of filters")
+    return card_service.filter_search(filters)
 
-@app.get("/card/{filter}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_categorical(filter):
-    """Filters the database based on a categorical criterion"""
-    logging.info("Filters the database based on a categorical criterion")
-    return card_service.filter_cat_service(filter)
 
 
 # DATABASE MANAGEMENT :CARDS

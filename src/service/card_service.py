@@ -29,13 +29,13 @@ class CardService():
     
     def create_card(self, card:  Card) -> bool:
         # peut être lever des erreur si on veut pas de doublons, meme si je crois que des erreurs sont levées dans DAO  (lucile)
-        return self.CardDao().create_card(card)
+        return self.CardDao.create_card(card)
 
-    def update_card(self, card: Card)-> bool : 
-        return self.CardDao().update_card(card)
+    def update_card(self, card :Card)-> bool : 
+        return self.CardDao.update_card(card)
     
     def delete_card(self, card) :
-        return self.CardDao().delete_card(card)
+        return self.CardDao.delete_card(card)
  
     def id_search(self, id: int) -> Card:
         """
@@ -144,16 +144,36 @@ class CardService():
         List[Card]
             The Cards corresponding to our filter
         """
-        # we start a basic list with the first filter in our list
-        filter=filters[0]
-        Magicsearch_filtered = CardDao().filter_dao(filter)
-        # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-        if len(filters)>=2 :
-            for i in range(1,len(filters)-1): # checker que je parcours toute la liste (lucile)
-                filter = filters[i]
-                new_filter_list = CardDao().filter_dao(filter)
-                for item in set(new_filter_list):
-                    if item not in set(Magicsearch_filtered):
-                        Magicsearch_filtered.remove(item)
-        return Magicsearch_filtered       
-  
+        variable_filtered = filter.variable_filtered
+        type_of_filtering = filter.type_of_filtering
+        filtering_value = filter.filtering_value
+        if variable_filtered not in ["type"]:
+            raise ValueError("variable_filtered must be in the following list : type")
+        if type_of_filtering != "positive" and type_of_filtering != "negative":
+            raise ValueError("type_of_filtering can only take 'positive' or 'negative' as input")
+        if not isinstance(filtering_value, str):
+            raise ValueError("filtering_value must be a string")
+        return CardDao().filter_cat_dao(filter)
+
+    def filter_num_service(self, filter: AbstractFilter):
+        """
+        Service method for numerical filtering : raises errors and calls the corresponding DAO
+        method
+
+        Parameters :
+        ------------
+        filter : Abstractfilter
+            the filter we want to apply to our research
+
+        Return :
+        --------
+        Card
+            The Cards corresponding to our filter
+        """
+        variable_filtered = filter.variable_filtered
+        type_of_filtering = filter.type_of_filtering
+        if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power"]:
+            raise ValueError("variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power")
+        if type_of_filtering not in ["higher_than", "lower_than", "equal_to"]:
+            raise ValueError("type_of_filtering can only take 'higher_than', 'lower_than' or 'equal_to' as input")
+        return CardDao().filter_num_dao(filter)
