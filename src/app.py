@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from utils.auth import create_access_token, verify_token
 from datetime import timedelta
+from typing import List
 
 from service.user_service import UserService
 from service.card_service import CardService
@@ -106,6 +107,7 @@ async def semantic_search(search):
 
     
 # get a filtered list of cards
+
 # card_Service().filter_num_service(self, filter: AbstractFilter)
 
 @app.get("/card/{filters}", tags=["Roaming in the MagicSearch Database"]) 
