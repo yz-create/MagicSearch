@@ -363,9 +363,10 @@ class CardDao:
         for legality_type in res_legality_type:
             legality_types[legality_type["idLegalityType"]] = legality_type["type"]
         legalities = {}
-        for legality in res_legalities:
-            if res_legalities[legality] is not None:
-                legalities[legality] = legality_types[res_legalities[legality]]
+        if res_legalities:
+            for legality in res_legalities:
+                if res_legalities[legality] is not None:
+                    legalities[legality] = legality_types[res_legalities[legality]]
         printings = CardDao().get_list_from_fetchall(res_printings, "name")
         purchase_urls = {}
         if res_purchase_urls:

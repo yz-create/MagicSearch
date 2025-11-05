@@ -13,6 +13,9 @@ Download AtomicCards.json on https://mtgjson.com/downloads/all-files/
 Put it in the root repository
 Start reset_database.py as a main to reset the database
 
-## To access the embed :
-Go on https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé d'API
+## To create all the cards embedding if necessary :
+Execute embed.py
+
+## To access the embed (this has to be done before starting the API):
+Go on https://llm.lab.sspcloud.fr/ << Settings << Account << copy the API token
 Put in the terminal : export API_TOKEN= followed by the token you just copied

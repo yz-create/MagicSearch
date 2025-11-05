@@ -5,7 +5,7 @@ import json
 from unittest import mock
 
 from utils.singleton import Singleton
-from utils.embedding_json_en_csv import card_to_text, embedding
+from utils.embed import card_to_text, embedding
 from db_connection import DBConnection
 
 

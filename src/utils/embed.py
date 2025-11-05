@@ -5,13 +5,13 @@ import os
 import time
 
 # ---- CONFIG ----
-token = os.getenv("API_TOKEN")
 # (dans le terminal tu copies : export API_TOKEN= )
 # à mettre sur le terminal via https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé
 # d'API
 # si besoin mettre un export
 # print("API_TOKEN:", token)
 
+token = os.getenv("API_TOKEN")
 
 url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
 headers = {
@@ -20,8 +20,10 @@ headers = {
 }
 
 
-# ---- Fonction pour appeler l'API d'embedding ----
-def embedding(text: str):
+def embedding(text: str) -> list:
+    """
+    Embeds a text into a vector (as a list)
+    """
     global error
     data = {
         "model": "bge-m3:latest",
@@ -39,11 +41,17 @@ def embedding(text: str):
         print("❌ Could not decode JSON response")
         print("Response text:", response.text)
         error = False
-    return json_response["embeddings"][0]  # vecteur (liste de floats)
+    print(type(json_response["embeddings"][0]))
+    return json_response["embeddings"][0]
 
 
 # ---- Convertir une carte en texte pour l'embedding ----
 def card_to_text(card: dict) -> str:
+    """
+    Creates the text from a card that will be used to create the embed of said card.
+    The card has to be a dict, meaning this function is only used for cards taken straight from the
+    .json
+    """
     fields = [
         card.get("name", ""),
         card.get("type", ""),
@@ -63,7 +71,17 @@ def card_to_text(card: dict) -> str:
     return " | ".join([f for f in fields if f])  # concaténation lisible
 
 
-def add_embed_to_csv(card, writer):
+def add_embed_to_csv(card: dict, writer) -> None:
+    """
+    Adds the embedding of a card, as well as its id, to the .csv in the writer
+
+    Parameters:
+    -----------
+    card: dict
+        The card we wanna add the embedding of
+    writer: '_csv.writer'
+        The writer of .csv. Basically it allows to write into the csv
+    """
     text_repr = card_to_text(card)
     emb = embedding(text_repr)  # liste de floats
     writer.writerow([
@@ -75,11 +93,9 @@ def add_embed_to_csv(card, writer):
 if __name__ == "__main__":
     error = False
 
-    # ---- Charger le JSON ----
     with open("AtomicCards.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Format attendu : {"data": { "setName": [CardAtomic, ...], ...}}
     cards = []
     for set_name, card_list in data["data"].items():
         for card in card_list:
@@ -87,15 +103,13 @@ if __name__ == "__main__":
 
     print(f"Nombre de cartes : {len(cards)}")
 
-    # ---- Écriture du CSV ----
     with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
+        print(type(writer))
 
-        # Header CSV enrichi
         writer.writerow(["id", "embedding"])
         print("c")
 
-        # Pour chaque carte
         idCard = 0
         for card in cards:
             time.sleep(0.5)
