@@ -149,7 +149,7 @@ class CardService():
             Magicsearch_filtered = CardDao().filter_dao(filter)
             # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
             if len(filters)>=2:
-                for i in (1:len(filters)-1): # checker que je parcours toute la liste (lucile)
+                for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
                     filter = filters[i]
                     new_filter_list = CardDao().filter_dao(filter)
                     for item in set(new_filter_list):
