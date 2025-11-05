@@ -6,6 +6,8 @@ from utils.security import hash_password
 from business_object.user import User
 from dao.user_dao import UserDao
 from db_connection import DBConnection
+import logging
+from psycopg2.extras import DictCursor
 
 
 class UserService:
@@ -78,12 +80,10 @@ class UserService:
 
     @log
     def login(self, username: str, password: str) -> User | None:
-        """Login using username and password."""
-        user = self.user_dao.get_by_username(username)
+        user = self.user_dao.get_by_username_and_password(username, password)
         if not user:
+            logging.warning(f"Login failed: user {username} not found or wrong password.")
             return None
 
-        hashed_input_pw = hash_password(password, username)
-        if user.password == hashed_input_pw:
-            return user
-        return None
+        logging.info(f"User {username} logged in successfully.")
+        return user

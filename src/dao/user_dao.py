@@ -5,6 +5,8 @@ from utils.log_decorator import log
 from db_connection import DBConnection
 import logging
 from business_object.user import User
+from psycopg import sql
+from psycopg2.extras import DictCursor
 
 
 class UserDao:
@@ -95,47 +97,38 @@ class UserDao:
 
         return users
 
-    @log
-    def login(self, username, password) -> User:
-        """To connect with username and password
+    SCHEMA = "defaultdb"
 
-        Parameters
-        ----------
-        pseudo : str
-            pseudo du joueur que l'on souhaite trouver
-        mdp : str
-            mot de passe du joueur
+    @staticmethod
+    def get_by_username_and_password(username: str, password: str) -> User | None:
+        """
+        Retrieve a User by username and password.
 
-        Returns
-        -------
-        joueur : Joueur
-            renvoie le joueur que l'on cherche
+        Returns a User object if credentials match, else None.
         """
         res = None
         try:
             with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                           "
-                        "  FROM joueur                      "
-                        " WHERE pseudo = %(pseudo)s         "
-                        "   AND mdp = %(mdp)s;              ",
-                        {"pseudo": pseudo, "mdp": mdp},
-                    )
+                with connection.cursor(cursor_factory=DictCursor) as cursor:
+                    query = """
+                        SELECT "idUser", "username", "password", "isAdmin"
+                        FROM defaultdb."User"
+                        WHERE "username" = %s AND "password" = %s;
+                    """
+                    cursor.execute(query, (username, password))
                     res = cursor.fetchone()
         except Exception as e:
-            logging.info(e)
+            logging.error(f"Error querying user: {e}")
+            return None
 
-        joueur = None
+        if not res:
+            return None
 
-        if res:
-            joueur = Joueur(
-                pseudo=res["pseudo"],
-                mdp=res["mdp"],
-                age=res["age"],
-                mail=res["mail"],
-                fan_pokemon=res["fan_pokemon"],
-                id_joueur=res["id_joueur"],
-            )
+        user = User(
+            user_id=res["idUser"],
+            username=res["username"],
+            password=res["password"],
+            is_admin=res["isAdmin"]
+        )
 
-        return joueur
+        return user

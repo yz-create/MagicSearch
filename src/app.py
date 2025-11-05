@@ -231,7 +231,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
     user = user_service.login(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Wrong usrename or password")
+        logging.warning(f"Login failed for {form_data.username}")
+        raise HTTPException(status_code=401, detail="Wrong username or password")
 
     access_token = create_access_token(
         data={"sub": user.username},

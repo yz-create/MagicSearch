@@ -25,57 +25,46 @@ class LogIndentation:
 
 
 def log(func):
-    """Decorator to log method calls
-
-    When applied to a method, this decorator logs:
-    - the call to the method with parameter values
-    - the output returned by the method
-    """
+    """Decorator to log method calls safely for instance methods."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         logger = logging.getLogger(__name__)
 
-        LogIndentation.increase_indentation()
-        indentation = LogIndentation.get_indentation()
-
-        # Retrieve method parameters
+        # Determine class name if first arg is 'self'
         class_name = args[0].__class__.__name__ if args else ""
         method_name = func.__name__
-        args_list = list(
-            [str(arg) if not isinstance(arg, numbers.Number) else arg for arg in args[1:]]
-            + list(kwargs.values())
-        )
 
-        # Hide passwords
-        param_names = func.__code__.co_varnames[1: func.__code__.co_argcount]
-        for i, v in enumerate(param_names):
-            if v in ["password", "passwd", "pwd", "pass", "mot_de_passe", "mdp"]:
-                args_list[i] = "*****"
-
-        # Convert to tuple for display
+        # Build argument list, hide passwords
+        args_list = []
+        for i, arg in enumerate(args[1:] if args else args):
+            args_list.append("*****" if i == 1 else str(arg))
+        for k, v in kwargs.items():
+            args_list.append("*****" if k in ["password", "passwd", "pwd", "pass", "mdp"] else str(v))
         args_list = tuple(args_list)
 
-        # Log method entry
-        logger.info(f"{indentation}{class_name}.{method_name}{args_list} - START")
-        result = func(*args, **kwargs)
-        logger.info(f"{indentation}{class_name}.{method_name}{args_list} - END")
+        logger.info(f"{class_name}.{method_name}{args_list} - START")
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            logger.exception(f"{class_name}.{method_name} raised an exception")
+            raise
 
-        # Shorten output display if too long
+        # Shorten output for logging
         if isinstance(result, list):
             result_str = str([str(item) for item in result[:3]])
-            result_str += f" ... ({len(result)} elements)"
+            if len(result) > 3:
+                result_str += f" ... ({len(result)} elements)"
         elif isinstance(result, dict):
-            result_str = [(str(k), str(v)) for k, v in result.items()][:3]
-            result_str += f" ... ({len(result)} elements)"
+            result_str = str(list(result.items())[:3])
+            if len(result) > 3:
+                result_str += f" ... ({len(result)} elements)"
         elif isinstance(result, str) and len(result) > 50:
             result_str = result[:50] + f" ... ({len(result)} characters)"
         else:
             result_str = str(result)
 
-        logger.info(f"{indentation}   └─> Output: {result_str}")
-
-        LogIndentation.decrease_indentation()
+        logger.info(f"{class_name}.{method_name}{args_list} - END └─> Output: {result_str}")
 
         return result
 
