@@ -87,10 +87,16 @@ class nameModel(BaseModel):
     name: str
 
 
-class AbstractFilterModel(BaseModel):
+class NumericFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: str  # à modifier
+    filtering_value: int 
+
+class CategoricalFilterModel(BaseModel):
+    variable_filtered: str
+    type_of_filtering: str
+    filtering_value: str  
+
 
 class UserCreateRequest(BaseModel):
     username: str
@@ -116,16 +122,20 @@ class userModel(BaseModel):
 # creating a user
 @app.post("/user/", tags=["User log in !"])
 async def create_user(j: userModel):
-    """creating a user"""
+    """Create a new user"""
     logging.info("creating a user")
-    if user_service.pseudo_deja_utilise(j.pseudo):
-        raise HTTPException(status_code=404, detail="Pseudo already used")
 
-    user = user_service.creer(j.pseudo, j.mdp)
+    # Vérifier si le nom d'utilisateur existe déjà
+    existing_user = user_service.find_by_username(j.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already used")
+
+    # Créer l'utilisateur
+    user = user_service.create_user(j.username, j.password)
     if not user:
-        raise HTTPException(status_code=404, detail="Error while creating the user")
+        raise HTTPException(status_code=500, detail="Error while creating the user")
 
-    return user
+    return {"message": f"User '{j.username}' created successfully!"}
 
 
 # ROAMING IN THE MAGICSEARCH DATABASE
@@ -145,7 +155,6 @@ async def id_search(id: int) -> cardModel:
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
-
 
 # get a card by its name
 # Card_Service().name_search(name)
@@ -167,12 +176,21 @@ async def semantic_search(search):
     
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.post("/card/filter", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
-async def filter_search(filters: List[AbstractFilterModel]) -> list[cardModel]:
+@app.post("/card/NumericFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
+async def numerical_filter_search(filters: List[NumericFilterModel]) -> list[cardModel]:
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
     return cards
+
+
+@app.post("/card/CategoricalFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
+async def categorical_filter_search(filters: List[CategoricalFilterModel]) -> list[cardModel]:
+    """Filters the database based on a list of filters"""
+    logging.info("Filters the database based on a list of filters")
+    cards = card_service.filter_search(filters)
+    return cards
+    
 
 
 # DATABASE MANAGEMENT :CARDS
@@ -243,7 +261,7 @@ def delete_user(id_user: int, current_user: str = Depends(verify_token)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user_service.supprimer(user)
-    return f"User {user.pseudo} deleted"
+    return f"User {user.username} deleted"
 
 
 #fin modif pour connexion et token
@@ -279,13 +297,13 @@ def update_user(id_user: int, j: userModel):
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
 
-    user.pseudo = j.pseudo
-    user.mdp = j.mdp
+    user.username = j.username
+    user.password = j.password
     user = user_service.modifier(user)
     if not user:
         raise HTTPException(status_code=404, detail="Error while updating user")
 
-    return f"user {j.pseudo} updated"
+    return f"user {j.username} updated"
 
 
 # deleting a user
@@ -298,7 +316,7 @@ def update_user(id_user: int, j: userModel):
 #        raise HTTPException(status_code=404, detail="user not found")
 #
 #    user_service.supprimer(user)
-#    return f"user {user.pseudo} deleted"
+#    return f"user {user.username} deleted"
 
 
 # API TEST

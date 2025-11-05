@@ -10,7 +10,7 @@ class AbstractFilter(ABC):
         self.filtering_value = filtering_value
 
     @abstractmethod
-    def filter(self, variable_filtered: str, type_of_filtering: str, filtering_value) -> Card:
+    def filter(self, variable_filtered: str, type_of_filtering: str, filtering_value) :
         # est ce que ça renvoie une liste ? c'est pas mon problème
         """
         Filters the magic TG database along the variable_filtered, by choosing the cards
