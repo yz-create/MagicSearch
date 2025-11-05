@@ -123,16 +123,20 @@ class userModel(BaseModel):
 # creating a user
 @app.post("/user/", tags=["User log in !"])
 async def create_user(j: userModel):
-    """creating a user"""
+    """Create a new user"""
     logging.info("creating a user")
-    if user_service.pseudo_deja_utilise(j.pseudo):
-        raise HTTPException(status_code=404, detail="Pseudo already used")
 
-    user = user_service.creer(j.pseudo, j.mdp)
+    # Vérifier si le nom d'utilisateur existe déjà
+    existing_user = user_service.find_by_username(j.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already used")
+
+    # Créer l'utilisateur
+    user = user_service.create_user(j.username, j.password)
     if not user:
-        raise HTTPException(status_code=404, detail="Error while creating the user")
+        raise HTTPException(status_code=500, detail="Error while creating the user")
 
-    return user
+    return {"message": f"User '{j.username}' created successfully!"}
 
 
 # ROAMING IN THE MAGICSEARCH DATABASE
@@ -249,7 +253,7 @@ def delete_user(id_user: int, current_user: str = Depends(verify_token)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user_service.supprimer(user)
-    return f"User {user.pseudo} deleted"
+    return f"User {user.username} deleted"
 
 
 #fin modif pour connexion et token
@@ -285,13 +289,13 @@ def update_user(id_user: int, j: userModel):
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
 
-    user.pseudo = j.pseudo
-    user.mdp = j.mdp
+    user.username = j.username
+    user.password = j.password
     user = user_service.modifier(user)
     if not user:
         raise HTTPException(status_code=404, detail="Error while updating user")
 
-    return f"user {j.pseudo} updated"
+    return f"user {j.username} updated"
 
 
 # deleting a user
@@ -304,7 +308,7 @@ def update_user(id_user: int, j: userModel):
 #        raise HTTPException(status_code=404, detail="user not found")
 #
 #    user_service.supprimer(user)
-#    return f"user {user.pseudo} deleted"
+#    return f"user {user.username} deleted"
 
 
 # API TEST
