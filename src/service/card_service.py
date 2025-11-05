@@ -57,7 +57,7 @@ class CardService():
             # id invalid, return None instead of crashing
             return None
 
-    def name_search(self, name: str) -> Card:
+    def name_search(name: str) -> Card:
         """
         Searches for a card based on its name
 
@@ -73,7 +73,7 @@ class CardService():
         """
         return CardDao().name_search(name)
 
-    def semantic_search(self, search: str) -> list[Card]:
+    def semantic_search(search: str) -> list[Card]:
 
         # étape 1 : obtenir l'embedding de "search"
         token = os.getenv("API_TOKEN")
@@ -116,7 +116,7 @@ class CardService():
 
         return get_similar_entries(search_emb)
 
-    def view_random_card(self) -> Card:
+    def view_random_card() -> Card:
         """
         Allows to show a random card
 
