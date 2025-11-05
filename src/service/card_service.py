@@ -8,6 +8,7 @@ import psycopg
 from pgvector.psycopg import register_vector
 import requests
 import os
+import numpy as np
 
 # Set the following env. variables for this to work: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
 # conn = psycopg.connect(dbname="defaultdb", autocommit=True)
@@ -91,9 +92,8 @@ class CardService():
             }
 
             response = requests.post(url, headers=headers, json=data)
-            json_response = response.json()
             # res = json_response[ "embeddings"]
-            return json_response
+            return np.array(response.json()['embeddings'][0])
 
         search_emb = embedding(search)
 
@@ -104,17 +104,21 @@ class CardService():
             Returns the 5 entries from the database with the embedding closest to the given
             [search_emb].
             """
+            conn.execute('SET search_path TO defaultdb, public;')
             results = conn.execute("""
                 SELECT
-                    embed,
-                    search_emb <-> %s as dst
-                FROM Card
+                    "idCard",
+                    "embed" <-> %s as dst
+                FROM "Card"
                 ORDER BY dst
                 LIMIT 5
                 """, (search_emb,))
             return results.fetchall()
 
-        return get_similar_entries(search_emb)
+        cards = []
+        for entry in get_similar_entries(search_emb):
+            cards.append(CardService().id_search(entry[0]))
+        return(cards)
 
     def view_random_card(self) -> Card:
         """
@@ -157,4 +161,7 @@ class CardService():
                     if item not in set(Magicsearch_filtered):
                         Magicsearch_filtered.remove(item)
         return Magicsearch_filtered       
-  
+
+
+if __name__ == "__main__":
+    print(CardService().semantic_search("Test test test"))
