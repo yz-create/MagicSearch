@@ -9,7 +9,7 @@ class CardDao:
     # Pattern Singleton : empêche la création de plusieurs objets,
     # renvoie toujours la même instance existante
 
-    def create_card(self, card: Card) -> bool:
+    def create_card(card: Card) -> bool:
         """
         Add a card to the database
 
@@ -81,7 +81,7 @@ class CardDao:
             logging.error(f"Error creating card: {e}")
             return False
 
-    def update_card(self, card: Card) -> bool:
+    def update_card(card: Card) -> bool:
         """
         Update an existing card in the database
 
@@ -128,7 +128,7 @@ class CardDao:
             logging.error(f"Error updating card: {e}")
             return False
 
-    def delete_card(self, card_id: int) -> bool:
+    def delete_card(card_id: int) -> bool:
         """
         Delete a card from the database
 
@@ -154,7 +154,7 @@ class CardDao:
             logging.error(f"Error deleting card: {e}")
             return False
 
-    def find_all_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
+    def find_all_embedding(limit: int = 100, offset: int = 0) -> list[float]:
         request = (
             f"SELECT embedded                                                  "
             f"  FROM AtomicCards                                                  "
@@ -174,7 +174,7 @@ class CardDao:
             embedding.append(row)
         return embedding
 
-    def find_by_embedding(self, limit: int = 100, offset: int = 0) -> list[float]:
+    def find_by_embedding(limit: int = 100, offset: int = 0) -> list[float]:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -204,11 +204,10 @@ class CardDao:
                     '"edhrecSaltiness", "embed", "faceManaValue", "faceName", "hand", '
                     '"hasAlternativeDeckLimit", "isFunny", "isReserved", "life", "loyalty", '
                     '"manaCost", "manaValue", c."name", "power", "side", "text", "toughness", '
-                    'l."name" layout, t."name" type, s."name" firstPrinting'
+                    'l."name" layout, t."name" type'
                     '  FROM "Card" c       '
                     '  JOIN "Layout" l ON l."idLayout" = c."layout"'
                     '  JOIN "Type" t ON t."idType" = c."type"'
-                    '  JOIN "Set" s ON s."idSet" = c."firstPrinting"'
                     '  WHERE "idCard" = %(idCard)s',
                     {"idCard": id_card}
                 )
@@ -245,6 +244,16 @@ class CardDao:
                 res_colors = cursor.fetchall()
                 cursor.execute(
                     '''
+                    SELECT s."name"
+                    FROM "Set" s
+                    JOIN "Card" c ON c."firstPrinting" = s."idSet"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_first_printing = cursor.fetchone()
+                cursor.execute(
+                    '''
                     SELECT "language", "name", "faceName", "flavorText", "text", "type"
                     FROM "ForeignData"
                     WHERE "idCard" = %(idCard)s
@@ -272,47 +281,145 @@ class CardDao:
                     {"idCard": id_card}
                 )
                 res_leadership_skills = cursor.fetchone()
+                cursor.execute(
+                    '''
+                    SELECT *
+                    FROM "LegalityType"
+                    ORDER BY "idLegalityType" ASC
+                    '''
+                )
+                res_legality_type = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "commander", "oathbreaker", "duel", "legacy", "vintage", "modern",
+                    "penny", "timeless", "brawl", "historic", "gladiator", "pioneer", "predh",
+                    "paupercommander", "pauper", "premodern", "future", "standardbrawl", "standard",
+                    "alchemy", "oldschool"
+                    FROM "Legality" l
+                    JOIN "Card" c ON c."legalities" = l."idLegality"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_legalities = cursor.fetchone()
+                cursor.execute(
+                    '''
+                    SELECT s."name"
+                    FROM "Set" s
+                    JOIN "Printings" p ON p."idSet" = s."idSet"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_printings = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "tcgplayer", "cardKingdom", "cardmarket", "cardKingdomFoil",
+                    "cardKingdomEtched", "tcgplayerEtched"
+                    FROM "PurchaseURLs"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_purchase_urls = cursor.fetchone()
+                cursor.execute(
+                    '''
+                    SELECT "date", "text"
+                    FROM "Ruling"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_rulings = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "name"
+                    FROM "Subtype" s
+                    JOIN "Subtypes" ss ON ss."idSubtype" = s."idSubtype"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_subtypes = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "name"
+                    FROM "Supertype" s
+                    JOIN "Supertypes" ss ON ss."idSupertype" = s."idSupertype"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_supertypes = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "name"
+                    FROM "Type" s
+                    JOIN "Types" ss ON ss."idType" = s."idType"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_types = cursor.fetchall()
 
-        color_identity = CardDao.get_list_from_fetchall(res_color_identity, 'colorName')
-        color_indicator = CardDao.get_list_from_fetchall(res_color_indicator, 'colorName')
-        colors = CardDao.get_list_from_fetchall(res_colors, 'colorName')
+        color_identity = CardDao().get_list_from_fetchall(res_color_identity, 'colorName')
+        color_indicator = CardDao().get_list_from_fetchall(res_color_indicator, 'colorName')
+        colors = CardDao().get_list_from_fetchall(res_colors, 'colorName')
+        if res_first_printing:
+            first_printing = res_first_printing["name"]
+        else:
+            first_printing = None
         foreign_data = [dict(r) for r in res_foreign_data]
-        keywords = CardDao.get_list_from_fetchall(res_keyword, 'name')
+        keywords = CardDao().get_list_from_fetchall(res_keyword, 'name')
         if res_leadership_skills:
             leadership_skills = dict(res_leadership_skills)
         else:
             leadership_skills = None
+        legality_types = {}
+        for legality_type in res_legality_type:
+            legality_types[legality_type["idLegalityType"]] = legality_type["type"]
+        legalities = {}
+        for legality in res_legalities:
+            if res_legalities[legality] is not None:
+                legalities[legality] = legality_types[res_legalities[legality]]
+        printings = CardDao().get_list_from_fetchall(res_printings, "name")
+        purchase_urls = {}
+        if res_purchase_urls:
+            for url in res_purchase_urls:
+                if res_purchase_urls[url] is not None:
+                    purchase_urls[url] = res_purchase_urls[url]
+        rulings = []
+        if res_rulings:
+            for ruling in res_rulings:
+                rulings.append({"date": ruling["date"], "text": ruling["text"]})
+        subtypes = CardDao().get_list_from_fetchall(res_subtypes, "name")
+        supertypes = CardDao().get_list_from_fetchall(res_supertypes, "name")
+        types = CardDao().get_list_from_fetchall(res_types, "name")
 
         card = Card(
             res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
             res_card["asciiName"], color_identity, color_indicator, colors,
             res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
             res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            res_card["firstprinting"], foreign_data, res_card["hand"],
-            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
-            keywords, leadership_skills
+            first_printing, foreign_data, res_card["hand"], res_card["hasAlternativeDeckLimit"],
+            res_card["isFunny"], res_card["isReserved"], keywords, leadership_skills, legalities,
+            res_card["life"], res_card["loyalty"], res_card["manaCost"], res_card["manaValue"],
+            res_card["power"], printings, purchase_urls, rulings, res_card["side"], subtypes,
+            supertypes, res_card["text"], res_card["toughness"], types
             )
 
-        return (
-            res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
-            res_card["asciiName"], color_identity, color_indicator, colors,
-            res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
-            res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            res_card["firstprinting"], foreign_data, res_card["hand"],
-            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
-            keywords, leadership_skills
-            )
+        return (card)
 
-    def get_list_from_fetchall(res, column_name) -> list:
+    def get_list_from_fetchall(self, res, column_name) -> list:
         returned_list = []
         for value in res:
             returned_list.append(value[column_name])
         return returned_list
 
-    def name_search(self, str) -> Card:
+    def name_search(str) -> Card:
         pass
 
-    def filter_cat_dao(self, filter: AbstractFilter):
+    def filter_cat_dao(filter: AbstractFilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -336,7 +443,7 @@ class CardDao:
                     res = cursor.fetchall()
         return res
 
-    def filter_num_dao(self, filter: AbstractFilter):
+    def filter_num_dao(filter: AbstractFilter):
         variable_filtered = filter.variable_filtered
         type_of_filtering = filter.type_of_filtering
         filtering_value = filter.filtering_value
@@ -383,4 +490,7 @@ class CardDao:
 
 
 if __name__ == "__main__":
-    print(CardDao.id_search(1))
+    for i in range(CardDao().get_highest_id()):
+        CardDao().id_search(i)
+        if i % 100 == 0:
+            print(i)
