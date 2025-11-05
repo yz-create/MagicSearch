@@ -8,11 +8,9 @@ def initialize_logs(name: str):
     
     os.makedirs("logs", exist_ok=True)
 
-    # base_dir = /home/onyxia/work/MagicSearch/src
-    base_dir = os.path.dirname(os.path.dirname(__file__))
-    config_path = os.path.join(base_dir, "logging_config.yml")  # <-- CORRECT
+    base_dir = os.path.dirname(__file__)
+    config_path = os.path.join(base_dir, "logging_config.yml")
 
-    # Vérification
     print("Looking for logging_config.yml at:", config_path)
 
     with open(config_path, encoding="utf-8") as stream:

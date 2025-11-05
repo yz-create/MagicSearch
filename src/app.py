@@ -177,7 +177,7 @@ async def Create_card(card):
 
 
 # update a card
-@app.get("/card/{card}", tags=["Database management : cards"]) 
+@app.get("/card/{card}", tags=["Database management : cards"])
 async def Update_card(card):
     """Updates a card in the Magicsearch database"""
     logging.info("Updates a card in the Magicsearch database")
@@ -185,7 +185,7 @@ async def Update_card(card):
 
 
 # delete a card
-@app.get("/card/{card}", tags=["Database management : cards"]) 
+@app.get("/card/{card}", tags=["Database management : cards"])
 async def Delete_card(card):
     """Deletes a card in the Magicsearch database"""
     logging.info("Deletes a card in the Magicsearch database")
