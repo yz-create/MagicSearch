@@ -128,6 +128,7 @@ class CardDao:
             logging.error(f"Error updating card: {e}")
             return False
 
+    
     def delete_card(self, card_id: int) -> bool:
         """
         Delete a card from the database
@@ -252,18 +253,45 @@ class CardDao:
                     {"idCard": id_card}
                 )
                 res_foreign_data = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "name"
+                    FROM "Keyword" k
+                    JOIN "Keywords" ks ON ks."idKeyword" = k."idKeyword"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_keyword = cursor.fetchall()
+                cursor.execute(
+                    '''
+                    SELECT "brawl", "commander", "oathbreaker"
+                    FROM "LeadershipSkills" ls
+                    JOIN "Card" c ON c."leadershipSkills" = ls."idLeadership"
+                    WHERE "idCard" = %(idCard)s
+                    ''',
+                    {"idCard": id_card}
+                )
+                res_leadership_skills = cursor.fetchone()
 
         color_identity = CardDao.get_list_from_fetchall(res_color_identity, 'colorName')
         color_indicator = CardDao.get_list_from_fetchall(res_color_indicator, 'colorName')
         colors = CardDao.get_list_from_fetchall(res_colors, 'colorName')
         foreign_data = [dict(r) for r in res_foreign_data]
+        keywords = CardDao.get_list_from_fetchall(res_keyword, 'name')
+        if res_leadership_skills:
+            leadership_skills = dict(res_leadership_skills)
+        else:
+            leadership_skills = None
 
         card = Card(
             res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
             res_card["asciiName"], color_identity, color_indicator, colors,
             res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
             res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            res_card["firstprinting"], foreign_data
+            res_card["firstprinting"], foreign_data, res_card["hand"],
+            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
+            keywords, leadership_skills
             )
 
         return (
@@ -271,7 +299,9 @@ class CardDao:
             res_card["asciiName"], color_identity, color_indicator, colors,
             res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
             res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            res_card["firstprinting"], foreign_data
+            res_card["firstprinting"], foreign_data, res_card["hand"],
+            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
+            keywords, leadership_skills
             )
 
     def get_list_from_fetchall(res, column_name) -> list:
@@ -354,4 +384,4 @@ class CardDao:
 
 
 if __name__ == "__main__":
-    print(CardDao.id_search(9))
+    print(CardDao.id_search(1))

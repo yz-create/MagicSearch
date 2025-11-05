@@ -3,8 +3,10 @@ psycopg
 dotenv
 tabulate
 pytest
-logging
 logging.config
 PyYAML
 pydantic
 pgvector
+fastapi
+requests
+uvicorn
