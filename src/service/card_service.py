@@ -129,7 +129,7 @@ class CardService():
         idrand = random.randint(0, idmax)
         CardService.id_search(idrand)
 
-    def filter_search(filters: list[AbstractFilter]) -> list[Card]: 
+    def filter_search(self, filters: list[AbstractFilter]) -> list[Card]: 
             """
             Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
             method
