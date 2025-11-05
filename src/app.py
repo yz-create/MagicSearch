@@ -129,8 +129,8 @@ async def view_random():
 
 # get a card by its id 
 # Card_Service().id_search(id)
-@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"])
-async def id_search(id: int):
+@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"], response_model=cardModel)
+async def id_search(id: int)->cardModel:
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
