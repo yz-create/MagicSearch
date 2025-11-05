@@ -480,11 +480,14 @@ class CardDao:
                     raise ValueError(
                         "variable_filtered must be in the following list : 'type', 'is_funny'"
                         )
+                
 
                 if not isinstance(filtering_value, str):
                     raise ValueError("filtering_value must be a string")
 
                 sql_comparator = "LIKE" if type_of_filtering == "positive" else "NOT LIKE"
+                if "filtering_value"=='None':
+                    sql_comparator = "IS"               
                 sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
                     sql.Identifier(variable_filtered),
                     sql.SQL(sql_comparator)
@@ -492,7 +495,7 @@ class CardDao:
                 sql_parameter = [f"%{filtering_value}%"]
 
             else:  # numerical filter
-                if variable_filtered not in ["mana_value", "defense", "edhrecRank", "toughness", "power"]:
+                if variable_filtered not in ["mana_value", "defense", "edhrecRank", "toughness", "power", "type"]:
                     raise ValueError("variable_filtered must be in the following list : mana_value, defense, edhrec_rank, toughness, power")
                 if type_of_filtering == "higher_than": 
                     sql_comparator = ">"

@@ -6,12 +6,12 @@ from business_object.filters.filter_numerical import FilterNumeric
 cardservice = CardService()
 carddao = CardDao()
 cat_filter = FilterCategory(
-    variable_filtered="type",
+    variable_filtered="is_funny",
     type_of_filtering="positive",
-    filtering_value="Legendary Creature - Halfling Scout"
+    filtering_value=False
 )
 num_filter_lower= FilterNumeric(
-    variable_filtered="edhrecRank",
+    variable_filtered="type",
     type_of_filtering="lower_than",
     filtering_value=4
 )
@@ -20,7 +20,7 @@ num_filter_higher= FilterNumeric(
     type_of_filtering="higher_than",
     filtering_value=2
 )
-filtertestlist=[num_filter_lower, num_filter_higher]
+filtertestlist=[cat_filter]
 
 
 print(cardservice.filter_search(filtertestlist))
