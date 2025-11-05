@@ -5,9 +5,11 @@ from business_object.filters.abstract_filter import AbstractFilter
 from dotenv import load_dotenv
 import random
 import psycopg
+import logging
 from pgvector.psycopg import register_vector
 import requests
 import os
+import numpy as np
 
 # Set the following env. variables for this to work: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
 # conn = psycopg.connect(dbname="defaultdb", autocommit=True)
@@ -26,7 +28,7 @@ register_vector(conn)
 
 class CardService():
     """Class containing the service methods of Cards"""
-    
+
     def create_card(self, card: Card) -> bool | None:
         """
         Creates a card in the database.
@@ -95,7 +97,7 @@ class CardService():
             return None
 
         try:
-            max_id = CardDao().get_higher_id()
+            max_id = CardDao().get_highest_id()
         except Exception as e:
             print(f"Failed to get maximum id from DB: {e}")
             return None
@@ -141,8 +143,20 @@ class CardService():
             return None
 
     def semantic_search(self, search: str) -> list[Card]:
+        """
+        Given a search as a sentence (for example "Blue bird with 5 mana"), returns the 5 closest
+        cards to the reasearch
 
-        # étape 1 : obtenir l'embedding de "search"
+        Parameters:
+        -----------
+        search: str
+            The research the user made as an str
+
+        Returns:
+        --------
+        list[Card]
+            The 5 closest cards to match the description made by the user
+        """
         token = os.getenv("API_TOKEN")
         url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
 
@@ -150,39 +164,13 @@ class CardService():
             "Authorization": f"Bearer {token}",
             "Content-type": "application/json"}
 
-        def embedding(text: str):
+        search_emb = CardService().get_embedding(search, url, headers)
 
-            data = {
-                "model": "bge-m3:latest",
-                "input": text
-            }
+        cards = []
+        for entry in CardDao().get_similar_entries(conn, search_emb):
+            cards.append(CardService().id_search(entry[0]))
 
-            response = requests.post(url, headers=headers, json=data)
-            json_response = response.json()
-            # res = json_response[ "embeddings"]
-            return json_response
-
-        search_emb = embedding(search)
-
-        # étape 2 : obtenir la correspondance entre search_emb et au moins 5 de nos cartes
-
-        def get_similar_entries(embedding):
-            """
-            Returns the 5 entries from the database with the embedding closest to the given
-            [search_emb].
-            """
-            results = conn.execute("""
-                SELECT
-                    "idCard",
-                    "embed",
-                    search_emb <-> %s as dst
-                FROM Card
-                ORDER BY dst
-                LIMIT 5
-                """, (search_emb,))
-            return results.fetchall()
-
-        return get_similar_entries(search_emb)
+        return (cards)
 
     def view_random_card(self) -> Card:
         """
@@ -198,15 +186,15 @@ class CardService():
 
         return self.id_search(idrand)
 
-    def filter_search(self, filters: list[AbstractFilter]) -> list[Card]: 
+    def filter_search(self, filters: list[AbstractFilter]) -> list[Card]:
         """
-            Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
-            method
+        Service method for searching by filtering : identifies the type of filter and calls the
+        corresponding DAO method
 
-            Parameters :
-            ------------
-            filters : list[AbstractFilter]
-                the list of filters we want to apply to our research
+        Parameters :
+        ------------
+        filters : list[AbstractFilter]
+            the list of filters we want to apply to our research
 
         Return :
         --------
@@ -216,15 +204,44 @@ class CardService():
         # we start a basic list with the first filter in our list
         filter = filters[0]
         Magicsearch_filtered = CardDao().filter_dao(filter)
-        # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-        if len(filters)>=2:
-            for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
+        # we do the same for all the filters and everytime, we only keep in magicsearch_filtered
+        # only the common cards
+        if len(filters) >= 2:
+            for i in range(1, len(filters)):  # checker que je parcours toute la liste (lucile)
                 filter = filters[i]
                 new_filter_list = CardDao().filter_dao(filter)
-                for item in set(new_filter_list):
-                    if item not in set(Magicsearch_filtered):
+                for item in Magicsearch_filtered:
+                    if item not in new_filter_list:
                         Magicsearch_filtered.remove(item)
-        return Magicsearch_filtered or []   
+        return Magicsearch_filtered or []
         if not Magicsearch_filtered:
-           logging.warning(f"No results for filters: {filters}")
-    
+            logging.warning(f"No results for filters: {filters}")
+
+    def get_embedding(self, text: str, url: str, headers: dict) -> np.ndarray:
+        """
+        Embeds a text
+
+        Parameters:
+        -----------
+        text: str
+            The text to be embeded
+        url: str
+            The url of the website we use to generate the embeddings
+        headers: dict
+            The headers used to generate the embeddings
+
+        Returns:
+        --------
+        numpy.ndarray
+            Returns the embed of the card as a vector
+        """
+        data = {
+            "model": "bge-m3:latest",
+            "input": text
+        }
+        response = requests.post(url, headers=headers, json=data)
+        return np.array(response.json()['embeddings'][0])
+
+
+if __name__ == "__main__":
+    print(CardService().semantic_search("Test"))

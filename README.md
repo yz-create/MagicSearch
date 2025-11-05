@@ -15,4 +15,4 @@ Start reset_database.py as a main to reset the database
 
 ## To access the embed :
 Go on https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé d'API
-Put in the terminal : API_TOKEN= followed by the token you just copied
+Put in the terminal : export API_TOKEN= followed by the token you just copied

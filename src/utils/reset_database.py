@@ -39,6 +39,8 @@ class ResetDatabase(metaclass=Singleton):
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
+                    cursor.execute('SET search_path TO defaultdb, public;')
+                    cursor.execute('CREATE EXTENSION IF NOT EXISTS vector;')
                     cursor.execute(create_schema)
                     cursor.execute(init_db_as_string)
         except Exception:
@@ -207,7 +209,7 @@ class ResetDatabase(metaclass=Singleton):
 
                 card_dic["text_to_embed"] = card_to_text(card)
                 # card_dic["embed"] = embedding(card_dic["text_to_embed"])
-                card_dic["embed"] = [0, 0]  # Placeholder since it's bugging for some reason
+                card_dic["embed"] = [0] * 1024  # Placeholder since it's bugging
 
                 cards.append(card_dic)
                 idCard += 1

@@ -1,4 +1,5 @@
 import logging
+from psycopg2 import sql
 
 from business_object.card import Card
 from db_connection import DBConnection
@@ -496,27 +497,6 @@ class CardDao:
             logging.error(f"Error deleting card: {e}")
             return False
 
-    # Probablement à supprimer
-    def find_all_embedding(limit: int = 100, offset: int = 0) -> list[float]:
-        request = (
-            f"SELECT embedded                                                  "
-            f"  FROM AtomicCards                                                  "
-            # f"  JOIN tp.pokemon_type pt ON pt.id_pokemon_type = p.id_pokemon_type    "
-            f" LIMIT {max(limit, 0)}                                                 "
-            f"OFFSET {max(offset, 0)}                                                "
-        )
-
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(request)
-                res = cursor.fetchall()
-
-        embedding = []
-
-        for row in res:
-            embedding.append(row)
-        return embedding
-
     def find_by_embedding(self, embed: list) -> list[float]:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -834,7 +814,7 @@ class CardDao:
                     "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input "
                     )
             sql_query = None
-            sql_paramater = []
+            sql_parameter = []
 
             if type_of_filtering in ["positive", "negative"]:  # categorical filter
                 if variable_filtered not in ["type", "is_funny"]:
@@ -845,31 +825,32 @@ class CardDao:
                 if not isinstance(filtering_value, str):
                     raise ValueError("filtering_value must be a string")
 
-                sql_comparator = "LIKE" if type_of_filtering =="positive" else "NOT LIKE"
-                sql_query = sql.SQL("SELECT * FROM Card WHERE {} {} %s").format(
+                sql_comparator = "LIKE" if type_of_filtering == "positive" else "NOT LIKE"
+                sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
                     sql.Identifier(variable_filtered),
                     sql.SQL(sql_comparator)
                 )
                 sql_parameter = [f"%{filtering_value}%"]
 
             else:  # numerical filter
-                if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power"]:
-                    raise ValueError("variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power")
-                
-                if type_of_filtering =="higher_than" : 
+                if variable_filtered not in ["mana_value", "defense", "edhrecRank", "toughness", "power"]:
+                    raise ValueError("variable_filtered must be in the following list : mana_value, defense, edhrec_rank, toughness, power")
+                if type_of_filtering == "higher_than": 
                     sql_comparator = ">"
-                elif type_of_filtering =="equal_to":
-                    sql_comparator ="=="
-                else :
-                    sql_comparator ="<"
-                sql_query = sql.SQL("SELECT * FROM Card WHERE {} {} %s").format(
+                elif type_of_filtering == "equal_to":
+                    sql_comparator = "="
+                else:
+                    sql_comparator = "<"
+                sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
                     sql.Identifier(variable_filtered),
                     sql.SQL(sql_comparator)
                 )
-                sql_parameter=[filtering_value]
+                sql_parameter = [filtering_value]
                 with DBConnection().connection as connection:
                     with connection.cursor() as cursor:
-                        cursor.execute(query, params)
+                        logging.debug(f"Executing SQL: {sql_query.as_string(connection)} with params {sql_parameter}")
+                        cursor.execute('SET search_path TO defaultdb, public;')
+                        cursor.execute(sql_query, sql_parameter)
                         res = cursor.fetchall()
                         return res or []
         except Exception as e:
@@ -891,6 +872,18 @@ class CardDao:
 
         return res['max']
 
-
-if __name__ == "__main__":
-    print(CardDao().id_search(1))
+    def get_similar_entries(self, conn, search_emb):
+        """
+        Returns the 5 entries from the database with the embedding closest to the given
+        [search_emb].
+        """
+        conn.execute('SET search_path TO defaultdb, public;')
+        results = conn.execute("""
+            SELECT
+                "idCard",
+                "embed" <-> %s as dst
+            FROM "Card"
+            ORDER BY dst
+            LIMIT 5
+            """, (search_emb,))
+        return results.fetchall()
