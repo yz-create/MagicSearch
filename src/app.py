@@ -90,13 +90,12 @@ class nameModel(BaseModel):
 class NumericFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: int  # à modifier
-
+    filtering_value: int 
 
 class CategoricalFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: str  # à modifier
+    filtering_value: str  
 
 
 class UserCreateRequest(BaseModel):
@@ -177,12 +176,21 @@ async def semantic_search(search):
     
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.post("/card/filter", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
+@app.post("/card/NumericFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
 async def numerical_filter_search(filters: List[NumericFilterModel]) -> list[cardModel]:
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
     return cards
+
+
+@app.post("/card/CategoricalFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
+async def categorical_filter_search(filters: List[CategoricalFilterModel]) -> list[cardModel]:
+    """Filters the database based on a list of filters"""
+    logging.info("Filters the database based on a list of filters")
+    cards = card_service.filter_search(filters)
+    return cards
+    
 
 
 # DATABASE MANAGEMENT :CARDS
