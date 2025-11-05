@@ -529,6 +529,7 @@ class CardDao:
                 with DBConnection().connection as connection:
                     with connection.cursor() as cursor:
                         logging.debug(f"Executing SQL: {sql_query.as_string(connection)} with params {sql_parameter}")
+                        cursor.execute('SET search_path TO defaultdb, public;')
                         cursor.execute(sql_query, sql_parameter)
                         res = cursor.fetchall()
                         return res or []
