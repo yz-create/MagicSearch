@@ -13,8 +13,11 @@ class UserDao:
         self.db = db
 
     def read_all_user(self):
-        """Return all the users"""
-        pass
+        """Return all users"""
+        query = "SELECT username, isAdmin FROM User"
+        self.db.cursor.execute(query)
+        rows = self.db.cursor.fetchall()
+        return [{"username": r[0], "isAdmin": r[1]} for r in rows]
 
     def get_by_username(self, username: str):
         """Re"""

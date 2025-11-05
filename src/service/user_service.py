@@ -39,15 +39,11 @@ class UserService:
 
 
     @log
-    def list_all(self, include_password: bool = False) -> list[User]:
-        """List all users. Hide passwords by default."""
-        users = self.user_dao.list_all() or []
+    def list_all(self, current_user):
+        if not current_user["isAdmin"]:
+            raise HTTPException(status_code=403, detail="Admin rights required")
 
-        if not include_password:
-            for user in users:
-                user.password = None
-
-        return users
+        return self.user_dao.read_all_user()
 
     @log
     def find_by_username(self, username: str) -> User | None:

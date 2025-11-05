@@ -9,7 +9,6 @@ from datetime import timedelta
 
 from service.user_service import UserService
 from service.card_service import CardService
-from service.card_service import CardService
 from utils.log_init import initialize_logs
 # from business_object.filters.abstract_filter import AbstractFilter 
 # pour les fonctions de filtrages
