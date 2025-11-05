@@ -145,6 +145,7 @@ class CardDao:
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
+                    cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(
                         'DELETE FROM "Card" WHERE "idCard" = %(idCard)s;',
                         {"idCard": card_id}
@@ -154,6 +155,7 @@ class CardDao:
             logging.error(f"Error deleting card: {e}")
             return False
 
+    # Probablement à supprimer
     def find_all_embedding(limit: int = 100, offset: int = 0) -> list[float]:
         request = (
             f"SELECT embedded                                                  "
@@ -174,23 +176,23 @@ class CardDao:
             embedding.append(row)
         return embedding
 
-    def find_by_embedding(limit: int = 100, offset: int = 0) -> list[float]:
+    def find_by_embedding(self, embed: list) -> list[float]:
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
                 cursor.execute(
-                    "SELECT *                                                        "
-                    "  FROM AtomicCards c                                            "
-                    # "  JOIN tp.pokemon_type pt USING(id_pokemon_type)                "
-                    " WHERE c.name = %(name)s                                        ",
-                    {"name": name},
+                    '''
+                    SELECT "idCard"
+                    FROM "Card"
+                    WHERE "embed" = %(embed)s
+                    ''',
+                    {"embed": embed}
                 )
                 res = cursor.fetchone()
-
-        embedding = None
-
         if res:
-            embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
-        return embedding
+            return CardDao().id_search(res["idCard"])
+        else:
+            return None
 
     def id_search(self, id_card: int) -> Card:
         """
@@ -200,7 +202,7 @@ class CardDao:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
                 cursor.execute(
-                    'SELECT "asciiName", "convertedManaCost", "defense", "edhrecRank", '
+                    'SELECT "idCard", "asciiName", "convertedManaCost", "defense", "edhrecRank", '
                     '"edhrecSaltiness", "embed", "faceManaValue", "faceName", "hand", '
                     '"hasAlternativeDeckLimit", "isFunny", "isReserved", "life", "loyalty", '
                     '"manaCost", "manaValue", c."name", "power", "side", "text", "toughness", '
@@ -212,6 +214,8 @@ class CardDao:
                     {"idCard": id_card}
                 )
                 res_card = cursor.fetchone()
+                if res_card is None:
+                    return None
                 cursor.execute(
                     '''
                     SELECT "colorName"
@@ -397,8 +401,8 @@ class CardDao:
         types = CardDao().get_list_from_fetchall(res_types, "name")
 
         card = Card(
-            res_card["embed"], res_card["layout"], res_card["name"], res_card["type"],
-            res_card["asciiName"], color_identity, color_indicator, colors,
+            res_card["idCard"], res_card["embed"], res_card["layout"], res_card["name"],
+            res_card["type"], res_card["asciiName"], color_identity, color_indicator, colors,
             res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
             res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
             first_printing, foreign_data, res_card["hand"], res_card["hasAlternativeDeckLimit"],
@@ -410,45 +414,90 @@ class CardDao:
 
         return (card)
 
-    def get_list_from_fetchall(self, res, column_name) -> list:
+    def get_list_from_fetchall(self, res, column_name: str) -> list:
+        """
+        To transform a fetchall (which is a RealDictRow) of elements with one column into a list
+
+        Parameters:
+        -----------
+        res: RealDictRow
+            The result of the fetchall
+        column_name: str
+            The name of the column
+
+        Return:
+        -------
+        list
+            All elements of res as a list
+        """
         returned_list = []
         for value in res:
             returned_list.append(value[column_name])
         return returned_list
 
-    def name_search(str) -> Card:
-        pass
+    def name_search(self, name: str) -> list:
+        """
+        Returns all the information about the Cards that has name as their name
+
+        Returns:
+        --------
+        list
+            The list of all cards with said name (multiple cards can have the same name)
+        """
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
+                cursor.execute(
+                    '''
+                    SELECT "idCard"
+                    FROM "Card"
+                    WHERE "name" = %(name)s
+                    ''',
+                    {"name": name}
+                )
+                res = cursor.fetchall()
+
+        cards = []
+        for card in res:
+            cards.append(CardDao().id_search(card["idCard"]))
+        return cards
 
     def filter_dao(filter: AbstractFilter):
         """"
-        This function checks that this is filter object and selects in the database the elements corresponding
-        to the parameters of the filter
-        First the function checks that type_of_filtering is in ["higher_than", "lower_than", "equal_to", "positive", "negative]
-        as it is the easiest way to exclude non-filter objects
-        Then we distinguish categorical and numerical filters and exclude objects with non-valid parameters
+        This function checks that this is filter object and selects in the database the elements
+        corresponding to the parameters of the filter
+        First the function checks that type_of_filtering is in ["higher_than", "lower_than",
+        "equal_to", "positive", "negative] as it is the easiest way to exclude non-filter objects
+        Then we distinguish categorical and numerical filters and exclude objects with non-valid
+        parameters
         Finally, it selects the elements corresponding to the filter in the database
-        
+
         Parameter :
         -----------
         filter : Abstracfilter
             filter we want to implement
-        
-        Return : 
+
+        Return :
         --------
         list(Card)
         """
-        try :
+        try:
             variable_filtered = filter.variable_filtered
             type_of_filtering = filter.type_of_filtering
             filtering_value = filter.filtering_value
             if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
-                    raise ValueError("This is not a filter : type_of_filtering can only take 'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
-            elif type_of_filtering in ["positive", "negative"]: # categorical filter
+                raise ValueError(
+                    "This is not a filter : type_of_filtering can only take "
+                    "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input "
+                    )
+            elif type_of_filtering in ["positive", "negative"]:  # categorical filter
                 if variable_filtered not in ["type", "is_funny"]:
-                    raise ValueError("variable_filtered must be in the following list : 'type', 'is_funny'")
+                    raise ValueError(
+                        "variable_filtered must be in the following list : 'type', 'is_funny'"
+                        )
                 if not isinstance(filtering_value, str):
                     raise ValueError("filtering_value must be a string")
-                if type_of_filtering =="positive":
+                if type_of_filtering == "positive":
                     with DBConnection().connection as connection:
                         with connection.cursor() as cursor:
                             cursor.execute(
@@ -467,7 +516,7 @@ class CardDao:
                             )
                             res = cursor.fetchall()
                 return res
-            else : # numerical filter
+            else:  # numerical filter
                 if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power"]:
                     raise ValueError("variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power")
                 if type_of_filtering == "higher_than":
@@ -488,7 +537,7 @@ class CardDao:
                                 "  WHERE variable_filtered > filtering_value "
                             )
                             res = cursor.fetchall()
-                else : # equal_to
+                else:  # equal_to
                     with DBConnection().connection as connection:
                         with connection.cursor() as cursor:
                             cursor.execute(
@@ -502,8 +551,10 @@ class CardDao:
             logging.error(f"The input is not a filter : {e}")
             return False
 
-
-    def get_highest_id(self):
+    def get_highest_id(self) -> int:
+        """
+        Returns the highest id currently in the database
+        """
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
@@ -517,7 +568,4 @@ class CardDao:
 
 
 if __name__ == "__main__":
-    for i in range(CardDao().get_highest_id()):
-        CardDao().id_search(i)
-        if i % 100 == 0:
-            print(i)
+    print(CardDao().id_search(1))

@@ -1,6 +1,7 @@
 class Card:
     def __init__(
         self,
+        id_card: int,
         embedded: list,
         layout: str,
         name: str,
@@ -50,6 +51,7 @@ class Card:
         self.face_name = face_name
         self.hand = hand
         self.has_alternative_deck_limit = has_alternative_deck_limit
+        self.id_card = id_card
         self.is_funny = is_funny
         self.is_reserved = is_reserved
         self.keywords = keywords or []
@@ -88,6 +90,7 @@ class Card:
     def get_face_name(self): return self.face_name
     def get_hand(self): return self.hand
     def get_has_alternative_deck_limit(self): return self.has_alternative_deck_limit
+    def get_id_card(self): return self.id_card
     def get_is_funny(self): return self.is_funny
     def get_is_reserved(self): return self.is_reserved
     def get_keywords(self): return self.keywords
