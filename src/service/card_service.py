@@ -135,13 +135,12 @@ class CardService():
             print("Invalid name: cannot be empty or whitespace.")
             return None
 
-        card = CardDao().name_search(name)
-        return card 
-        """try:
-            
+        try:
+            card = CardDao().name_search(name)
+            return card
         except Exception as e:
             print(f"Failed to fetch card from DB: {e}")
-            return None"""
+            return None
 
     def semantic_search(self, search: str) -> list[Card]:
         """
