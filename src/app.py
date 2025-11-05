@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from utils.auth import create_access_token, verify_token
@@ -11,8 +11,6 @@ from typing import List
 from service.user_service import UserService
 from service.card_service import CardService
 from utils.log_init import initialize_logs
-from business_object.filters.abstract_filter import AbstractFilter 
-# pour les fonctions de filtrages
 
 
 # SETTING UP THE API
@@ -84,10 +82,16 @@ class cardModel(BaseModel):
     toughness: str = None
     types: list = None
 
+
+class nameModel(BaseModel):
+    name: str
+
+
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: str # à modifier
+    filtering_value: str  # à modifier
+
 
 class userModel(BaseModel):
     """
@@ -99,6 +103,7 @@ class userModel(BaseModel):
     user_id: int | None = None  # Champ optionnel
     pseudo: str
     mdp: str
+
 
 # USER LOG IN 
 # creating a user
@@ -117,7 +122,6 @@ async def create_user(j: userModel):
 
 
 # ROAMING IN THE MAGICSEARCH DATABASE
-# list all cards ?
 # get a random card
 # Card_Service().view_random_card()
 @app.get("/card/", tags=["Roaming in the MagicSearch Database"])
@@ -129,8 +133,8 @@ async def view_random():
 
 # get a card by its id 
 # Card_Service().id_search(id)
-@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"])
-async def id_search(id: int):
+@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"], response_model=cardModel)
+async def id_search(id: int) -> cardModel:
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
@@ -138,7 +142,7 @@ async def id_search(id: int):
 
 # get a card by its name
 # Card_Service().name_search(name)
-@app.get("/card/{name}", tags=["Roaming in the MagicSearch Database"]) 
+@app.get("/card/nameModel", tags=["Roaming in the MagicSearch Database"], response_model=cardModel) 
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
@@ -157,7 +161,7 @@ async def semantic_search(search):
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
 @app.post("/card/filter", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
-async def filter_search(filters: List[AbstractFilterModel])->list[cardModel]:
+async def filter_search(filters: List[AbstractFilterModel]) -> list[cardModel]:
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
@@ -174,7 +178,7 @@ async def Create_card(card):
 
 
 # update a card
-@app.get("/card/{card}", tags=["Database management : cards"]) 
+@app.get("/card/{card}", tags=["Database management : cards"])
 async def Update_card(card):
     """Updates a card in the Magicsearch database"""
     logging.info("Updates a card in the Magicsearch database")
@@ -182,7 +186,7 @@ async def Update_card(card):
 
 
 # delete a card
-@app.get("/card/{card}", tags=["Database management : cards"]) 
+@app.get("/card/{card}", tags=["Database management : cards"])
 async def Delete_card(card):
     """Deletes a card in the Magicsearch database"""
     logging.info("Deletes a card in the Magicsearch database")
@@ -196,19 +200,19 @@ async def Delete_card(card):
 @app.post("/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
-    Authentifie un utilisateur et retourne un token JWT
+    Authenticate a user and return a token JWT
     """
-    logging.info("Tentative de connexion")
+    logging.info("Attempt to connect")
 
     user = user_service.login(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Nom d'utilisateur ou mot de passe invalide")
+        raise HTTPException(status_code=401, detail="Wrong usrename or password")
 
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=timedelta(minutes=30)
+        expires_delta=timedelta(minutes=1440)
     )
-    logging.info(f"Utilisateur {user.username} connecté avec succès")
+    logging.info(f"User {user.username} successfully connected")
     return {"access_token": access_token, "token_type": "bearer"}
 
 #protéger fonctions faites que pour admin
@@ -301,6 +305,6 @@ async def hello_name(name: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9876)
+    uvicorn.run(app, host="0.0.0.0", port=9877)
 
     logging.info("Arret du Webservice")

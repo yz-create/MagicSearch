@@ -1,21 +1,11 @@
-import json
+from src.service.card_service import CardService
+from src.dao.card_dao import CardDao
 
-with open('AtomicCards.json', 'r') as file:
-    data = json.load(file)
+cardservice = CardService()
+carddao = CardDao()
+name = '"Ach! Hans, Run!"'
 
-type_lines = set()
+#print(CardDao().name_search(name))
+print(cardservice.id_search(1))
 
-for i in data['data']:
-    for card in data['data'][i]:
-        if 'type' in card:
-            # Convertit toujours en chaîne
-            value = card['type']
-            if isinstance(value, list):
-                value = " ".join(map(str, value))
-            type_lines.add(value)
-
-print(f"Nombre total de types uniques : {len(type_lines)}\n")
-print("Liste complète des types :\n")
-
-for t in sorted(type_lines):
-    print(t)
+#print(cardservice.view_random_card())
