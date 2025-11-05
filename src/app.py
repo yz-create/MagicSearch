@@ -32,7 +32,6 @@ async def redirect_to_docs():
 
 user_service = UserService()
 card_service = CardService()
-card_service = CardService()
 
 
 # USER LOG IN 

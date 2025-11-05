@@ -498,6 +498,10 @@ class CardDao:
                             )
                             res = cursor.fetchall()
                 return res
+        except Exception as e:
+            logging.error(f"The input is not a filter : {e}")
+            return False
+
 
     def get_highest_id(self):
         with DBConnection().connection as connection:
