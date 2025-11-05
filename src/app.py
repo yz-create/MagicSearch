@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from utils.auth import create_access_token, verify_token
@@ -11,8 +11,6 @@ from typing import List
 from service.user_service import UserService
 from service.card_service import CardService
 from utils.log_init import initialize_logs
-from business_object.filters.abstract_filter import AbstractFilter 
-# pour les fonctions de filtrages
 
 
 # SETTING UP THE API
@@ -84,13 +82,16 @@ class cardModel(BaseModel):
     toughness: str = None
     types: list = None
 
-class name(BaseModel):
-    name: str 
+
+class nameModel(BaseModel):
+    name: str
+
 
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: str # à modifier
+    filtering_value: str  # à modifier
+
 
 class userModel(BaseModel):
     """
@@ -102,6 +103,7 @@ class userModel(BaseModel):
     user_id: int | None = None  # Champ optionnel
     pseudo: str
     mdp: str
+
 
 # USER LOG IN 
 # creating a user
@@ -120,7 +122,6 @@ async def create_user(j: userModel):
 
 
 # ROAMING IN THE MAGICSEARCH DATABASE
-# list all cards ?
 # get a random card
 # Card_Service().view_random_card()
 @app.get("/card/", tags=["Roaming in the MagicSearch Database"])
@@ -133,7 +134,7 @@ async def view_random():
 # get a card by its id 
 # Card_Service().id_search(id)
 @app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"], response_model=cardModel)
-async def id_search(id: int)->cardModel:
+async def id_search(id: int) -> cardModel:
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
@@ -141,7 +142,7 @@ async def id_search(id: int)->cardModel:
 
 # get a card by its name
 # Card_Service().name_search(name)
-@app.get("/card/name", tags=["Roaming in the MagicSearch Database"], response_model=cardModel) 
+@app.get("/card/nameModel", tags=["Roaming in the MagicSearch Database"], response_model=cardModel) 
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
@@ -160,7 +161,7 @@ async def semantic_search(search):
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
 @app.post("/card/filter", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
-async def filter_search(filters: List[AbstractFilterModel])->list[cardModel]:
+async def filter_search(filters: List[AbstractFilterModel]) -> list[cardModel]:
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
