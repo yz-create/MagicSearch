@@ -134,15 +134,11 @@ class CardService():
         """
         Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
         method
-    def filter_search(self, filters: list[AbstractFilter]) -> list[Card]: 
-            """
-            Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
-            method
 
-            Parameters :
-            ------------
-            filters : list[AbstractFilter]
-                the list of filters we want to apply to our research
+        Parameters :
+        ------------
+        filters : list[AbstractFilter]
+            the list of filters we want to apply to our research
 
         Return :
         --------
@@ -153,8 +149,8 @@ class CardService():
         filter=filters[0]
         Magicsearch_filtered = CardDao().filter_dao(filter)
         # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-        if len(filters)>=2: 
-            for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
+        if len(filters)>=2 :
+            for i in range(1,len(filters)-1): # checker que je parcours toute la liste (lucile)
                 filter = filters[i]
                 new_filter_list = CardDao().filter_dao(filter)
                 for item in set(new_filter_list):
@@ -162,21 +158,3 @@ class CardService():
                         Magicsearch_filtered.remove(item)
         return Magicsearch_filtered       
   
-            Return :
-            --------
-            List[Card]
-                The Cards corresponding to our filter
-            """
-            # we start a basic list with the first filter in our list
-            filter=filters[0]
-            Magicsearch_filtered = CardDao().filter_dao(filter)
-            # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-            if len(filters)>=2:
-                for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
-                    filter = filters[i]
-                    new_filter_list = CardDao().filter_dao(filter)
-                    for item in set(new_filter_list):
-                        if item not in set(Magicsearch_filtered):
-                            Magicsearch_filtered.remove(item)
-            return Magicsearch_filtered       
-    
