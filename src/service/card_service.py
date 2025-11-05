@@ -27,7 +27,7 @@ register_vector(conn)
 class CardService():
     """Class containing the service methods of Cards"""
 
-    def id_search(self, id: int) -> Card:
+    def id_search(id: int) -> Card:
         """
         Searches for a card based on its id
 
@@ -49,7 +49,7 @@ class CardService():
         
         
 
-    def name_search(self, name: str) -> Card:
+    def name_search(name: str) -> Card:
         """
         Searches for a card based on its name
 
@@ -65,7 +65,7 @@ class CardService():
         """
         return CardDao().name_search(name)
 
-    def semantic_search(self, search: str) -> list[Card]:
+    def semantic_search(search: str) -> list[Card]:
 
         # étape 1 : obtenir l'embedding de "search"
         token = os.getenv("API_TOKEN")
@@ -108,7 +108,7 @@ class CardService():
 
         return get_similar_entries(search_emb)
 
-    def view_random_card(self) -> Card:
+    def view_random_card() -> Card:
         """
         Allows to show a random card
 
@@ -121,7 +121,7 @@ class CardService():
         idrand = random.randint(0, idmax)
         Card_Service.id_search(idrand)
 
-    def filter_cat_service(self, filter: AbstractFilter):
+    def filter_cat_service(filter: AbstractFilter):
         """
         Service method for numerical filtering : raises errors and calls the corresponding DAO
         method
@@ -147,7 +147,7 @@ class CardService():
             raise ValueError("filtering_value must be a string")
         return CardDao().filter_cat_dao(filter)
 
-    def filter_num_service(self, filter: AbstractFilter):
+    def filter_num_service(filter: AbstractFilter):
         """
         Service method for numerical filtering : raises errors and calls the corresponding DAO
         method
