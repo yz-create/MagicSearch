@@ -29,13 +29,13 @@ class CardService():
     
     def create_card(self, card:  Card) -> bool:
         # peut être lever des erreur si on veut pas de doublons, meme si je crois que des erreurs sont levées dans DAO  (lucile)
-        return self.CardDao.create_card(card)
+        return self.CardDao().create_card(card)
 
-    def update_card(self, card :Card)-> bool : 
-        return self.CardDao.update_card(card)
+    def update_card(self, card: Card)-> bool : 
+        return self.CardDao().update_card(card)
     
     def delete_card(self, card) :
-        return self.CardDao.delete_card(card)
+        return self.CardDao().delete_card(card)
  
     def id_search(self, id: int) -> Card:
         """
