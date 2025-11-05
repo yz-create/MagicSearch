@@ -84,6 +84,9 @@ class cardModel(BaseModel):
     toughness: str = None
     types: list = None
 
+class name(BaseModel):
+    name: str 
+
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
@@ -138,7 +141,7 @@ async def id_search(id: int)->cardModel:
 
 # get a card by its name
 # Card_Service().name_search(name)
-@app.get("/card/{name}", tags=["Roaming in the MagicSearch Database"]) 
+@app.get("/card/name", tags=["Roaming in the MagicSearch Database"], response_model=cardModel) 
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")

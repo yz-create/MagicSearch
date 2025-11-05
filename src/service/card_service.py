@@ -156,5 +156,7 @@ class CardService():
                 for item in set(new_filter_list):
                     if item not in set(Magicsearch_filtered):
                         Magicsearch_filtered.remove(item)
-        return Magicsearch_filtered       
-  
+        return Magicsearch_filtered or []   
+        if not Magicsearch_filtered:
+           logging.warning(f"No results for filters: {filters}")
+    
