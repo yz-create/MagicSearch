@@ -10,7 +10,7 @@ from datetime import timedelta
 from service.user_service import UserService
 from service.card_service import CardService
 from utils.log_init import initialize_logs
-# from business_object.filters.abstract_filter import AbstractFilter 
+from business_object.filters.abstract_filter import AbstractFilter 
 # pour les fonctions de filtrages
 
 
@@ -106,20 +106,14 @@ async def semantic_search(search):
 
     
 # get a filtered list of cards
-# Card_Service().filter_num_service(self, filter: AbstractFilter)
-# card_service().filter_cat_service(self, filter: AbstractFilter)
-@app.get("/card/{filter}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_numerical(filter):
-    """Filters the database based on a numerical criterion"""
-    logging.info("Filters the database based on a numerical criterion")
-    return card_service.filter_num_service(filter)
+# card_Service().filter_num_service(self, filter: AbstractFilter)
 
+@app.get("/card/{filters}", tags=["Roaming in the MagicSearch Database"]) 
+async def filter_search(filters):
+    """Filters the database based on a list of filters"""
+    logging.info("Filters the database based on a list of filters")
+    return card_service.filter_search(filters)
 
-@app.get("/card/{filter}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_categorical(filter):
-    """Filters the database based on a categorical criterion"""
-    logging.info("Filters the database based on a categorical criterion")
-    return card_service.filter_cat_service(filter)
 
 
 # DATABASE MANAGEMENT :CARDS
@@ -196,17 +190,17 @@ def delete_user(id_user: int, current_user: str = Depends(verify_token)):
 #fin modif pour connexion et token
 
 
-@app.get("/user/", tags=["Database management : user"])
-async def list_all_users():
-    """Lister tous les users"""
-    logging.info("List all users")
-    list_users = user_service.list_all()
-
-    liste_model = []
-    for user in list_users:
-        liste_model.append(user)
-
-    return liste_model
+#@app.get("/user/", tags=["Database management : user"])
+#async def list_all_users():
+#    """Lister tous les users"""
+#    logging.info("List all users")
+#    list_users = user_service.list_all()
+#
+#    liste_model = []
+#    for user in list_users:
+#        liste_model.append(user)
+#
+#    return liste_model
 
 
 # get a user by their id
@@ -236,16 +230,16 @@ def update_user(id_user: int, j: userModel):
 
 
 # deleting a user
-@app.delete("/user/{id_user}", tags=["Database management : user"])
-def Delete_user(id_user: int):
-    """Deleting a user"""
-    logging.info(f"Deleting user {id_user}")
-    user = user_service.trouver_par_id(id_user)
-    if not user:
-        raise HTTPException(status_code=404, detail="user not found")
-
-    user_service.supprimer(user)
-    return f"user {user.pseudo} deleted"
+#@app.delete("/user/{id_user}", tags=["Database management : user"])
+#def Delete_user(id_user: int):
+#    """Deleting a user"""
+#    logging.info(f"Deleting user {id_user}")
+#    user = user_service.trouver_par_id(id_user)
+#    if not user:
+#        raise HTTPException(status_code=404, detail="user not found")
+#
+#    user_service.supprimer(user)
+#    return f"user {user.pseudo} deleted"
 
 
 # API TEST
