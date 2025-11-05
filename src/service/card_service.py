@@ -136,7 +136,7 @@ class CardService():
         Card
             The random card obtained
         """
-        idmax = CardDao.get_highest_id()
+        idmax = CardDao().get_highest_id()
         idrand = random.randint(0, idmax)
 
         return self.id_search(idrand)
