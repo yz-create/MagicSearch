@@ -121,10 +121,11 @@ class Card:
     def show_card(self) -> str:
         """
         Return the official (or informal) representation.
-
-
-        Commentaire :
-        - peut être appeler la méthode __repr__ (ou __str__) ?
-        - choisir les attribut à présenter
         """
         return f"MagicTG Card : {self._name}"
+
+    def __str__(self):
+        return f"Card(name={self.name}, id={self.id_card})"
+
+    def __repr__(self):
+        return f"Card(name={self.name}, id={self.id_card})"

@@ -29,13 +29,24 @@ class CardService():
     
     def create_card(self, card:  Card) -> bool:
         # peut être lever des erreur si on veut pas de doublons, meme si je crois que des erreurs sont levées dans DAO  (lucile)
-        return CardDao().create_card(card)
+        try:
+            return CardDao().create_card(card)
+        except (ValueError, TypeError):
+            return None
 
-    def update_card(self, card :Card)-> bool : 
-        return CardDao().update_card(card)
+    def update_card(self, card: Card) -> bool:
+        
+        try:
+            return CardDao().update_card(card)
+        except (ValueError, TypeError):
+            return None
     
     def delete_card(self, card) -> bool:
-        return CardDao().delete_card(card)
+        
+        try:
+            return CardDao().delete_card(card)
+        except (ValueError, TypeError):
+            return None
  
     def id_search(self, id: int) -> Card:
         """
@@ -132,13 +143,13 @@ class CardService():
 
     def filter_search(self, filters: list[AbstractFilter]) -> list[Card]: 
         """
-        Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
-        method
+            Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
+            method
 
-        Parameters :
-        ------------
-        filters : list[AbstractFilter]
-            the list of filters we want to apply to our research
+            Parameters :
+            ------------
+            filters : list[AbstractFilter]
+                the list of filters we want to apply to our research
 
         Return :
         --------
@@ -146,11 +157,11 @@ class CardService():
             The Cards corresponding to our filter
         """
         # we start a basic list with the first filter in our list
-        filter=filters[0]
+        filter = filters[0]
         Magicsearch_filtered = CardDao().filter_dao(filter)
         # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-        if len(filters)>=2 :
-            for i in range(1,len(filters)-1): # checker que je parcours toute la liste (lucile)
+        if len(filters)>=2:
+            for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
                 filter = filters[i]
                 new_filter_list = CardDao().filter_dao(filter)
                 for item in set(new_filter_list):
