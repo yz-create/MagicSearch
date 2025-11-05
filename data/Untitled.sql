@@ -4,7 +4,7 @@ CREATE TABLE "Card" (
   "name" VARCHAR(500) NOT NULL,
   "type" int NOT NULL,
   "text_to_embed" VARCHAR(10000) NOT NULL,
-  "embed" float[] NOT NULL,
+  "embed" vector(1024) NOT NULL,
   "asciiName" VARCHAR(500),
   "convertedManaCost" float,
   "defense" int,
