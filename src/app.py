@@ -14,7 +14,7 @@ from utils.log_init import initialize_logs
 
 
 # SETTING UP THE API
-root_path = "/proxy/9876"
+root_path = "/proxy/9877"
 app = FastAPI(
     title="MagicSearch",
     root_path=root_path,
