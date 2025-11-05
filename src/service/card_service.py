@@ -157,14 +157,7 @@ class CardService():
         list[Card]
             The 5 closest cards to match the description made by the user
         """
-        token = os.getenv("API_TOKEN")
-        url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-type": "application/json"}
-
-        search_emb = CardService().get_embedding(search, url, headers)
+        search_emb = CardService().get_embedding(search)
 
         cards = []
         for entry in CardDao().get_similar_entries(conn, search_emb):
@@ -217,7 +210,7 @@ class CardService():
         if not Magicsearch_filtered:
             logging.warning(f"No results for filters: {filters}")
 
-    def get_embedding(self, text: str, url: str, headers: dict) -> np.ndarray:
+    def get_embedding(self, text: str) -> np.ndarray:
         """
         Embeds a text
 
@@ -225,16 +218,19 @@ class CardService():
         -----------
         text: str
             The text to be embeded
-        url: str
-            The url of the website we use to generate the embeddings
-        headers: dict
-            The headers used to generate the embeddings
 
         Returns:
         --------
         numpy.ndarray
             Returns the embed of the card as a vector
         """
+        token = os.getenv("API_TOKEN")
+        url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-type": "application/json"}
+
         data = {
             "model": "bge-m3:latest",
             "input": text
