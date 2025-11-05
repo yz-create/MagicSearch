@@ -7,9 +7,9 @@ import random
 import psycopg
 import logging
 from pgvector.psycopg import register_vector
-import requests
 import os
 import numpy as np
+from utils.embed import embedding
 
 # Set the following env. variables for this to work: PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE
 # conn = psycopg.connect(dbname="defaultdb", autocommit=True)
@@ -157,14 +157,7 @@ class CardService():
         list[Card]
             The 5 closest cards to match the description made by the user
         """
-        token = os.getenv("API_TOKEN")
-        url = "https://llm.lab.sspcloud.fr/ollama/api/embed"
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-type": "application/json"}
-
-        search_emb = CardService().get_embedding(search, url, headers)
+        search_emb = np.array(embedding(search))
 
         cards = []
         for entry in CardDao().get_similar_entries(conn, search_emb):
@@ -217,31 +210,6 @@ class CardService():
         if not Magicsearch_filtered:
             logging.warning(f"No results for filters: {filters}")
 
-    def get_embedding(self, text: str, url: str, headers: dict) -> np.ndarray:
-        """
-        Embeds a text
-
-        Parameters:
-        -----------
-        text: str
-            The text to be embeded
-        url: str
-            The url of the website we use to generate the embeddings
-        headers: dict
-            The headers used to generate the embeddings
-
-        Returns:
-        --------
-        numpy.ndarray
-            Returns the embed of the card as a vector
-        """
-        data = {
-            "model": "bge-m3:latest",
-            "input": text
-        }
-        response = requests.post(url, headers=headers, json=data)
-        return np.array(response.json()['embeddings'][0])
-
 
 if __name__ == "__main__":
-    print(CardService().semantic_search("Test"))
+    print(CardService().name_search("Lightning Bolt"))
