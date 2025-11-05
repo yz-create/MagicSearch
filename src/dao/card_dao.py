@@ -420,8 +420,6 @@ class CardDao:
                 
                 connection.commit()
                 return True
-                     
-
 
     def update_card(self, card: Card) -> bool:
         """
