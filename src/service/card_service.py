@@ -34,7 +34,7 @@ class CardService():
     def update_card(self, card: Card)-> bool : 
         return self.CardDao().update_card(card)
     
-    def delete_card(self, card) :
+    def delete_card(self, card) -> bool:
         return self.CardDao().delete_card(card)
  
     def id_search(self, id: int) -> Card:
@@ -57,7 +57,7 @@ class CardService():
             # id invalid, return None instead of crashing
             return None
 
-    def name_search(name: str) -> Card:
+    def name_search(self, name: str) -> Card:
         """
         Searches for a card based on its name
 
@@ -73,7 +73,7 @@ class CardService():
         """
         return CardDao().name_search(name)
 
-    def semantic_search(search: str) -> list[Card]:
+    def semantic_search(self, search: str) -> list[Card]:
 
         # étape 1 : obtenir l'embedding de "search"
         token = os.getenv("API_TOKEN")
@@ -116,7 +116,7 @@ class CardService():
 
         return get_similar_entries(search_emb)
 
-    def view_random_card() -> Card:
+    def view_random_card(self) -> Card:
         """
         Allows to show a random card
 
@@ -127,9 +127,10 @@ class CardService():
         """
         idmax = CardDao.get_highest_id()
         idrand = random.randint(0, idmax)
-        CardService.id_search(idrand)
 
-    def filter_search(filters: list[AbstractFilter]) -> list[Card]: 
+        return self.id_search(idrand)
+
+    def filter_search(self, filters: list[AbstractFilter]) -> list[Card]: 
         """
         Service method for searching by filtering : identifies the type of filter and calls the corresponding DAO
         method
@@ -148,8 +149,8 @@ class CardService():
         filter=filters[0]
         Magicsearch_filtered = CardDao().filter_dao(filter)
         # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-        if len(filters)>=2
-            for i in (1:len(filters)-1): # checker que je parcours toute la liste (lucile)
+        if len(filters)>=2: 
+            for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
                 filter = filters[i]
                 new_filter_list = CardDao().filter_dao(filter)
                 for item in set(new_filter_list):
