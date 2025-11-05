@@ -3,8 +3,9 @@ from src.dao.card_dao import CardDao
 
 cardservice = CardService()
 carddao = CardDao()
-name = "Ach! Hans, Run!"
+name = '"Ach! Hans, Run!"'
 
-#print(CardDao().id_search(1))
+#print(CardDao().name_search(name))
+print(cardservice.id_search(1))
 
-#print(cardservice.view_random_card(self))
+#print(cardservice.view_random_card())
