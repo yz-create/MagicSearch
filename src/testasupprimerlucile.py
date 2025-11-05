@@ -6,9 +6,9 @@ from business_object.filters.filter_numerical import FilterNumeric
 cardservice = CardService()
 carddao = CardDao()
 cat_filter = FilterCategory(
-    variable_filtered="is_funny",
+    variable_filtered="type",
     type_of_filtering="positive",
-    filtering_value=False
+    filtering_value="Creature — Merfolk Warrior"
 )
 num_filter_lower= FilterNumeric(
     variable_filtered="type",

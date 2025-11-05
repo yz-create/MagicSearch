@@ -824,15 +824,20 @@ class CardDao:
 
                 if not isinstance(filtering_value, str):
                     raise ValueError("filtering_value must be a string")
+                
 
-                sql_comparator = "LIKE" if type_of_filtering == "positive" else "NOT LIKE"
-                if "filtering_value"=='None':
-                    sql_comparator = "IS"               
-                sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
-                    sql.Identifier(variable_filtered),
-                    sql.SQL(sql_comparator)
-                )
-                sql_parameter = [f"%{filtering_value}%"]
+                if type_of_filtering == "positive" :
+                    sql_comparator= 'LIKE'
+                    sql_query = sql.SQL(
+                        'SELECT Card.id_card FROM "Card" JOIN "Type" USING (idType) WHERE {} {} %s').format(
+                        sql.Identifier(Type.name),
+                        sql.SQL(sql_comparator)
+                    )
+                    
+                    sql_parameter = [f"%{filtering_value}"]
+
+                        
+
 
             else:  # numerical filter
                 if variable_filtered not in ["mana_value", "defense", "edhrecRank", "toughness", "power", "type"]:
