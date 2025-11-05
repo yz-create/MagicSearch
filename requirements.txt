@@ -7,3 +7,8 @@ logging.config
 PyYAML
 pydantic
 pgvector
+fastapi
+requests
+uvicorn
+python-jose[cryptography]
+passlib[bcrypt]

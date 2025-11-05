@@ -31,7 +31,7 @@ class UserDao:
             "ERROR" if some other DB error occurs
         """
         try:
-            with self.db_connection as connection:
+            with self.db.connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         'SELECT 1 FROM "User" WHERE username = %(username)s;',
@@ -60,9 +60,37 @@ class UserDao:
         """Supprimer un utilisateur"""
         pass
 
-    def list_all(self):
-        """Lister tous les utilisateurs"""
-        pass
+    @log
+    def list_all(self) -> list[User]:
+        """
+        List all users from the database.
+
+        Returns
+        -------
+        list[User]
+            A list of User objects, or an empty list if none found or error occurs.
+        """
+        users = []
+        try:
+            with self.db.connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM "User";')
+                    rows = cursor.fetchall()
+
+                    for row in rows:
+                        users.append(
+                            User(
+                                user_id=row["idUser"],
+                                username=row["username"],
+                                password=row["password"],
+                                isAdmin=row["isAdmin"],
+                            )
+                        )
+
+        except Exception as e:
+            logging.error(f"Error while listing users: {e}")
+
+        return users
 
     @log
     def login(self, username, password) -> User:
