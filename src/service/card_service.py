@@ -26,7 +26,17 @@ register_vector(conn)
 
 class CardService():
     """Class containing the service methods of Cards"""
+    
+    def create_card(self, card:  Card) -> bool:
+        # peut être lever des erreur si on veut pas de doublons, meme si je crois que des erreurs sont levées dans DAO  (lucile)
+        return self.CardDao.create_card(card)
 
+    def update_card(self, card :Card)-> bool : 
+        return self.CardDao.update_card(card)
+    
+    def delete_card(self, card) :
+        return self.CardDao.delete_card(card)
+ 
     def id_search(self, id: int) -> Card:
         """
         Searches for a card based on its id
@@ -46,8 +56,6 @@ class CardService():
         except (ValueError, TypeError):
             # id invalid, return None instead of crashing
             return None
-        
-        
 
     def name_search(self, name: str) -> Card:
         """
@@ -119,7 +127,7 @@ class CardService():
         """
         idmax = CardDao.get_highest_id()
         idrand = random.randint(0, idmax)
-        Card_Service.id_search(idrand)
+        CardService.id_search(idrand)
 
     def filter_cat_service(self, filter: AbstractFilter):
         """
