@@ -18,12 +18,20 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+from service.user_service import UserService
+
+user_service = UserService()
+
 def verify_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
-        return username
+       
+        user = user_service.trouver_par_username(username)
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user  # renvoie l'objet User complet
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")

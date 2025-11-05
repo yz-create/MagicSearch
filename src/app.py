@@ -92,6 +92,13 @@ class AbstractFilterModel(BaseModel):
     type_of_filtering: str
     filtering_value: str  # à modifier
 
+class UserCreateRequest(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    user_id: int
+    username: str
 
 class userModel(BaseModel):
     """
@@ -101,8 +108,8 @@ class userModel(BaseModel):
     """
 
     user_id: int | None = None  # Champ optionnel
-    pseudo: str
-    mdp: str
+    username: str
+    password: str
 
 
 # USER LOG IN 
