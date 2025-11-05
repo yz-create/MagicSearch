@@ -462,7 +462,7 @@ class CardDao:
             cards.append(CardDao().id_search(card["idCard"]))
         return cards
 
-    def filter_dao(filter: AbstractFilter):
+    def filter_dao(self, filter: AbstractFilter):
         """"
         This function checks that this is filter object and selects in the database the elements
         corresponding to the parameters of the filter

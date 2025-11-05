@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from utils.auth import create_access_token, verify_token
@@ -38,9 +38,57 @@ user_service = UserService()
 card_service = CardService()
 
 
-# USER LOG IN 
+# librairie Pydantic BaseModel
+class cardModel(BaseModel):
+    """
+    defines a Pydantic model for the uards
+    Pydantic model to validate and document the user objects 
+    received as input and returned as output
+    """
+    id_card: int
+    embedded: list
+    layout: str
+    name: str
+    type_line: str
+    ascii_name: str = None
+    color_identity: list = None
+    color_indicator: list = None
+    colors: list = None
+    converted_mana_cost: float = None
+    defense: int = None
+    edhrec_rank: int = None
+    edhrec_saltiness: float = None
+    face_mana_value: float = None
+    face_name: str = None
+    first_printing: str = None
+    foreign_data: list = None
+    hand: int = None
+    has_alternative_deck_limit: bool = None
+    is_funny: bool = None
+    is_reserved: bool = None
+    keywords: list = None
+    leadership_skills: dict = None
+    legalities: dict = None
+    life: int = None
+    loyalty: str = None
+    mana_cost: str = None
+    mana_value: float = None
+    power: str = None
+    printings: list = None
+    purchase_urls: dict = None
+    rulings: list = None
+    side: str = None
+    subtypes: list = None
+    supertypes: list = None
+    text: str = None
+    toughness: str = None
+    types: list = None
 
-# librairie Pydantic BaseModel 
+class AbstractFilterModel(BaseModel):
+    variable_filtered: str
+    type_of_filtering: str
+    filtering_value: str # à modifier
+
 class userModel(BaseModel):
     """
     defines a Pydantic model for the users
@@ -52,7 +100,7 @@ class userModel(BaseModel):
     pseudo: str
     mdp: str
 
-
+# USER LOG IN 
 # creating a user
 @app.post("/user/", tags=["User log in !"])
 async def create_user(j: userModel):
@@ -107,15 +155,13 @@ async def semantic_search(search):
 
     
 # get a filtered list of cards
-
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-
-@app.get("/card/{filters}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_search(filters):
+@app.post("/card/filter", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
+async def filter_search(filters: List[AbstractFilterModel])->list[cardModel]:
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
-    return card_service.filter_search(filters)
-
+    cards = card_service.filter_search(filters)
+    return cards
 
 
 # DATABASE MANAGEMENT :CARDS
