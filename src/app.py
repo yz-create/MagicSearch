@@ -116,16 +116,20 @@ class userModel(BaseModel):
 # creating a user
 @app.post("/user/", tags=["User log in !"])
 async def create_user(j: userModel):
-    """creating a user"""
+    """Create a new user"""
     logging.info("creating a user")
-    if user_service.username_deja_utilise(j.username):
-        raise HTTPException(status_code=404, detail="Username already used")
 
-    user = user_service.creer(j.username, j.password)
+    # Vérifier si le nom d'utilisateur existe déjà
+    existing_user = user_service.find_by_username(j.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already used")
+
+    # Créer l'utilisateur
+    user = user_service.create_user(j.username, j.password)
     if not user:
-        raise HTTPException(status_code=404, detail="Error while creating the user")
+        raise HTTPException(status_code=500, detail="Error while creating the user")
 
-    return user
+    return {"message": f"User '{j.username}' created successfully!"}
 
 
 # ROAMING IN THE MAGICSEARCH DATABASE
