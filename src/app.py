@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from service.user_service import UserService
-from service.card_service import Card_Service
+from service.card_service import CardService
 from utils.log_init import initialize_logs
 from business_object.filters.abstract_filter import AbstractFilter #pour les fonctions de filtrages
 
@@ -29,7 +29,7 @@ async def redirect_to_docs():
     return RedirectResponse(url="docs")
 
 user_service = UserService()
-card_service = Card_Service()
+card_service = CardService()
 
 ## USER FUNCTIONALITIES
 # routes utilisateurs : get user et get user id

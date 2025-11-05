@@ -7,3 +7,6 @@ logging.config
 PyYAML
 pydantic
 pgvector
+fastapi
+requests
+uvicorn
