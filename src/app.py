@@ -118,10 +118,10 @@ class userModel(BaseModel):
 async def create_user(j: userModel):
     """creating a user"""
     logging.info("creating a user")
-    if user_service.pseudo_deja_utilise(j.pseudo):
-        raise HTTPException(status_code=404, detail="Pseudo already used")
+    if user_service.username_deja_utilise(j.username):
+        raise HTTPException(status_code=404, detail="Username already used")
 
-    user = user_service.creer(j.pseudo, j.mdp)
+    user = user_service.creer(j.username, j.password)
     if not user:
         raise HTTPException(status_code=404, detail="Error while creating the user")
 
@@ -243,7 +243,7 @@ def delete_user(id_user: int, current_user: str = Depends(verify_token)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user_service.supprimer(user)
-    return f"User {user.pseudo} deleted"
+    return f"User {user.username} deleted"
 
 
 #fin modif pour connexion et token
@@ -279,13 +279,13 @@ def update_user(id_user: int, j: userModel):
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
 
-    user.pseudo = j.pseudo
-    user.mdp = j.mdp
+    user.username = j.username
+    user.password = j.password
     user = user_service.modifier(user)
     if not user:
         raise HTTPException(status_code=404, detail="Error while updating user")
 
-    return f"user {j.pseudo} updated"
+    return f"user {j.username} updated"
 
 
 # deleting a user
@@ -298,7 +298,7 @@ def update_user(id_user: int, j: userModel):
 #        raise HTTPException(status_code=404, detail="user not found")
 #
 #    user_service.supprimer(user)
-#    return f"user {user.pseudo} deleted"
+#    return f"user {user.username} deleted"
 
 
 # API TEST
