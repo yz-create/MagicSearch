@@ -196,19 +196,19 @@ async def Delete_card(card):
 @app.post("/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
-    Authentifie un utilisateur et retourne un token JWT
+    Authenticate a user and return a token JWT
     """
-    logging.info("Tentative de connexion")
+    logging.info("Attempt to connect")
 
     user = user_service.login(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Nom d'utilisateur ou mot de passe invalide")
+        raise HTTPException(status_code=401, detail="Wrong usrename or password")
 
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=timedelta(minutes=30)
+        expires_delta=timedelta(minutes=1440)
     )
-    logging.info(f"Utilisateur {user.username} connecté avec succès")
+    logging.info(f"User {user.username} successfully connected")
     return {"access_token": access_token, "token_type": "bearer"}
 
 #protéger fonctions faites que pour admin
