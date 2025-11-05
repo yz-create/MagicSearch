@@ -1,13 +1,17 @@
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordRequestForm
+from utils.auth import create_access_token, verify_token
+from datetime import timedelta
+from typing import List
 
 from service.user_service import UserService
 from service.card_service import CardService
 from utils.log_init import initialize_logs
-# from business_object.filters.abstract_filter import AbstractFilter 
+from business_object.filters.abstract_filter import AbstractFilter 
 # pour les fonctions de filtrages
 
 
@@ -31,7 +35,6 @@ async def redirect_to_docs():
     return RedirectResponse(url="docs")
 
 user_service = UserService()
-card_service = CardService()
 card_service = CardService()
 
 
@@ -104,20 +107,15 @@ async def semantic_search(search):
 
     
 # get a filtered list of cards
-# Card_Service().filter_num_service(self, filter: AbstractFilter)
-# card_service().filter_cat_service(self, filter: AbstractFilter)
-@app.get("/card/{filter}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_numerical(filter):
-    """Filters the database based on a numerical criterion"""
-    logging.info("Filters the database based on a numerical criterion")
-    return card_service.filter_num_service(filter)
 
+# card_Service().filter_num_service(self, filter: AbstractFilter)
 
-@app.get("/card/{filter}", tags=["Roaming in the MagicSearch Database"]) 
-async def filter_categorical(filter):
-    """Filters the database based on a categorical criterion"""
-    logging.info("Filters the database based on a categorical criterion")
-    return card_service.filter_cat_service(filter)
+@app.get("/card/{filters}", tags=["Roaming in the MagicSearch Database"]) 
+async def filter_search(filters):
+    """Filters the database based on a list of filters"""
+    logging.info("Filters the database based on a list of filters")
+    return card_service.filter_search(filters)
+
 
 
 # DATABASE MANAGEMENT :CARDS
@@ -148,17 +146,63 @@ async def Delete_card(card):
 # DATABASE MANAGEMENT : USER
 # routes utilisateurs : get user et get user id
 # list the users
+### ajout pour le système de connexion avec token
+@app.post("/login", tags=["Authentication"])
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Authentifie un utilisateur et retourne un token JWT
+    """
+    logging.info("Tentative de connexion")
+
+    user = user_service.login(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Nom d'utilisateur ou mot de passe invalide")
+
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=timedelta(minutes=30)
+    )
+    logging.info(f"Utilisateur {user.username} connecté avec succès")
+    return {"access_token": access_token, "token_type": "bearer"}
+
+#protéger fonctions faites que pour admin
+#lister tous les utlisateurs
+
+
 @app.get("/user/", tags=["Database management : user"])
-async def list_all_users():
-    """Lister tous les users"""
-    logging.info("List all users")
-    list_users = user_service.list_all()
+async def list_all_users(current_user: str = Depends(verify_token)):
+    """Lister tous les users (protégé par token)"""
+    logging.info(f"List all users (demande de {current_user})")
+    return user_service.list_all()
 
-    liste_model = []
-    for user in list_users:
-        liste_model.append(user)
+#supprimer un utilisateur
 
-    return liste_model
+
+@app.delete("/user/{id_user}", tags=["Database management : user"])
+def delete_user(id_user: int, current_user: str = Depends(verify_token)):
+    """Deleting a user (protégé par token)"""
+    logging.info(f"Suppression de l'utilisateur {id_user} par {current_user}")
+    user = user_service.trouver_par_id(id_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_service.supprimer(user)
+    return f"User {user.pseudo} deleted"
+
+
+#fin modif pour connexion et token
+
+
+#@app.get("/user/", tags=["Database management : user"])
+#async def list_all_users():
+#    """Lister tous les users"""
+#    logging.info("List all users")
+#    list_users = user_service.list_all()
+#
+#    liste_model = []
+#    for user in list_users:
+#        liste_model.append(user)
+#
+#    return liste_model
 
 
 # get a user by their id
@@ -188,16 +232,16 @@ def update_user(id_user: int, j: userModel):
 
 
 # deleting a user
-@app.delete("/user/{id_user}", tags=["Database management : user"])
-def Delete_user(id_user: int):
-    """Deleting a user"""
-    logging.info(f"Deleting user {id_user}")
-    user = user_service.trouver_par_id(id_user)
-    if not user:
-        raise HTTPException(status_code=404, detail="user not found")
-
-    user_service.supprimer(user)
-    return f"user {user.pseudo} deleted"
+#@app.delete("/user/{id_user}", tags=["Database management : user"])
+#def Delete_user(id_user: int):
+#    """Deleting a user"""
+#    logging.info(f"Deleting user {id_user}")
+#    user = user_service.trouver_par_id(id_user)
+#    if not user:
+#        raise HTTPException(status_code=404, detail="user not found")
+#
+#    user_service.supprimer(user)
+#    return f"user {user.pseudo} deleted"
 
 
 # API TEST

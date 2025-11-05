@@ -2,6 +2,7 @@ import json
 import csv
 import requests
 import os
+import time
 
 # ---- CONFIG ----
 token = os.getenv("API_TOKEN")
@@ -21,6 +22,7 @@ headers = {
 
 # ---- Fonction pour appeler l'API d'embedding ----
 def embedding(text: str):
+    global error
     data = {
         "model": "bge-m3:latest",
         "input": text
@@ -29,14 +31,14 @@ def embedding(text: str):
     if response.status_code != 200:
         print("❌ API Error:", response.status_code)
         print("Response text:", response.text)
-        raise SystemExit()
+        error = True
 
     try:
         json_response = response.json()
     except Exception:
         print("❌ Could not decode JSON response")
         print("Response text:", response.text)
-        raise
+        error = False
     return json_response["embeddings"][0]  # vecteur (liste de floats)
 
 
@@ -61,7 +63,18 @@ def card_to_text(card: dict) -> str:
     return " | ".join([f for f in fields if f])  # concaténation lisible
 
 
+def add_embed_to_csv(card, writer):
+    text_repr = card_to_text(card)
+    emb = embedding(text_repr)  # liste de floats
+    writer.writerow([
+        idCard,
+        json.dumps(emb)
+    ])
+
+
 if __name__ == "__main__":
+    error = False
+
     # ---- Charger le JSON ----
     with open("AtomicCards.json", "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -79,22 +92,24 @@ if __name__ == "__main__":
         writer = csv.writer(f)
 
         # Header CSV enrichi
-        writer.writerow([
-            "name", "type", "type_line", "supertypes", "types", "subtypes",
-            "manaCost", "colors", "rarity", "power", "toughness", "defense", "loyalty",
-            "text", "embedding"
-        ])
+        writer.writerow(["id", "embedding"])
+        print("c")
 
         # Pour chaque carte
         idCard = 0
         for card in cards:
+            time.sleep(0.5)
             try:
-                text_repr = card_to_text(card)
-                emb = embedding(text_repr)  # liste de floats
-                writer.writerow([
-                    idCard,
-                    json.dumps(emb)
-                ])
-                idCard += 1
-            except Exception as e:
-                print(f"Erreur avec la carte {card.get('name', '')}: {e}")
+                add_embed_to_csv(card, writer)
+            except Exception:
+                print("Error with the card", card["idCard"])
+                error = True
+            while error:
+                time.sleep(0.5)
+                print("Error with the card", card["idCard"])
+                try:
+                    add_embed_to_csv(card, writer)
+                    error = False
+                except Exception:
+                    error = True
+            idCard += 1
