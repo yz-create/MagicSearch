@@ -419,62 +419,85 @@ class CardDao:
     def name_search(str) -> Card:
         pass
 
-    def filter_cat_dao(filter: AbstractFilter):
-        variable_filtered = filter.variable_filtered
-        type_of_filtering = filter.type_of_filtering
-        filtering_value = filter.filtering_value
-        if type_of_filtering == "positive":
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                                       "
-                        "  FROM  Card                                   ",
-                        "  WHERE variable_filtered LIKE filtering_value "
-                    )
-                    res = cursor.fetchall()
-        if type_of_filtering == "negative":
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                                       "
-                        "  FROM  Card                                   ",
-                        "  WHERE variable_filtered NOT LIKE filtering_value "
-                    )
-                    res = cursor.fetchall()
-        return res
-
-    def filter_num_dao(filter: AbstractFilter):
-        variable_filtered = filter.variable_filtered
-        type_of_filtering = filter.type_of_filtering
-        filtering_value = filter.filtering_value
-        if type_of_filtering == "higher_than":
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                                       "
-                        "  FROM  Card                                   ",
-                        "  WHERE variable_filtered < filtering_value "
-                    )
-                    res = cursor.fetchall()
-        if type_of_filtering == "lower_than":
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                                       "
-                        "  FROM Card                                    ",
-                        "  WHERE variable_filtered > filtering_value "
-                    )
-                    res = cursor.fetchall()
-        if type_of_filtering == "equal_to":
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT *                                       "
-                        "  FROM Card                                    ",
-                        "  WHERE variable_filtered = filtering_value "
-                    )
-                    res = cursor.fetchall()
-        return res
+    def filter_dao(filter: AbstractFilter):
+        """"
+        This function checks that this is filter object and selects in the database the elements corresponding
+        to the parameters of the filter
+        First the function checks that type_of_filtering is in ["higher_than", "lower_than", "equal_to", "positive", "negative]
+        as it is the easiest way to exclude non-filter objects
+        Then we distinguish categorical and numerical filters and exclude objects with non-valid parameters
+        Finally, it selects the elements corresponding to the filter in the database
+        
+        Parameter :
+        -----------
+        filter : Abstracfilter
+            filter we want to implement
+        
+        Return : 
+        --------
+        list(Card)
+        """
+        try :
+            variable_filtered = filter.variable_filtered
+            type_of_filtering = filter.type_of_filtering
+            filtering_value = filter.filtering_value
+            if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
+                    raise ValueError("This is not a filter : type_of_filtering can only take 'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
+            elif type_of_filtering in ["positive", "negative"]: # categorical filter
+                if variable_filtered not in ["type", "is_funny"]:
+                    raise ValueError("variable_filtered must be in the following list : 'type', 'is_funny'")
+                if not isinstance(filtering_value, str):
+                    raise ValueError("filtering_value must be a string")
+                if type_of_filtering =="positive":
+                    with DBConnection().connection as connection:
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "SELECT *                                       "
+                                "  FROM  Card                                   ",
+                                "  WHERE variable_filtered LIKE filtering_value "
+                            )
+                            res = cursor.fetchall()
+                else:
+                    with DBConnection().connection as connection:
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "SELECT *                                       "
+                                "  FROM  Card                                   ",
+                                "  WHERE variable_filtered NOT LIKE filtering_value "
+                            )
+                            res = cursor.fetchall()
+                return res
+            else : # numerical filter
+                if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power"]:
+                    raise ValueError("variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power")
+                if type_of_filtering == "higher_than":
+                    with DBConnection().connection as connection:
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "SELECT *                                       "
+                                "  FROM  Card                                   ",
+                                "  WHERE variable_filtered < filtering_value "
+                            )
+                            res = cursor.fetchall()
+                if type_of_filtering == "lower_than":
+                    with DBConnection().connection as connection:
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "SELECT *                                       "
+                                "  FROM Card                                    ",
+                                "  WHERE variable_filtered > filtering_value "
+                            )
+                            res = cursor.fetchall()
+                else : # equal_to
+                    with DBConnection().connection as connection:
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "SELECT *                                       "
+                                "  FROM Card                                    ",
+                                "  WHERE variable_filtered = filtering_value "
+                            )
+                            res = cursor.fetchall()
+                return res
 
     def get_highest_id(self):
         with DBConnection().connection as connection:
