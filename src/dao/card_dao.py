@@ -192,10 +192,10 @@ class CardDao:
             embedding = Card(res["id_card"], res["name"], res["embedded"]).get_embedded()
         return embedding
 
-    def find_all(self):
-        pass
-
     def id_search(self, id_card: int) -> Card:
+        """
+        Returns all the information about the Card that has id_card as an id
+        """
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
