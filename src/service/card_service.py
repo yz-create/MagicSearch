@@ -5,6 +5,7 @@ from business_object.filters.abstract_filter import AbstractFilter
 from dotenv import load_dotenv
 import random
 import psycopg
+import logging
 from pgvector.psycopg import register_vector
 import requests
 import os
@@ -27,27 +28,51 @@ register_vector(conn)
 class CardService():
     """Class containing the service methods of Cards"""
     
-    def create_card(self, card:  Card) -> bool:
-        # peut être lever des erreur si on veut pas de doublons, meme si je crois que des erreurs sont levées dans DAO  (lucile)
-        try:
-            return CardDao().create_card(card)
-        except (ValueError, TypeError):
+    def create_card(self, card: Card) -> bool | None:
+        """
+        Creates a card in the database.
+        Returns True if successful, None if input is invalid or DB fails.
+        """
+        if not isinstance(card, Card):
+            print("Invalid input: must be a Card instance.")
             return None
 
-    def update_card(self, card: Card) -> bool:
-        
+        try:
+            return CardDao().create_card(card)
+        except Exception as e:
+            print(f"Failed to create card in DB: {e}")
+            return None
+
+    def update_card(self, card: Card) -> bool | None:
+        """
+        Updates a card in the database.
+        Returns True if successful, None if input is invalid or DB fails.
+        """
+        if not isinstance(card, Card):
+            print("Invalid input: must be a Card instance.")
+            return None
+
         try:
             return CardDao().update_card(card)
-        except (ValueError, TypeError):
+        except Exception as e:
+            print(f"Failed to update card in DB: {e}")
             return None
-    
-    def delete_card(self, card) -> bool:
-        
+
+    def delete_card(self, card: Card) -> bool | None:
+        """
+        Deletes a card from the database.
+        Returns True if successful, None if input is invalid or DB fails.
+        """
+        if not isinstance(card, Card):
+            print("Invalid input: must be a Card instance.")
+            return None
+
         try:
             return CardDao().delete_card(card)
-        except (ValueError, TypeError):
+        except Exception as e:
+            print(f"Failed to delete card from DB: {e}")
             return None
- 
+
     def id_search(self, id: int) -> Card:
         """
         Searches for a card based on its id
@@ -62,10 +87,29 @@ class CardService():
         Card
             The Card with the id given
         """
+        if not isinstance(id, int):
+            print("Invalid id type: must be an integer.")
+            return None
+
+        if id < 0:
+            print("Invalid id: must be non-negative.")
+            return None
+
         try:
-            return CardDao().id_search(id)
-        except (ValueError, TypeError):
-            # id invalid, return None instead of crashing
+            max_id = CardDao().get_higher_id()
+        except Exception as e:
+            print(f"Failed to get maximum id from DB: {e}")
+            return None
+
+        if id > max_id:
+            print(f"Invalid id: must not exceed {max_id}.")
+            return None
+
+        try:
+            card = CardDao().id_search(id)
+            return card
+        except Exception as e:
+            print(f"Failed to fetch card from DB: {e}")
             return None
 
     def name_search(self, name: str) -> Card:
@@ -82,7 +126,20 @@ class CardService():
         Card
             The Card with the name given
         """
-        return CardDao().name_search(name)
+        if not isinstance(name, str):
+            print("Invalid name type: must be a string.")
+            return None
+
+        if not name.strip():
+            print("Invalid name: cannot be empty or whitespace.")
+            return None
+
+        try:
+            card = CardDao().name_search(name)
+            return card
+        except Exception as e:
+            print(f"Failed to fetch card from DB: {e}")
+            return None
 
     def semantic_search(self, search: str) -> list[Card]:
 
@@ -117,7 +174,8 @@ class CardService():
             """
             results = conn.execute("""
                 SELECT
-                    embed,
+                    "idCard",
+                    "embed",
                     search_emb <-> %s as dst
                 FROM Card
                 ORDER BY dst
@@ -136,7 +194,7 @@ class CardService():
         Card
             The random card obtained
         """
-        idmax = CardDao.get_highest_id()
+        idmax = CardDao().get_highest_id()
         idrand = random.randint(0, idmax)
 
         return self.id_search(idrand)
@@ -159,15 +217,16 @@ class CardService():
         # we start a basic list with the first filter in our list
         filter = filters[0]
         Magicsearch_filtered = CardDao().filter_dao(filter)
-        # we do the same for all the filters and everytime, we only keep in magicsearch_filtered only the common cards
-        if len(filters)>=2:
-            for i in range(1, len(filters)): # checker que je parcours toute la liste (lucile)
+        # we do the same for all the filters and everytime, we only keep in magicsearch_filtered 
+        # only the common cards
+        if len(filters) >= 2:
+            for i in range(1, len(filters)):  # checker que je parcours toute la liste (lucile)
                 filter = filters[i]
                 new_filter_list = CardDao().filter_dao(filter)
                 for item in set(new_filter_list):
                     if item not in set(Magicsearch_filtered):
                         Magicsearch_filtered.remove(item)
-        return Magicsearch_filtered or []   
+        return Magicsearch_filtered or []
         if not Magicsearch_filtered:
-           logging.warning(f"No results for filters: {filters}")
+            logging.warning(f"No results for filters: {filters}")
     
