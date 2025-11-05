@@ -470,6 +470,7 @@ class CardDao:
         "equal_to", "positive", "negative] as it is the easiest way to exclude non-filter objects
         Then we distinguish categorical and numerical filters and exclude objects with non-valid
         parameters
+        Each time, we define a sql query and its parameters and comparator
         Finally, it selects the elements corresponding to the filter in the database
 
         Parameter :
@@ -485,68 +486,51 @@ class CardDao:
             variable_filtered = filter.variable_filtered
             type_of_filtering = filter.type_of_filtering
             filtering_value = filter.filtering_value
+
             if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
                 raise ValueError(
                     "This is not a filter : type_of_filtering can only take "
                     "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input "
                     )
-            elif type_of_filtering in ["positive", "negative"]:  # categorical filter
+            sql_query = None
+            sql_paramater = []
+
+            if type_of_filtering in ["positive", "negative"]:  # categorical filter
                 if variable_filtered not in ["type", "is_funny"]:
                     raise ValueError(
                         "variable_filtered must be in the following list : 'type', 'is_funny'"
                         )
+
                 if not isinstance(filtering_value, str):
                     raise ValueError("filtering_value must be a string")
-                if type_of_filtering == "positive":
-                    with DBConnection().connection as connection:
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                "SELECT *                                       "
-                                "  FROM  Card                                   ",
-                                "  WHERE variable_filtered LIKE filtering_value "
-                            )
-                            res = cursor.fetchall()
-                else:
-                    with DBConnection().connection as connection:
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                "SELECT *                                       "
-                                "  FROM  Card                                   ",
-                                "  WHERE variable_filtered NOT LIKE filtering_value "
-                            )
-                            res = cursor.fetchall()
-                return res
+
+                sql_comparator = "LIKE" if type_of_filtering =="positive" else "NOT LIKE"
+                sql_query = sql.SQL("SELECT * FROM Card WHERE {} {} %s").format(
+                    sql.Identifier(variable_filtered),
+                    sql.SQL(sql_comparator)
+                )
+                sql_parameter = [f"%{filtering_value}%"]
+
             else:  # numerical filter
                 if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power"]:
                     raise ValueError("variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power")
-                if type_of_filtering == "higher_than":
-                    with DBConnection().connection as connection:
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                "SELECT *                                       "
-                                "  FROM  Card                                   ",
-                                "  WHERE variable_filtered < filtering_value "
-                            )
-                            res = cursor.fetchall()
-                if type_of_filtering == "lower_than":
-                    with DBConnection().connection as connection:
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                "SELECT *                                       "
-                                "  FROM Card                                    ",
-                                "  WHERE variable_filtered > filtering_value "
-                            )
-                            res = cursor.fetchall()
-                else:  # equal_to
-                    with DBConnection().connection as connection:
-                        with connection.cursor() as cursor:
-                            cursor.execute(
-                                "SELECT *                                       "
-                                "  FROM Card                                    ",
-                                "  WHERE variable_filtered = filtering_value "
-                            )
-                            res = cursor.fetchall()
-                return res
+                
+                if type_of_filtering =="higher_than" : 
+                    sql_comparator = ">"
+                elif type_of_filtering =="equal_to":
+                    sql_comparator ="=="
+                else :
+                    sql_comparator ="<"
+                sql_query = sql.SQL("SELECT * FROM Card WHERE {} {} %s").format(
+                    sql.Identifier(variable_filtered),
+                    sql.SQL(sql_comparator)
+                )
+                sql_parameter=[filtering_value]
+                with DBConnection().connection as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(query, params)
+                        res = cursor.fetchall()
+                        return res or []
         except Exception as e:
             logging.error(f"The input is not a filter : {e}")
             return False
