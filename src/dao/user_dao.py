@@ -55,7 +55,7 @@ class UserDao:
                     )
                     res = cursor.fetchone()
                     if res:
-                        user.user_id = res["idUser"]
+                        user.user_id = res[0]
                         return "CREATED"
         except Exception as e:
             logging.error(f"Error while creating a user: {e}")
