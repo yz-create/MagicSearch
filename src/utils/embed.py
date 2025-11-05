@@ -4,13 +4,6 @@ import requests
 import os
 import time
 
-# ---- CONFIG ----
-# (dans le terminal tu copies : export API_TOKEN= )
-# à mettre sur le terminal via https://llm.lab.sspcloud.fr/ << Réglages << Compte << copier la clé
-# d'API
-# si besoin mettre un export
-# print("API_TOKEN:", token)
-
 token = os.getenv("API_TOKEN")
 
 url = "https://llm.lab.sspcloud.fr/ollama/api/embed"

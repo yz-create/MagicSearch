@@ -4,7 +4,7 @@ from psycopg2 import sql
 from business_object.card import Card
 from db_connection import DBConnection
 from business_object.filters.abstract_filter import AbstractFilter
-from utils.embedding_json_en_csv import embedding 
+from utils.embed import embedding 
 
 
 class CardDao:
