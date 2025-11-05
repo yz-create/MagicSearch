@@ -506,22 +506,22 @@ class CardDao:
                     raise ValueError("filtering_value must be a string")
 
                 sql_comparator = "LIKE" if type_of_filtering == "positive" else "NOT LIKE"
-                sql_query = sql.SQL("SELECT * FROM 'Card' WHERE {} {} %s").format(
+                sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
                     sql.Identifier(variable_filtered),
                     sql.SQL(sql_comparator)
                 )
                 sql_parameter = [f"%{filtering_value}%"]
 
             else:  # numerical filter
-                if variable_filtered not in ["mana_value", "defense", "edhrec_rank", "toughness", "power"]:
+                if variable_filtered not in ["mana_value", "defense", "edhrecRank", "toughness", "power"]:
                     raise ValueError("variable_filtered must be in the following list : mana_value, defense, edhrec_rank, toughness, power")
                 if type_of_filtering == "higher_than": 
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":
-                    sql_comparator = "=="
+                    sql_comparator = "="
                 else:
                     sql_comparator = "<"
-                sql_query = sql.SQL("SELECT * FROM 'Card' WHERE {} {} %s").format(
+                sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
                     sql.Identifier(variable_filtered),
                     sql.SQL(sql_comparator)
                 )

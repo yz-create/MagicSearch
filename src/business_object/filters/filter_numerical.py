@@ -1,6 +1,5 @@
-from abstract_filter.py import AbstractFilter
-from cards import Card
-
+from business_object.filters.abstract_filter import AbstractFilter
+from business_object.card import Card
 
 class FilterNumeric(AbstractFilter):
 

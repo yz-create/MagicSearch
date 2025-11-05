@@ -226,8 +226,8 @@ class CardService():
             for i in range(1, len(filters)):  # checker que je parcours toute la liste (lucile)
                 filter = filters[i]
                 new_filter_list = CardDao().filter_dao(filter)
-                for item in set(new_filter_list):
-                    if item not in set(Magicsearch_filtered):
+                for item in Magicsearch_filtered:
+                    if item not in new_filter_list:
                         Magicsearch_filtered.remove(item)
         return Magicsearch_filtered or []
         if not Magicsearch_filtered:

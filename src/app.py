@@ -87,10 +87,17 @@ class nameModel(BaseModel):
     name: str
 
 
-class AbstractFilterModel(BaseModel):
+class NumericFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: str  # à modifier
+    filtering_value: int  # à modifier
+
+
+class CategoricalFilterModel(BaseModel):
+    variable_filtered: str
+    type_of_filtering: str
+    filtering_value: int  # à modifier
+
 
 class UserCreateRequest(BaseModel):
     username: str
@@ -145,7 +152,6 @@ async def id_search(id: int) -> cardModel:
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
-
 
 # get a card by its name
 # Card_Service().name_search(name)
