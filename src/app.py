@@ -84,6 +84,9 @@ class cardModel(BaseModel):
     toughness: str = None
     types: list = None
 
+class name(BaseModel):
+    name: str 
+
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
@@ -129,8 +132,8 @@ async def view_random():
 
 # get a card by its id 
 # Card_Service().id_search(id)
-@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"])
-async def id_search(id: int):
+@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"], response_model=cardModel)
+async def id_search(id: int)->cardModel:
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
@@ -138,7 +141,7 @@ async def id_search(id: int):
 
 # get a card by its name
 # Card_Service().name_search(name)
-@app.get("/card/{name}", tags=["Roaming in the MagicSearch Database"]) 
+@app.get("/card/name", tags=["Roaming in the MagicSearch Database"], response_model=cardModel) 
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
@@ -196,19 +199,19 @@ async def Delete_card(card):
 @app.post("/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
-    Authentifie un utilisateur et retourne un token JWT
+    Authenticate a user and return a token JWT
     """
-    logging.info("Tentative de connexion")
+    logging.info("Attempt to connect")
 
     user = user_service.login(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Nom d'utilisateur ou mot de passe invalide")
+        raise HTTPException(status_code=401, detail="Wrong usrename or password")
 
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=timedelta(minutes=30)
+        expires_delta=timedelta(minutes=1440)
     )
-    logging.info(f"Utilisateur {user.username} connecté avec succès")
+    logging.info(f"User {user.username} successfully connected")
     return {"access_token": access_token, "token_type": "bearer"}
 
 #protéger fonctions faites que pour admin
