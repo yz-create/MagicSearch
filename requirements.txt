@@ -10,3 +10,5 @@ pgvector
 fastapi
 requests
 uvicorn
+python-jose[cryptography]
+passlib[bcrypt]
