@@ -190,17 +190,17 @@ def delete_user(id_user: int, current_user: str = Depends(verify_token)):
 #fin modif pour connexion et token
 
 
-@app.get("/user/", tags=["Database management : user"])
-async def list_all_users():
-    """Lister tous les users"""
-    logging.info("List all users")
-    list_users = user_service.list_all()
-
-    liste_model = []
-    for user in list_users:
-        liste_model.append(user)
-
-    return liste_model
+#@app.get("/user/", tags=["Database management : user"])
+#async def list_all_users():
+#    """Lister tous les users"""
+#    logging.info("List all users")
+#    list_users = user_service.list_all()
+#
+#    liste_model = []
+#    for user in list_users:
+#        liste_model.append(user)
+#
+#    return liste_model
 
 
 # get a user by their id
@@ -230,16 +230,16 @@ def update_user(id_user: int, j: userModel):
 
 
 # deleting a user
-@app.delete("/user/{id_user}", tags=["Database management : user"])
-def Delete_user(id_user: int):
-    """Deleting a user"""
-    logging.info(f"Deleting user {id_user}")
-    user = user_service.trouver_par_id(id_user)
-    if not user:
-        raise HTTPException(status_code=404, detail="user not found")
-
-    user_service.supprimer(user)
-    return f"user {user.pseudo} deleted"
+#@app.delete("/user/{id_user}", tags=["Database management : user"])
+#def Delete_user(id_user: int):
+#    """Deleting a user"""
+#    logging.info(f"Deleting user {id_user}")
+#    user = user_service.trouver_par_id(id_user)
+#    if not user:
+#        raise HTTPException(status_code=404, detail="user not found")
+#
+#    user_service.supprimer(user)
+#    return f"user {user.pseudo} deleted"
 
 
 # API TEST
