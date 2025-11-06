@@ -142,7 +142,7 @@ class CardService():
             print(f"Failed to fetch card from DB: {e}")
             return None
 
-    def semantic_search(self, search: str) -> list[Card]:
+    def semantic_search(self, search: str, use_short_embed: bool) -> list[Card]:
         """
         Given a search as a sentence (for example "Blue bird with 5 mana"), returns the 5 closest
         cards to the reasearch
@@ -160,7 +160,7 @@ class CardService():
         search_emb = np.array(embedding(search))
 
         cards = []
-        for entry in CardDao().get_similar_entries(conn, search_emb):
+        for entry in CardDao().get_similar_entries(conn, search_emb, use_short_embed):
             cards.append(CardService().id_search(entry[0]))
 
         return (cards)
