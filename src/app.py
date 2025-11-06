@@ -214,20 +214,26 @@ async def Delete_card(card):
 @app.post("/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
-    Authenticate a user and return a token JWT
+    Authenticate a user and return a JWT token.
+    Compatible with Swagger UI (OAuth2 password flow).
     """
     logging.info("Attempt to connect")
 
+    # 1️⃣ Check user credentials
     user = user_service.login(form_data.username, form_data.password)
     if not user:
         logging.warning(f"Login failed for {form_data.username}")
         raise HTTPException(status_code=401, detail="Wrong username or password")
 
+    # 2️⃣ Create JWT
     access_token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(minutes=1440)
     )
+
     logging.info(f"User {user.username} successfully connected")
+
+    # 3️⃣ Return correct OAuth2-compatible JSON
     return {"access_token": access_token, "token_type": "bearer"}
 
 # protéger fonctions faites que pour admin
