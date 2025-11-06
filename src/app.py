@@ -157,7 +157,7 @@ async def id_search(id: int):
 
 # get a card by its name
 # Card_Service().name_search(name)
-@app.get("/card/nameModel", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/by-name/{name}", tags=["Roaming in the MagicSearch Database"])
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
@@ -166,7 +166,7 @@ async def name_search(name: str):
 
 # get the result of a semantic search
 # Card_Service().semantic_search(search)
-@app.get("/card/{search}", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
 async def semantic_search(search):
     """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search")
@@ -321,6 +321,6 @@ async def hello_name(name: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9876)
+    uvicorn.run(app, host="0.0.0.0", port=9878)
 
     logging.info("Arret du Webservice")

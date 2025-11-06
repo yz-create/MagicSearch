@@ -3,6 +3,7 @@ class Card:
         self,
         id_card: int,
         embedded: list,
+        short_embedded: list,
         layout: str,
         name: str,
         type_line: str,
@@ -78,6 +79,7 @@ class Card:
         self.first_printing = first_printing
         self.foreign_data = foreign_data or []
         self._embedded = embedded
+        self._short_embedded = short_embedded
 
     def get_ascii_name(self): return self.ascii_name
     def get_color_identity(self): return self.color_identity
@@ -117,6 +119,7 @@ class Card:
     def get_first_printing(self): return self.first_printing
     def get_foreign_data(self): return self.foreign_data
     def get_embedded(self): return self._embedded
+    def get_short_embedded(self): return self._short_embedded
 
     def show_card(self) -> str:
         """

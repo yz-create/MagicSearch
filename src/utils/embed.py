@@ -18,6 +18,7 @@ def embedding(text: str) -> list:
     Embeds a text into a vector (as a list)
     """
     global error
+    time.sleep(0.5)
     data = {
         "model": "bge-m3:latest",
         "input": text
@@ -26,7 +27,7 @@ def embedding(text: str) -> list:
     if response.status_code != 200:
         print("❌ API Error:", response.status_code)
         print("Response text:", response.text)
-        error = True
+        embedding(text)
 
     try:
         json_response = response.json()
@@ -34,7 +35,6 @@ def embedding(text: str) -> list:
         print("❌ Could not decode JSON response")
         print("Response text:", response.text)
         error = False
-    print(type(json_response["embeddings"][0]))
     return json_response["embeddings"][0]
 
 
@@ -78,7 +78,7 @@ def add_embed_to_csv(card: dict, writer) -> None:
         The writer of .csv. Basically it allows to write into the csv
     """
     text_repr = card_to_text(card)
-    emb = embedding(text_repr)  # liste de floats
+    emb = embedding(text_repr)
     writer.writerow([
         idCard,
         json.dumps(emb)
@@ -105,15 +105,12 @@ if __name__ == "__main__":
 
         idCard = 0
         for card in cards:
-            print(card_to_text(card))
-            time.sleep(0.5)
             try:
                 add_embed_to_csv(card, writer)
             except Exception:
                 print("Error with the card", card["idCard"])
                 error = True
             while error:
-                time.sleep(0.5)
                 print("Error with the card", card["idCard"])
                 try:
                     add_embed_to_csv(card, writer)
