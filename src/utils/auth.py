@@ -35,3 +35,8 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         return user  # renvoie l'objet User complet
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+def verify_admin(user = Depends(verify_token)):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
