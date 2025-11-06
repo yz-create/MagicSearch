@@ -334,6 +334,6 @@ async def hello_name(name: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9877)
+    uvicorn.run(app, host="0.0.0.0", port=9878)
 
     logging.info("Arret du Webservice")
