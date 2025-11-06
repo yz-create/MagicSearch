@@ -212,4 +212,4 @@ class CardService():
 
 
 if __name__ == "__main__":
-    print(CardService().id_search(77))
+    print(CardService().id_search(12))

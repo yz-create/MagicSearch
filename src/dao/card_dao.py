@@ -1,4 +1,5 @@
 import logging
+import datetime
 from psycopg2 import sql
 
 from business_object.card import Card
@@ -35,63 +36,23 @@ class CardDao:
             The id of the value, either found or created
         """
         cursor.execute(
-            '''
-            SELECT "{id_column}"
-            FROM "{table_name}"
-            WHERE "{name_column}" = %(value)s
-            ''',
+            f'SELECT "{id_column}" FROM "{table_name}" WHERE "{name_column}" = %(value)s',
             {"value": value}
         )
         result = cursor.fetchone()
 
         if result is None:
+            cursor.execute(f'SELECT MAX("{id_column}") FROM "{table_name}"')
+            id_max = cursor.fetchone()["max"]
             cursor.execute(
-                '''
-                INSERT INTO "{table_name}"("{name_column}")
-                VALUES (%(value)s)
-                RETURNING "{id_column}"
-                ''',
+                f'INSERT INTO "{table_name}"("{id_column}", "{name_column}") VALUES ({id_max + 1}, %(value)s) RETURNING "{id_column}"',
                 {"value": value}
             )
             result = cursor.fetchone()
 
         return result[id_column]
 
-    def create_card(self, card: Card) -> bool:
-        """
-        Add a card to the database
-
-        Parameters
-        ----------
-        card : Card
-            The card to add
-
-        Returns
-        -------
-        bool
-            True if creation succeeded, False otherwise
-        """
-
-        # plusieurs étapes :
-        # 1° lecture de toutes les nouvelles variables et de leur clés associées si elles existent
-        # 2° vérification de l'existence de ces valeurs séparément dans chaque tables associées
-        # 3° ajout de ces valeurs dans leur table associée si elles n'existaient pas
-        # 4° ajout des informations de chaque valeurs de la nouvelle carte dans la table Card grace
-        #    à leur clé étrangère
-        # 5° rajouter l'id de la carte dans les tables : PurchaseURLs, Ruling, ForeignData
-
-        # liste de nos tables :
-        # tables des cartes : "Card", "Colors", "ColorIdentity", "ColorIndicator", -> "ForeignData",
-        # "Keywords", "Legality", "Printings", -> "PurchaseURLs", -> "Ruling", "Subtypes",
-        # "Supertypes", "Types"
-        # table des users : "Favourite"
-
-        # Pour l'étape 1 : on doit vérifier les tables Type, Layout, FirstPrinting,
-        # LeadershipSkills, Legalities, Colors, ColorIdentity ColorIndicator, Keywords, Types,
-        # Subtypes, Printings/Sets
-
-        # Générer le nouvel ID de carte
-        next_card_id = self.get_highest_id() + 1
+    def get_embed(self, card: Card):
         # Convertir la carte en texte puis calculer l'embedding
         # Construire le texte à partir de l'objet Card
         fields = [
@@ -114,6 +75,9 @@ class CardDao:
         # Calculer l'embedding
         card_embedding = embedding(text_to_embed)
 
+        return (text_to_embed, card_embedding)
+
+    def get_or_create_all_ids_from_foreign_keys(self, card):
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
@@ -276,6 +240,58 @@ class CardDao:
                         printing_ids[printing] = self._get_or_create_id(
                             cursor, "Set", "idSet", "name", printing
                             )
+        return (
+            id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
+            color_identity_ids, color_indicator_ids, keyword_ids, type_ids, subtype_ids,
+            supertype_ids, printing_ids
+            )
+
+    def create_card(self, card: Card) -> bool:
+        """
+        Add a card to the database
+
+        Parameters
+        ----------
+        card : Card
+            The card to add
+
+        Returns
+        -------
+        bool
+            True if creation succeeded, False otherwise
+        """
+
+        # plusieurs étapes :
+        # 1° lecture de toutes les nouvelles variables et de leur clés associées si elles existent
+        # 2° vérification de l'existence de ces valeurs séparément dans chaque tables associées
+        # 3° ajout de ces valeurs dans leur table associée si elles n'existaient pas
+        # 4° ajout des informations de chaque valeurs de la nouvelle carte dans la table Card grace
+        #    à leur clé étrangère
+        # 5° rajouter l'id de la carte dans les tables : PurchaseURLs, Ruling, ForeignData
+
+        # liste de nos tables :
+        # tables des cartes : "Card", "Colors", "ColorIdentity", "ColorIndicator", -> "ForeignData",
+        # "Keywords", "Legality", "Printings", -> "PurchaseURLs", -> "Ruling", "Subtypes",
+        # "Supertypes", "Types"
+        # table des users : "Favourite"
+
+        # Pour l'étape 1 : on doit vérifier les tables Type, Layout, FirstPrinting,
+        # LeadershipSkills, Legalities, Colors, ColorIdentity ColorIndicator, Keywords, Types,
+        # Subtypes, Printings/Sets
+
+        # Générer le nouvel ID de carte
+        next_card_id = self.get_highest_id() + 1
+        (text_to_embed, card_embedding) = CardDao().get_embed(card)
+
+        (
+            id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
+            color_identity_ids, color_indicator_ids, keyword_ids, type_ids, subtype_ids,
+            supertype_ids, printing_ids
+        ) = CardDao().get_or_create_all_ids_from_foreign_keys(card)
+
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
 
                 # 4° création de la carte dans la table Card
                 cursor.execute(
@@ -404,6 +420,261 @@ class CardDao:
                 # PurchaseURLs
                 if card.purchase_urls:
                     cursor.execute(
+                        '''
+                        SELECT MAX("idPurchaseURLs")
+                        FROM "PurchaseURLs"
+                        '''
+                    )
+                    id_max_purchase_url = cursor.fetchone()["max"]
+                    cursor.execute(
+                        """
+                        INSERT INTO "PurchaseURLs"(
+                            "idPurchaseURLs", "idCard", "tcgplayer", "cardKingdom", "cardmarket",
+                            "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
+                        ) VALUES (
+                            %(idPurchaseURLs)s, %(idCard)s, %(tcgplayer)s, %(cardKingdom)s,
+                            %(cardmarket)s, %(cardKingdomFoil)s, %(cardKingdomEtched)s,
+                            %(tcgplayerEtched)s
+                        )
+                        """,
+                        {
+                            "idPurchaseURLs": id_max_purchase_url + 1,
+                            "idCard": id_card,
+                            "tcgplayer": card.purchase_urls.get("tcgplayer"),
+                            "cardKingdom": card.purchase_urls.get("cardKingdom"),
+                            "cardmarket": card.purchase_urls.get("cardmarket"),
+                            "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
+                            "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
+                            "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
+                        }
+                    )
+
+                # ForeignData
+                if card.foreign_data:
+                    for foreign in card.foreign_data:
+                        cursor.execute(
+                            '''
+                            SELECT MAX("idForeign")
+                            FROM "ForeignData"
+                            '''
+                        )
+                        id_max_foreign = cursor.fetchone()["max"]
+                        cursor.execute(
+                            """
+                            INSERT INTO "ForeignData"(
+                                "idForeign", "idCard", "language", "name", "faceName",
+                                "flavorText", "text", "type"
+                            ) VALUES (
+                                %(idForeign)s, %(idCard)s, %(language)s, %(name)s, %(faceName)s,
+                                %(flavorText)s, %(text)s, %(type)s
+                            )
+                            """,
+                            {
+                                "idForeign": id_max_foreign + 1,
+                                "idCard": id_card,
+                                "language": foreign.get("language"),
+                                "name": foreign.get("name"),
+                                "faceName": foreign.get("faceName"),
+                                "flavorText": foreign.get("flavorText"),
+                                "text": foreign.get("text"),
+                                "type": foreign.get("type")
+                            }
+                        )
+
+                # Rulings
+                if card.rulings:
+                    for ruling in card.rulings:
+                        cursor.execute(
+                            '''
+                            SELECT MAX("idRuling")
+                            FROM "Ruling"
+                            '''
+                        )
+                        id_max_ruling = cursor.fetchone()["max"]
+                        cursor.execute(
+                            """
+                            INSERT INTO "Ruling"("idRuling", "idCard", "date", "text")
+                            VALUES (%(idRuling)s, %(idCard)s, %(date)s, %(text)s)
+                            """,
+                            {
+                                "idRuling": id_max_ruling + 1,
+                                "idCard": id_card,
+                                "date": ruling.get("date"),
+                                "text": ruling.get("text")
+                            }
+                        )
+
+                connection.commit()
+                return True
+
+    def update_card(self, card: Card) -> bool:
+        """
+        Update an existing card in the database
+
+        Parameters
+        ----------
+        card : Card
+            The card with updated information
+
+        Returns
+        -------
+        bool
+            True if update succeeded, False otherwise
+        """
+        (text_to_embed, card_embedding) = CardDao().get_embed(card)
+
+        (
+            id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
+            color_identity_ids, color_indicator_ids, keyword_ids, type_ids, subtype_ids,
+            supertype_ids, printing_ids
+        ) = CardDao().get_or_create_all_ids_from_foreign_keys(card)
+
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SET search_path TO defaultdb, public;')
+
+                # 4° création de la carte dans la table Card
+                cursor.execute(
+                    """
+                    UPDATE "Card"
+                    SET "layout"               = %(layout)s,
+                        "name"                 = %(name)s,
+                        "type"                 = %(type)s,
+                        "text_to_embed"        = %(text_to_embed)s,
+                        "embed"                = %(embed)s,
+                        "asciiName"            = %(asciiName)s,
+                        "convertedManaCost"    = %(convertedManaCost)s,
+                        "defense"              = %(defense)s,
+                        "edhrecRank"           = %(edhrecRank)s,
+                        "edhrecSaltiness"      = %(edhrecSaltiness)s,
+                        "faceManaValue"        = %(faceManaValue)s,
+                        "faceName"             = %(faceName)s,
+                        "firstPrinting"        = %(firstPrinting)s,
+                        "hand"                 = %(hand)s,
+                        "hasAlternativeDeckLimit" = %(hasAlternativeDeckLimit)s,
+                        "isFunny"              = %(isFunny)s,
+                        "isReserved"           = %(isReserved)s,
+                        "leadershipSkills"     = %(leadershipSkills)s,
+                        "legalities"           = %(legalities)s,
+                        "life"                 = %(life)s,
+                        "loyalty"              = %(loyalty)s,
+                        "manaCost"             = %(manaCost)s,
+                        "manaValue"            = %(manaValue)s,
+                        "power"                = %(power)s,
+                        "side"                 = %(side)s,
+                        "text"                 = %(text)s,
+                        "toughness"            = %(toughness)s
+                    WHERE "idCard" = %(idCard)s;
+                    """,
+                    {
+                        "idCard": card.id_card,
+                        "layout": id_layout,
+                        "name": card.name,
+                        "type": id_type,
+                        "text_to_embed": text_to_embed,
+                        "embed": card_embedding,
+                        "asciiName": card.ascii_name,
+                        "convertedManaCost": card.converted_mana_cost,
+                        "defense": card.defense,
+                        "edhrecRank": card.edhrec_rank,
+                        "edhrecSaltiness": card.edhrec_saltiness,
+                        "faceManaValue": card.face_mana_value,
+                        "faceName": card.face_name,
+                        "firstPrinting": id_first_printing,
+                        "hand": card.hand,
+                        "hasAlternativeDeckLimit": card.has_alternative_deck_limit,
+                        "isFunny": card.is_funny,
+                        "isReserved": card.is_reserved,
+                        "leadershipSkills": id_leadership,
+                        "legalities": id_legalities,
+                        "life": card.life,
+                        "loyalty": card.loyalty,
+                        "manaCost": card.mana_cost,
+                        "manaValue": card.mana_value,
+                        "power": card.power,
+                        "side": card.side,
+                        "text": card.text,
+                        "toughness": card.toughness
+                    }
+                )
+
+                id_card = card.id_card
+
+                # Colors
+                CardDao().delete_from_table(cursor, "Colors", id_card)
+                for color, id_color in color_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "Colors"("idCard", "idColor")
+                        VALUES (%(idCard)s, %(idColor)s)''',
+                        {"idCard": id_card, "idColor": id_color}
+                    )
+
+                # ColorIdentity
+                CardDao().delete_from_table(cursor, "ColorIdentity", id_card)
+                for color, id_color in color_identity_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "ColorIdentity"("idCard", "idColor")
+                        VALUES (%(idCard)s, %(idColor)s)''',
+                        {"idCard": id_card, "idColor": id_color}
+                    )
+
+                # ColorIndicator
+                CardDao().delete_from_table(cursor, "ColorIndicator", id_card)
+                for color, id_color in color_indicator_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "ColorIndicator"("idCard", "idColor")
+                        VALUES (%(idCard)s, %(idColor)s)''',
+                        {"idCard": id_card, "idColor": id_color}
+                    )
+
+                # Keywords
+                CardDao().delete_from_table(cursor, "Keywords", id_card)
+                for keyword, id_keyword in keyword_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "Keywords"("idCard", "idKeyword")
+                        VALUES (%(idCard)s, %(idKeyword)s)''',
+                        {"idCard": id_card, "idKeyword": id_keyword}
+                    )
+
+                # Types
+                CardDao().delete_from_table(cursor, "Types", id_card)
+                for type_name, id_t in type_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "Types"("idCard", "idType")
+                        VALUES (%(idCard)s, %(idType)s)''',
+                        {"idCard": id_card, "idType": id_t}
+                    )
+
+                # Subtypes
+                CardDao().delete_from_table(cursor, "Subtypes", id_card)
+                for subtype, id_subtype in subtype_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "Subtypes"("idCard", "idSubtype")
+                        VALUES (%(idCard)s, %(idSubtype)s)''',
+                        {"idCard": id_card, "idSubtype": id_subtype}
+                    )
+
+                # Supertypes
+                CardDao().delete_from_table(cursor, "Supertypes", id_card)
+                for supertype, id_supertype in supertype_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "Supertypes"("idCard", "idSupertype")
+                        VALUES (%(idCard)s, %(idSupertype)s)''',
+                        {"idCard": id_card, "idSupertype": id_supertype}
+                    )
+
+                # Printings
+                CardDao().delete_from_table(cursor, "Printings", id_card)
+                for printing, id_printing in printing_ids.items():
+                    cursor.execute(
+                        '''INSERT INTO "Printings"("idCard", "idSet")
+                        VALUES (%(idCard)s, %(idSet)s)''',
+                        {"idCard": id_card, "idSet": id_printing}
+                    )
+
+                # PurchaseURLs
+                if card.purchase_urls:
+                    cursor.execute(
                         """
                         INSERT INTO "PurchaseURLs"(
                             "idCard", "tcgplayer", "cardKingdom", "cardmarket",
@@ -466,52 +737,14 @@ class CardDao:
                 connection.commit()
                 return True
 
-    def update_card(self, card: Card) -> bool:
-        """
-        Update an existing card in the database
-
-        Parameters
-        ----------
-        card : Card
-            The card with updated information
-
-        Returns
-        -------
-        bool
-            True if update succeeded, False otherwise
-        """
-        try:
-            with DBConnection().connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        UPDATE "Card" SET
-                            "name" = %(name)s,
-                            "text" = %(text)s,
-                            "manaCost" = %(manaCost)s,
-                            "manaValue" = %(manaValue)s,
-                            "power" = %(power)s,
-                            "toughness" = %(toughness)s,
-                            "text_to_embed" = %(text_to_embed)s,
-                            "embed" = %(embed)s
-                        WHERE "idCard" = %(idCard)s;
-                        """,
-                        {
-                            "idCard": card.ascii_name,  # Besoin d'un ID dans Card
-                            "name": card.name,
-                            "text": card.text,
-                            "manaCost": card.mana_cost,
-                            "manaValue": card.mana_value,
-                            "power": card.power,
-                            "toughness": card.toughness,
-                            "text_to_embed": card.text or "",
-                            "embed": card.get_embedded() or []
-                        }
-                    )
-                    return cursor.rowcount > 0
-        except Exception as e:
-            logging.error(f"Error updating card: {e}")
-            return False
+    def delete_from_table(self, cursor, table, id_card):
+        cursor.execute(
+            '''DELETE FROM "%(table)s"
+            WHERE "idCard" = %(idCard)s;
+            ''',
+            {"idCard": id_card,
+             "table": table}
+        )
 
     def delete_card(self, card_id: int) -> bool:
         """
@@ -939,3 +1172,7 @@ class CardDao:
             LIMIT 5
             """, (search_emb,))
         return results.fetchall()
+
+
+if __name__ == "__main__":
+    CardDao().create_card(Card(12, '[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]', 'normal', 'A Killer Among Us', 'Enchantment', None, ['G'], [], ['G'], 5.0, None, 21197, 0.11, None, None, 'MKM', [{'language': 'German', 'name': 'Mörder in unserer Mitte', 'faceName': None, 'flavorText': None, 'text': 'Wenn Mörder in unserer Mitte ins Spiel kommt, erzeuge einen 1/1 weißen Mensch-Kreaturenspielstein, einen 1/1 blauen Meervolk-Kreaturenspielstein und einen 1/1 roten Goblin-Kreaturenspielstein. Bestimme dann geheim Mensch, Meervolk oder Goblin.\nOpfere Mörder in unserer Mitte, offenbare den bestimmten Kreaturentyp: Falls ein angreifender Kreaturenspielstein deiner Wahl den bestimmten Typ hat, lege drei +1/+1-Marken auf ihn und er erhält Todesberührung bis zum Ende des Zuges.', 'type': 'Verzauberung'}, {'language': 'Spanish', 'name': 'Un asesino entre nosotros', 'faceName': None, 'flavorText': None, 'text': 'Cuando Un asesino entre nosotros entre al campo de batalla, crea una ficha de criatura Humano blanca 1/1, una ficha de criatura Tritón azul 1/1 y una ficha de criatura Trasgo roja 1/1. Luego, elige en secreto Humano, Tritón o Trasgo.\nSacrificar Un asesino entre nosotros, mostrar el tipo de criatura elegido: Si la ficha de criatura atacante objetivo es del tipo elegido, pon tres contadores +1/+1 sobre ella y gana la habilidad de toque mortal hasta el final del turno.', 'type': 'Encantamiento'}, {'language': 'French', 'name': 'Un meurtrier parmi nous', 'faceName': None, 'flavorText': None, 'text': "Quand Un meurtrier parmi nous arrive sur le champ de bataille, créez un jeton de créature 1/1 blanche Humain, un jeton de créature 1/1 bleue Ondin et un jeton de créature 1/1 rouge Gobelin. Puis choisissez secrètement humain, ondin ou gobelin.\nSacrifiez Un meurtrier parmi nous, révélez le type de créature choisi : Si un jeton de créature attaquant ciblé a le type choisi, mettez trois marqueurs +1/+1 sur lui et il acquiert le contact mortel jusqu'à la fin du tour.", 'type': 'Enchantement'}, {'language': 'Italian', 'name': 'Un Assassino tra Noi', 'faceName': None, 'flavorText': None, 'text': 'Quando Un Assassino tra Noi entra nel campo di battaglia, crea una pedina creatura Umano 1/1 bianca, una pedina creatura Tritone 1/1 blu e una pedina creatura Goblin 1/1 rossa. Poi scegli segretamente Umano, Tritone o Goblin.\nSacrifica Un Assassino tra Noi, Rivela il tipo di creatura scelto: Se una pedina creatura attaccante bersaglio è del tipo scelto, metti tre segnalini +1/+1 su di essa e ha tocco letale fino alla fine del turno.', 'type': 'Incantesimo'}, {'language': 'Japanese', 'name': '犯人はこの中にいる', 'faceName': None, 'flavorText': None, 'text': '犯人はこの中にいるが戦場に出たとき、白の１/１の人間・クリーチャー・トークン１体と、青の１/１のマーフォーク・クリーチャー・トークン１体と、赤の１/１のゴブリン・クリーチャー・トークン１体を生成する。その後、人間やマーフォークやゴブリンのうち１つを秘密裏に選ぶ。\n犯人はこの中にいるを生け贄に捧げる, その選んだクリーチャー・タイプを公開する：攻撃しているクリーチャー・トークン１体を対象とする。それがその選んだタイプなら、それの上に＋１/＋１カウンター３個を置き、ターン終了時まで、それは接死を得る。', 'type': 'エンチャント'}, {'language': 'Portuguese (Brazil)', 'name': 'Um Assassino Entre Nós', 'faceName': None, 'flavorText': None, 'text': 'Quando Um Assassino Entre Nós entrar no campo de batalha, crie uma ficha de criatura Humano branca 1/1, uma ficha de criatura Tritão azul 1/1 e uma ficha de criatura Goblin vermelha 1/1 Depois, escolha em segredo Humano, Tritão ou Goblin.\nSacrifique Um Assassino Entre Nós, revele o tipo de criatura escolhido: Se a ficha de criatura atacante alvo for do tipo escolhido, coloque três marcadores +1/+1 nela e ela ganha toque mortífero até o final do turno.', 'type': 'Encantamento'}, {'language': 'Chinese Simplified', 'name': '凶手在侧', 'faceName': None, 'flavorText': None, 'text': '当凶手在侧进战场时，派出一个1/1白色人类衍生生物，一个1/1蓝色人鱼衍生生物和一个1/1红色鬼怪衍生生物。然后私下选择人类，人鱼或鬼怪。\n牺牲凶手在侧，展示所选生物类别：如果目标进行攻击的衍生生物为该类别，则在其上放置三个+1/+1指示物且其获得死触异能直到回合结束。', 'type': '结界'}], None, None, None, None, [], None, {'commander': 'Legal', 'oathbreaker': 'Legal', 'duel': 'Legal', 'legacy': 'Legal', 'vintage': 'Legal', 'modern': 'Legal', 'penny': 'Legal', 'timeless': 'Legal', 'brawl': 'Legal', 'historic': 'Legal', 'gladiator': 'Legal', 'pioneer': 'Legal', 'future': 'Legal', 'standardbrawl': 'Legal', 'standard': 'Legal'}, None, None, '{4}{G}', 5.0, None, ['MKM'], {'tcgplayer': 'https://mtgjson.com/links/7d62d96762b70c80', 'cardKingdom': 'https://mtgjson.com/links/26815f9e4806660a', 'cardmarket': 'https://mtgjson.com/links/b287bdc88ddf7b5d', 'cardKingdomFoil': 'https://mtgjson.com/links/6312b82718576cf5'}, [{'date': datetime.date(2024, 2, 2), 'text': "A Killer Among Us's last ability can target any attacking creature token, not just one of the tokens created by its first ability, and not just one of the chosen type. Only a token of the chosen type will get the bonuses, though."}, {'date': datetime.date(2024, 2, 2), 'text': 'If you control multiple copies of A Killer Among Us, you may choose the same or different creature types for each one. Be careful to keep track of which type is chosen for each A Killer Among Us.'}, {'date': datetime.date(2024, 2, 2), 'text': 'Only the player who secretly chose the creature type can reveal the creature type they chose. If another player gains control of A Killer Among Us, they will be unable to activate its last ability.'}, {'date': datetime.date(2024, 2, 2), 'text': "There are several ways to secretly choose one of the creature types, including writing that type on a piece of paper that's kept with A Killer Among Us."}], None, [], [], 'When this enchantment enters, create a 1/1 white Human creature token, a 1/1 blue Merfolk creature token, and a 1/1 red Goblin creature token. Then secretly choose Human, Merfolk, or Goblin.\nSacrifice this enchantment, Reveal the creature type you chose: If target attacking creature token is the chosen type, put three +1/+1 counters on it and it gains deathtouch until end of turn.', None, ['test']))
