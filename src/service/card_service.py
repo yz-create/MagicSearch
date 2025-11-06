@@ -196,17 +196,19 @@ class CardService():
         """
         # we start a basic list with the first filter in our list
         filter = filters[0]
-        Magicsearch_filtered = CardDao().filter_dao(filter)
+        Magicsearch_filtered = CardDao().filter_dao(filter) or []
         # we do the same for all the filters and everytime, we only keep in magicsearch_filtered
         # only the common cards
         if len(filters) >= 2:
-            for i in range(1, len(filters)):  # checker que je parcours toute la liste (lucile)
-                filter = filters[i]
-                new_filter_list = CardDao().filter_dao(filter)
-                for item in Magicsearch_filtered:
-                    if item not in new_filter_list:
-                        Magicsearch_filtered.remove(item)
-        return Magicsearch_filtered or []
+            for filter in filters[1:]:  # checker que je parcours toute la liste (lucile)
+                new_filter_list = CardDao().filter_dao(filter) or []
+                # extract the id of every card
+                new_filter_list_idCard = { d.get("idCard") for d in new_filter_list if "idCard" in d }
+
+                # keeping in Magicsearch_filtered only the common id_card
+                Magicsearch_filtered = [ d for d in Magicsearch_filtered
+                             if d.get("idCard") in new_filter_list_idCard ]
+        return Magicsearch_filtered 
         if not Magicsearch_filtered:
             logging.warning(f"No results for filters: {filters}")
 

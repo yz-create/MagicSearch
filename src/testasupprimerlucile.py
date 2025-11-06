@@ -5,22 +5,44 @@ from business_object.filters.filter_numerical import FilterNumeric
 
 cardservice = CardService()
 carddao = CardDao()
-cat_filter = FilterCategory(
-    variable_filtered="type",
+type_filter = FilterCategory(
+    variable_filtered="Type",
     type_of_filtering="positive",
-    filtering_value="Creature — Merfolk Warrior"
+    filtering_value="Enchantment"
 )
-num_filter_lower= FilterNumeric(
-    variable_filtered="type",
-    type_of_filtering="lower_than",
-    filtering_value=4
+color_filterR = FilterCategory(
+    variable_filtered="Color",
+    type_of_filtering="positive",
+    filtering_value="R"
 )
-num_filter_higher= FilterNumeric(
+color_filterB = FilterCategory(
+    variable_filtered="Color",
+    type_of_filtering="positive",
+    filtering_value="B"
+)
+edhrec_filter_lower= FilterNumeric(
     variable_filtered="edhrecRank",
-    type_of_filtering="higher_than",
-    filtering_value=2
+    type_of_filtering="equal_to",
+    filtering_value=27784
 )
-filtertestlist=[num_filter_lower]
+mana_filter= FilterNumeric(
+    variable_filtered="manaValue",
+    type_of_filtering="equal_to",
+    filtering_value=6
+)
+power_filter= FilterNumeric(
+    variable_filtered="power",
+    type_of_filtering="equal_to",
+    filtering_value=1
+)
+toughness_filter= FilterNumeric(
+    variable_filtered="toughness",
+    type_of_filtering="equal_to",
+    filtering_value=1
+)
+# print(carddao.filter_dao(cat2_filter))
+filtertestlist=[color_filterB, color_filterR]
+
 
 
 print(cardservice.filter_search(filtertestlist))

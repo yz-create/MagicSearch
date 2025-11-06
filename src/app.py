@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from utils.auth import create_access_token, verify_token
 from datetime import timedelta
-from typing import List, Union, Literal
+from typing import List, Union
 
 from service.user_service import UserService
 from service.card_service import CardService
@@ -14,7 +14,7 @@ from utils.log_init import initialize_logs
 
 
 # SETTING UP THE API
-root_path = "/proxy/9877"
+root_path = "/proxy/9876"
 app = FastAPI(
     title="MagicSearch",
     root_path=root_path,
@@ -37,7 +37,8 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel):
+class cardModel(BaseModel): 
+    # checker à lafin si il est utilisé parce qu'il ya moyen qu'il serve à rien
     """
     defines a Pydantic model for the uards
     Pydantic model to validate and document the user objects
@@ -48,39 +49,39 @@ class cardModel(BaseModel):
     layout: str
     name: str
     type_line: str
-    ascii_name: str = None
-    color_identity: list = None
-    color_indicator: list = None
-    colors: list = None
-    converted_mana_cost: float = None
-    defense: int = None
-    edhrec_rank: int = None
-    edhrec_saltiness: float = None
-    face_mana_value: float = None
-    face_name: str = None
-    first_printing: str = None
-    foreign_data: list = None
-    hand: int = None
-    has_alternative_deck_limit: bool = None
-    is_funny: bool = None
-    is_reserved: bool = None
-    keywords: list = None
-    leadership_skills: dict = None
-    legalities: dict = None
-    life: int = None
-    loyalty: str = None
-    mana_cost: str = None
-    mana_value: float = None
-    power: str = None
-    printings: list = None
-    purchase_urls: dict = None
-    rulings: list = None
-    side: str = None
-    subtypes: list = None
-    supertypes: list = None
-    text: str = None
-    toughness: str = None
-    types: list = None
+    ascii_name: str | None = None
+    color_identity: list | None = None
+    color_indicator: list | None = None
+    colors: list | None = None
+    converted_mana_cost: float | None = None
+    defense: int | None = None
+    edhrec_rank: int | None = None
+    edhrec_saltiness: float | None = None
+    face_mana_value: float | None = None
+    face_name: str | None = None
+    first_printing: str | None = None
+    foreign_data: list | None = None
+    hand: int | None = None
+    has_alternative_deck_limit: bool | None = None
+    is_funny: bool | None = None
+    is_reserved: bool | None = None
+    keywords: list | None = None
+    leadership_skills: dict | None = None
+    legalities: Union[dict, int] | None = None
+    life: int | None = None
+    loyalty: str | None = None
+    mana_cost: str | None = None
+    mana_value: float | None = None
+    power: str | None = None
+    printings: list | None = None
+    purchase_urls: dict | None = None
+    rulings: list | None = None
+    side: str | None = None
+    subtypes: list | None = None
+    supertypes: list | None = None
+    text: str | None = None
+    toughness: str | None = None
+    types: list | None = None
 
 
 class nameModel(BaseModel):
@@ -88,8 +89,8 @@ class nameModel(BaseModel):
 
 
 class AbstractFilterModel(BaseModel):
-    variable_filtered: Literal["Type", "Color", "edhrecRank", "mana_value", "defense", "toughness", "power"]
-    type_of_filtering: Literal["higher_than", "lower_than", "equal_to", "positive", "negative"]
+    variable_filtered: str
+    type_of_filtering: str
     filtering_value: Union[int, str]
 
 
@@ -110,7 +111,7 @@ class userModel(BaseModel):
     received as input and returned as output
     """
 
-    user_id: int | None = None  # Champ optionnel
+    user_id: int | None | None = None  # Champ optionnel
     username: str
     password: str
 
@@ -174,14 +175,12 @@ async def semantic_search(search):
 
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.post("/card/NumericFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
-async def numerical_filter_search(filters: List[AbstractFilterModel]) -> list[cardModel]:
+@app.post("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
+async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
     return cards
-
-    
 
 
 # DATABASE MANAGEMENT :CARDS
@@ -322,6 +321,6 @@ async def hello_name(name: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9877)
+    uvicorn.run(app, host="0.0.0.0", port=9876)
 
     logging.info("Arret du Webservice")

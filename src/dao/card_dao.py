@@ -4,7 +4,7 @@ from psycopg2 import sql
 from business_object.card import Card
 from db_connection import DBConnection
 from business_object.filters.abstract_filter import AbstractFilter
-from utils.embed import embedding 
+from utils.embed import embedding
 
 
 class CardDao:
@@ -25,7 +25,7 @@ class CardDao:
             Le nom de la colonne contenant la valeur (ex: "colorName", "name")
         value : str
             La valeur à chercher/créer
-        
+            
         Returns
         -------
         int
@@ -99,7 +99,6 @@ class CardDao:
 
         # Calculer l'embedding
         card_embedding = embedding(text_to_embed)
-
 
         with DBConnection().connection as connection:
             with connection.cursor() as cursor:
@@ -818,48 +817,87 @@ class CardDao:
             if type_of_filtering in ["positive", "negative"]:  # categorical filter
                 if variable_filtered not in ["Type", "Color"]:
                     raise ValueError(
-                        "variable_filtered must be in the following list : 'type', 'is_funny'"
+                        "variable_filtered must be in the following list : 'Type', 'Color'"
                         )
-                
-
+    
                 if not isinstance(filtering_value, str):
                     raise ValueError("filtering_value must be a string")
                 
+                if type_of_filtering == "positive":
+                    sql_comparator = 'ILIKE'
+                else:
+                    sql_comparator = 'NOT ILIKE'
+                    
+                if variable_filtered == 'Color':
 
-                if type_of_filtering == "positive" :
-                    sql_comparator= 'LIKE'
                     sql_query = sql.SQL(
-                        'SELECT Card.id_card FROM "Card" JOIN "Type" USING (idType) WHERE {} {} %s').format(
-                        sql.Identifier(Type.name),
+                        'SELECT* ' 
+                        'FROM "Card" c '
+                        'JOIN "Colors" a USING("idCard")'
+                        'JOIN "Color" b USING ("idColor")'
+                        'WHERE b."colorName" {} %s'
+                        ).format(
                         sql.SQL(sql_comparator)
                     )
                     
-                    sql_parameter = [f"%{filtering_value}"]
+                    sql_parameter = [f"%{filtering_value}%"]
+                
+                else:  # variable_filtered is type
 
-                        
-
-
+                    sql_query = sql.SQL(
+                        'SELECT * '
+                        'FROM "Card" c '
+                        'JOIN "Type" t ON c."type" = t."idType"'
+                        'WHERE t."name" {} %s'
+                        ).format(
+                        sql.SQL(sql_comparator)
+                    )
+                    
+                    sql_parameter = [f"%{filtering_value}%"]
             else:  # numerical filter
-                if variable_filtered not in ["mana_value", "defense", "edhrecRank", "toughness", "power", "type"]:
-                    raise ValueError("variable_filtered must be in the following list : mana_value, defense, edhrec_rank, toughness, power")
+                if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power", "type"]:
+                    raise ValueError("variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
                 if type_of_filtering == "higher_than": 
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":
                     sql_comparator = "="
                 else:
                     sql_comparator = "<"
-                sql_query = sql.SQL('SELECT * FROM "Card" WHERE {} {} %s').format(
-                    sql.Identifier(variable_filtered),
-                    sql.SQL(sql_comparator)
-                )
-                sql_parameter = [filtering_value]
-                with DBConnection().connection as connection:
-                    with connection.cursor() as cursor:
-                        logging.debug(f"Executing SQL: {sql_query.as_string(connection)} with params {sql_parameter}")
-                        cursor.execute('SET search_path TO defaultdb, public;')
-                        cursor.execute(sql_query, sql_parameter)
-                        res = cursor.fetchall()
-                        return res or []
+                if variable_filtered == "power":
+                    sql_query = sql.SQL(
+                        'SELECT * '
+                        'FROM "Card" c '
+                        'WHERE (CASE WHEN c."power" ~  %s THEN c."power"::int ELSE NULL END) {} %s').format(
+                        sql.SQL(sql_comparator)
+                    )
+                    sql_parameter = ['^\d+$', filtering_value]
+                elif variable_filtered == "toughness":
+                    sql_query = sql.SQL(
+                        'SELECT * '
+                        'FROM "Card" c '
+                        'WHERE (CASE WHEN c."toughness" ~  %s THEN c."toughness"::int ELSE NULL END) {} %s'
+                    ).format(
+                        sql.SQL(sql_comparator)
+                    )
+                    sql_parameter = ['^\d+$', filtering_value]
+                else:
+                    sql_query = sql.SQL(
+                        'SELECT *'
+                        'FROM "Card" WHERE {} {} %s'
+                        ).format(
+                        sql.Identifier(variable_filtered),
+                        sql.SQL(sql_comparator)
+                    )
+                    sql_parameter = [filtering_value]
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    logging.debug(f"Executing SQL: {sql_query.as_string(connection)} with params {sql_parameter}")
+                    print(cursor.mogrify(sql_query, sql_parameter))
+                    cursor.execute('SET search_path TO defaultdb, public;')
+                    cursor.execute(sql_query, sql_parameter)
+                    res = cursor.fetchall()
+                        
+            return res or []
         except Exception as e:
             logging.error(f"The input is not a filter : {e}")
             return False
