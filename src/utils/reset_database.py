@@ -6,7 +6,6 @@ import csv
 from unittest import mock
 
 from utils.singleton import Singleton
-from utils.embed import card_to_text
 from db_connection import DBConnection
 
 

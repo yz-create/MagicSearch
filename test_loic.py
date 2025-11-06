@@ -21,4 +21,6 @@ with open("cards_with_embeddings.csv", newline="", encoding="utf-8") as f:
     for row in reader:
         embed_cards.append(row)
 
-print(embed_cards[7])
+for card in embed_cards:
+    if card["embed_detailed"] is None:
+        print(card["idCard"])

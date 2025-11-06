@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
-from utils.auth import create_access_token, verify_token
+from security.auth import create_access_token, verify_token, verify_admin
 from datetime import timedelta
 from typing import List, Union
 
@@ -14,7 +14,7 @@ from utils.log_init import initialize_logs
 
 
 # SETTING UP THE API
-root_path = "/proxy/9876"
+root_path = "/proxy/9875"
 app = FastAPI(
     title="MagicSearch",
     root_path=root_path,
@@ -37,7 +37,7 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel): 
+class cardModel(BaseModel):
     # checker à lafin si il est utilisé parce qu'il ya moyen qu'il serve à rien
     """
     defines a Pydantic model for the uards
@@ -110,8 +110,7 @@ class userModel(BaseModel):
     Pydantic model to validate and document the user objects
     received as input and returned as output
     """
-
-    user_id: int | None | None = None  # Champ optionnel
+    user_id: int | None | None = None
     username: str
     password: str
 
@@ -164,13 +163,22 @@ async def name_search(name: str):
     return card_service.name_search(name)
 
 
-# get the result of a semantic search
+# get the result of a semantic search (Detailed Embed = normal)
 # Card_Service().semantic_search(search)
 @app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
 async def semantic_search(search):
     """Finds a card based on its a semantic search"""
+    logging.info("Finds a card based on its a semantic search (recommended)")
+    return card_service.semantic_search(search, False)
+
+
+# get the result of a semantic search (shortEmbed = FO1a)
+# Card_Service().semantic_search(search)
+@app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
+async def semantic_search_shortEmbed(search):
+    """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search")
-    return card_service.semantic_search(search)
+    return card_service.semantic_search_shortEmbed(search, True)
 
 
 # get a filtered list of cards
@@ -215,33 +223,34 @@ async def Delete_card(card):
 @app.post("/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
-    Authenticate a user and return a token JWT
+    Authentifie un utilisateur et renvoie un JWT.
+    Compatible avec Swagger UI (OAuth2 password flow).
     """
-    logging.info("Attempt to connect")
+    logging.info("Attempting login")
 
     user = user_service.login(form_data.username, form_data.password)
     if not user:
-        logging.warning(f"Login failed for {form_data.username}")
         raise HTTPException(status_code=401, detail="Wrong username or password")
 
     access_token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(minutes=1440)
     )
-    logging.info(f"User {user.username} successfully connected")
+
+    logging.info(f"User '{user.username}' successfully logged in")
     return {"access_token": access_token, "token_type": "bearer"}
 
 # protéger fonctions faites que pour admin
-# lister tous les utlisateurs
+# list all users
 
 
 @app.get("/user/", tags=["Database management : user"])
-async def list_all_users(current_user: str = Depends(verify_token)):
-    """Lister tous les users (protégé par token)"""
-    logging.info(f"List all users (demande de {current_user})")
+async def list_all_users(current_user=Depends(verify_admin)):
+    """List all users, only for admins."""
+    logging.info(f"List all users requested by {current_user.username}")
     return user_service.list_all()
 
-# supprimer un utilisateur
+# suppress a user
 
 
 @app.delete("/user/{id_user}", tags=["Database management : user"])
@@ -321,6 +330,6 @@ async def hello_name(name: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9878)
+    uvicorn.run(app, host="0.0.0.0", port=9875)
 
     logging.info("Arret du Webservice")

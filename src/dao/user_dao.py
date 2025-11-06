@@ -22,8 +22,34 @@ class UserDao:
         return [{"username": r[0], "isAdmin": r[1]} for r in rows]
 
     def get_by_username(self, username: str):
-        """Re"""
-        pass
+        """Return user corresponding to the username"""
+        res = None
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor(cursor_factory=DictCursor) as cursor:
+                    query = """
+                        SELECT "idUser", "username", "password", "isAdmin"
+                        FROM defaultdb."User"
+                        WHERE "username" = %s;
+                    """
+                    cursor.execute(query, (username))
+                    res = cursor.fetchone()
+        except Exception as e:
+            logging.error(f"Error querying user: {e}")
+            return None
+
+        if not res:
+            return None
+
+        user = User(
+            user_id=res["idUser"],
+            username=res["username"],
+            password=res["password"],
+            is_admin=res["isAdmin"]
+        )
+
+        return user
+
 
     def create(self, user: User) -> str:
         try:
@@ -79,7 +105,7 @@ class UserDao:
     @log
     def list_all(self) -> list[User]:
         """
-        List all users from the database.
+        List all users from the database if token given alllows it ie if the user is an admin.
 
         Returns
         -------
@@ -90,7 +116,7 @@ class UserDao:
         try:
             with self.db.connection as connection:
                 with connection.cursor() as cursor:
-                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM "User";')
+                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User";')
                     rows = cursor.fetchall()
 
                     for row in rows:
