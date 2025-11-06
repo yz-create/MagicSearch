@@ -108,10 +108,7 @@ class UserDao:
 
         return users
 
-    SCHEMA = "defaultdb"
-
-    @staticmethod
-    def get_by_username_and_password(username: str, password: str) -> User | None:
+    def get_by_username_and_password(self, username: str, password: str) -> User | None:
         """
         Retrieve a User by username and password.
 

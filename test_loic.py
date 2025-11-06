@@ -1,4 +1,4 @@
-import json
+"""import json
 from collections import Counter
 
 with open('AtomicCards.json', 'r') as file:
@@ -11,12 +11,14 @@ for i in data['data']:
     for card in data['data'][i]:
         if "foreignData" in card:
             for url in card['foreignData']:
-                c += 1
+                c += 1"""
+import csv
 
+embed_cards = []
 
-print(Counter(count))
+with open("cards_with_embeddings.csv", newline="", encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        embed_cards.append(row)
 
-for i in None:
-    print("a")
-
-print("b")
+print(embed_cards[7])
