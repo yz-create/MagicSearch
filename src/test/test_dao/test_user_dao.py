@@ -74,7 +74,6 @@ def test_get_username_and_password_none(mock_db_connection):
     #WHEN
     result = UserDao(db : DBConnection).get_username_and_password(username, password)
 
-    #THEN
     # THEN
     assert isinstance(user, User)
     assert user.user_id == 1
