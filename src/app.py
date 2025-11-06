@@ -38,56 +38,6 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel):
-    # checker à lafin si il est utilisé parce qu'il ya moyen qu'il serve à rien
-    """
-    defines a Pydantic model for the uards
-    Pydantic model to validate and document the user objects
-    received as input and returned as output
-    """
-    id_card: int
-    embedded: list
-    layout: str
-    name: str
-    type_line: str
-    ascii_name: str | None = None
-    color_identity: list | None = None
-    color_indicator: list | None = None
-    colors: list | None = None
-    converted_mana_cost: float | None = None
-    defense: int | None = None
-    edhrec_rank: int | None = None
-    edhrec_saltiness: float | None = None
-    face_mana_value: float | None = None
-    face_name: str | None = None
-    first_printing: str | None = None
-    foreign_data: list | None = None
-    hand: int | None = None
-    has_alternative_deck_limit: bool | None = None
-    is_funny: bool | None = None
-    is_reserved: bool | None = None
-    keywords: list | None = None
-    leadership_skills: dict | None = None
-    legalities: Union[dict, int] | None = None
-    life: int | None = None
-    loyalty: str | None = None
-    mana_cost: str | None = None
-    mana_value: float | None = None
-    power: str | None = None
-    printings: list | None = None
-    purchase_urls: dict | None = None
-    rulings: list | None = None
-    side: str | None = None
-    subtypes: list | None = None
-    supertypes: list | None = None
-    text: str | None = None
-    toughness: str | None = None
-    types: list | None = None
-
-
-class nameModel(BaseModel):
-    name: str
-
 
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
@@ -118,7 +68,7 @@ class userModel(BaseModel):
 
 # USER LOG IN
 # creating a user
-@app.post("/user/", tags=["User log in !"])
+@app.post("/user/", tags=["User : sign up !"])
 async def create_user(j: userModel):
     """Create a new user"""
     logging.info("creating a user")
@@ -135,6 +85,28 @@ async def create_user(j: userModel):
 
     return {"message": f"User '{j.username}' created successfully!"}
 
+# user sign in 
+
+# ajout pour le système de connexion avec token
+@app.post("/login", tags=["User : log in !"])
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Authentifie un utilisateur et renvoie un JWT.
+    Compatible avec Swagger UI (OAuth2 password flow).
+    """
+    logging.info("Attempting login")
+
+    user = user_service.login(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Wrong username or password")
+
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=timedelta(minutes=1440)
+    )
+
+    logging.info(f"User '{user.username}' successfully logged in")
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # ROAMING IN THE MAGICSEARCH DATABASE
 # get a random card
@@ -166,7 +138,7 @@ async def name_search(name: str):
 
 # get the result of a semantic search (Detailed Embed = normal)
 # Card_Service().semantic_search(search)
-@app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/semantic/recommended/{search}", tags=["Roaming in the MagicSearch Database"])
 async def semantic_search(search):
     """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search (recommended)")
@@ -175,7 +147,7 @@ async def semantic_search(search):
 
 # get the result of a semantic search (shortEmbed = FO1a)
 # Card_Service().semantic_search(search)
-@app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/semantic/short/{search}", tags=["Roaming in the MagicSearch Database"])
 async def semantic_search_shortEmbed(search):
     """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search")
@@ -184,7 +156,7 @@ async def semantic_search_shortEmbed(search):
 
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.post("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
 async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
@@ -194,7 +166,7 @@ async def filter_search(filters: List[AbstractFilterModel]):
 
 # DATABASE MANAGEMENT :CARDS
 # create a card
-@app.get("/card/{card}", tags=["Database management : cards"])
+@app.post("/card/{card}", tags=["Database management : cards"])
 async def Create_card(card):
     """Creates a card in the Magicsearch database"""
     logging.info("Creates a card in the Magicsearch database")
@@ -202,7 +174,7 @@ async def Create_card(card):
 
 
 # update a card
-@app.get("/card/{card}", tags=["Database management : cards"])
+@app.put("/card/{card}", tags=["Database management : cards"])
 async def Update_card(card):
     """Updates a card in the Magicsearch database"""
     logging.info("Updates a card in the Magicsearch database")
@@ -210,7 +182,7 @@ async def Update_card(card):
 
 
 # delete a card
-@app.get("/card/{card}", tags=["Database management : cards"])
+@app.delete("/card/{card}", tags=["Database management : cards"])
 async def Delete_card(card):
     """Deletes a card in the Magicsearch database"""
     logging.info("Deletes a card in the Magicsearch database")
@@ -220,30 +192,8 @@ async def Delete_card(card):
 # DATABASE MANAGEMENT : USER
 # routes utilisateurs : get user et get user id
 # list the users
-# ajout pour le système de connexion avec token
-@app.post("/login", tags=["Authentication"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """
-    Authentifie un utilisateur et renvoie un JWT.
-    Compatible avec Swagger UI (OAuth2 password flow).
-    """
-    logging.info("Attempting login")
-
-    user = user_service.login(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(status_code=401, detail="Wrong username or password")
-
-    access_token = create_access_token(
-        data={"sub": user.username},
-        expires_delta=timedelta(minutes=1440)
-    )
-
-    logging.info(f"User '{user.username}' successfully logged in")
-    return {"access_token": access_token, "token_type": "bearer"}
-
 # protéger fonctions faites que pour admin
 # list all users
-
 
 @app.get("/user/", tags=["Database management : user"])
 async def list_all_users(current_user=Depends(verify_admin)):
@@ -251,8 +201,7 @@ async def list_all_users(current_user=Depends(verify_admin)):
     logging.info(f"List all users requested by {getattr(current_user, 'username', current_user)}")
     return user_service.list_all(current_user)
 
-# suppress a user
-
+# delete a user
 
 @app.delete("/user/{id_user}", tags=["Database management : user"])
 def delete_user(id_user: int, current_user: str = Depends(verify_token)):
@@ -321,11 +270,11 @@ def update_user(id_user: int, j: userModel):
 
 
 # API TEST
-@app.get("/hello/{name}")
-async def hello_name(name: str):
-    """Afficher Hello"""
-    logging.info(f"Afficher Hello {name}")
-    return f"message : Hello {name}"
+# @app.get("/hello/{name}")
+#async def hello_name(name: str):
+#    """Afficher Hello"""
+#    logging.info(f"Afficher Hello {name}")
+#    return f"message : Hello {name}"
 
 # Run the FastAPI application
 if __name__ == "__main__":

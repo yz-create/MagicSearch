@@ -1,6 +1,6 @@
 # MagicSearch IT project 2A
 
-Welcome in the promised land for players of trading card games ! By following these instructions, you will access our API where we gave our blood and tears to provide you with a diversity of searching tool !
+Welcome in the promised land of trading card games players! By following these instructions, you will access our API where we gave our blood and tears to provide you with a diversity of searching tool !
 
 ## To access the app :
 Install all modules in requirements.txt : 
