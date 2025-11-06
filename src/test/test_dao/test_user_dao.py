@@ -44,3 +44,41 @@ class TestUserDao(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+def test_get_username_and_password_res():
+
+    #GIVEN
+    username,password='abc','def'
+    user= User(username=username, password=password)
+    DBConnection().connection = MagicMock(return_value=res)
+    
+    #WHEN
+
+@patch("user_dao.DBConnection")
+def test_get_username_and_password_none(mock_db_connection):
+    #GIVEN
+        fake_row = {
+        "idUser": 1,
+        "username": "testuser",
+        "password": "secret",
+        "isAdmin": False
+    }
+    mock_cursor = MagicMock()
+    mock_cursor.fetchone.return_value = fake_row
+
+    mock_connection = MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mock_db_connection.return_value.connection.__enter__.return_value = mock_connection
+
+    dao = UserDao()
+    #WHEN
+    result = UserDao(db : DBConnection).get_username_and_password(username, password)
+
+    #THEN
+    # THEN
+    assert isinstance(user, User)
+    assert user.user_id == 1
+    assert user.username == "testuser"
+    assert user.password == "secret"
+    assert user.is_admin is False
+    mock_cursor.execute.assert_called_once()
