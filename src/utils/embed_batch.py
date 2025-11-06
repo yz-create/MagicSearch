@@ -13,7 +13,7 @@ headers = {
 }
 
 
-BATCH_SIZE = 1000  # Nombre de cartes à traiter en une seule requête
+BATCH_SIZE = 1_000  # Nombre de cartes à traiter en une seule requête
 
 
 def embedding_batch(texts: list[str]) -> list[list]:
