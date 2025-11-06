@@ -38,13 +38,16 @@ def embedding(text: str) -> list:
     return json_response["embeddings"][0]
 
 
-# ---- Convertir une carte en texte pour l'embedding ----
 def card_to_text(card: dict) -> str:
     """
     Creates the text from a card that will be used to create the embed of said card.
     The card has to be a dict, meaning this function is only used for cards taken straight from the
     .json
     """
+    colors = {"G": "Green", "R": "Red", "B": "Black", "W": "White", "U": "Blue"}
+    card_colors = []
+    for color in card["colorIdentity"]:
+        card_colors.append(colors[color])
     fields = [
         card.get("name", ""),
         card.get("type", ""),
@@ -53,15 +56,14 @@ def card_to_text(card: dict) -> str:
         " ".join(card.get("types", [])),
         " ".join(card.get("subtypes", [])),
         card.get("text", ""),
-        f"Mana cost: {card.get('manaCost', '')}",
-        f"Colors: {', '.join(card.get('colors', []))}",
-        f"Rarity: {card.get('rarity', '')}",
+        f"Mana value: {card.get('manaValue', '')}",
+        f"Colors: {', '.join(card_colors)}",
         f"Power: {card.get('power', '')}",
         f"Toughness: {card.get('toughness', '')}",
         f"Defense: {card.get('defense', '')}",
         f"Loyalty: {card.get('loyalty', '')}"
     ]
-    return " | ".join([f for f in fields if f])  # concaténation lisible
+    return " | ".join([f for f in fields if f])
 
 
 def add_embed_to_csv(card: dict, writer) -> None:
@@ -98,13 +100,12 @@ if __name__ == "__main__":
 
     with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        print(type(writer))
 
         writer.writerow(["id", "embedding"])
-        print("c")
 
         idCard = 0
         for card in cards:
+            print(card_to_text(card))
             time.sleep(0.5)
             try:
                 add_embed_to_csv(card, writer)
