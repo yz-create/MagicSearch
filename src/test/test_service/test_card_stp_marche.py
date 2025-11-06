@@ -1,8 +1,14 @@
 import re
 import pytest
-from src.service.card_service import filter_search
+import sys
+import os
+
+
+from service.card_service import filter_search
 from business_object.filters.filter_category import FilterCategory
 from business_object.filters.filter_numerical import FilterNumeric
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 
 # input test on filter_search
@@ -27,15 +33,14 @@ from business_object.filters.filter_numerical import FilterNumeric
                 type_of_filtering="positive",
                 filtering_value="B"
             )]},
-            ValueError("This is not a filter : type_of_filtering can only take "
-                    "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
+            ValueError("This is not a filter : type_of_filtering can only take 'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
         ),
         (
             {[FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
                 filtering_value=1
-            ),FilterCategory(
+            ), FilterCategory(
                 variable_filtered="is_funny",
                 type_of_filtering="positive",
                 filtering_value="B"
