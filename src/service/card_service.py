@@ -236,6 +236,3 @@ class CardService():
             logging.error(f"The input is not a filter : {e}")
             return False
 
-
-if __name__ == "__main__":
-    print(CardService().id_search(12))
