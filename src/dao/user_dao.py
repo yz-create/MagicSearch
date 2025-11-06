@@ -79,7 +79,7 @@ class UserDao:
     @log
     def list_all(self) -> list[User]:
         """
-        List all users from the database.
+        List all users from the database if token given alllows it ie if the user is an admin.
 
         Returns
         -------
@@ -90,7 +90,7 @@ class UserDao:
         try:
             with self.db.connection as connection:
                 with connection.cursor() as cursor:
-                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM "User";')
+                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User";')
                     rows = cursor.fetchall()
 
                     for row in rows:

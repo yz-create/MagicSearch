@@ -8,6 +8,7 @@ from dao.user_dao import UserDao
 from db_connection import DBConnection
 import logging
 from psycopg2.extras import DictCursor
+from fastapi import HTTPException, Depends
 
 
 class UserService:
