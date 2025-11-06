@@ -1,11 +1,11 @@
 import re
 import pytest
-from src.service.card_service import filter_cat_service, filter_num_service
+from src.service.card_service import filter_search
 from business_object.filters.filter_category import FilterCategory
 from business_object.filters.filter_numerical import FilterNumeric
 
 
-# input test on filter_cat_service
+# input test on filter_search
 @pytest.mark.parametrize(
     "params, error, error_message",
     [
@@ -20,7 +20,7 @@ from business_object.filters.filter_numerical import FilterNumeric
                 filtering_value="B"
             ), FilterNumeric(
                 variable_filtered="edhrecRank",
-                type_of_filtering="blablabla",
+                type_of_filtering="Answer to the Ultimate Question of Life, the Universe, and Everything",
                 filtering_value=27784
             ), FilterCategory(
                 variable_filtered="color",
@@ -41,7 +41,7 @@ from business_object.filters.filter_numerical import FilterNumeric
                 filtering_value="B"
             ), FilterNumeric(
                 variable_filtered="edhrecRank",
-                type_of_filtering="blablabla",
+                type_of_filtering="higher_than",
                 filtering_value=27784
             ), FilterCategory(
                 variable_filtered="color",
@@ -61,7 +61,7 @@ from business_object.filters.filter_numerical import FilterNumeric
                 filtering_value=42
             ), FilterNumeric(
                 variable_filtered="edhrecRank",
-                type_of_filtering="blablabla",
+                type_of_filtering="higher_than",
                 filtering_value=27784
             ), FilterCategory(
                 variable_filtered="color",
@@ -71,32 +71,30 @@ from business_object.filters.filter_numerical import FilterNumeric
             TypeError,
             "filtering_value must be a string"
 
-        )
-    ]
-)
-def test_filter_cat_service_input(params, error, error_message):
-    with pytest.raises(error, match=re.escape(error_message)):
-        filter_cat_service(**params)
-
-
-# input test on filter_num_service
-@pytest.mark.parametrize(
-    "params, error, error_message",
-    [
-        (
-            {"variable_filtered": "type", "type_of_filtering": "equal_to", "filtering_value": 9},
-            ValueError,
-            "variable_filtered must be in the following list : manaValue, defense, edhrecRank, toughness, power"
         ),
         (
-            {"variable_filtered": "power", "type_of_filtering": "positive", "filtering_value": 9},
-            ValueError,
-            "type_of_filtering can only take 'higher_than', 'lower_than' or 'equal_to' as input"
+            {[FilterNumeric(
+                variable_filtered="toughness",
+                type_of_filtering="equal_to",
+                filtering_value=1
+            ),FilterCategory(
+                variable_filtered="color",
+                type_of_filtering="positive",
+                filtering_value='B'
+            ), FilterNumeric(
+                variable_filtered="Answer to the Ultimate Question of Life, the Universe, and Everything",
+                type_of_filtering="higher_than",
+                filtering_value=27784
+            ), FilterCategory(
+                variable_filtered="color",
+                type_of_filtering="positive",
+                filtering_value="B"
+            )]},
+            ValueError("variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
         )
     ]
 )
-def test_filter_num_service_input(params, error, error_message):
+def test_filter_search_service_input(params, error, error_message):
     with pytest.raises(error, match=re.escape(error_message)):
-        filter_num_service(**params)
-
+        filter_search(**params)
 
