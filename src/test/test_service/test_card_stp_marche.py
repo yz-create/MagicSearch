@@ -1,22 +1,18 @@
 import re
 import pytest
-import sys
-import os
 
-
-from service.card_service import filter_search
+from service.card_service import CardService
 from business_object.filters.filter_category import FilterCategory
 from business_object.filters.filter_numerical import FilterNumeric
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-
+cardservice=CardService()
 # input test on filter_search
 @pytest.mark.parametrize(
-    "params, error, error_message",
+    "param"
     [
         (
-            {[FilterNumeric(
+            [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
                 filtering_value=1
@@ -32,11 +28,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]},
-            ValueError("This is not a filter : type_of_filtering can only take 'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
+            )]
         ),
         (
-            {[FilterNumeric(
+            [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
                 filtering_value=1
@@ -52,11 +47,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]}, 
-            ValueError("variable_filtered must be in the following list : 'type', 'color'")
+            )]
         ),
         (
-            {[FilterNumeric(
+            [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
                 filtering_value=1
@@ -72,13 +66,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]},
-            TypeError,
-            "filtering_value must be a string"
-
+            )]
         ),
         (
-            {[FilterNumeric(
+            [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
                 filtering_value=1
@@ -94,12 +85,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]},
-            ValueError("variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
+            )]
         )
     ]
 )
-def test_filter_search_service_input(params, error, error_message):
-    with pytest.raises(error, match=re.escape(error_message)):
-        filter_search(**params)
+def test_filter_search_service_input(param):
+    assert cardservice.filter_search(param) is False
 
