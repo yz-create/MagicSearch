@@ -37,7 +37,7 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel): 
+class cardModel(BaseModel):
     # checker à lafin si il est utilisé parce qu'il ya moyen qu'il serve à rien
     """
     defines a Pydantic model for the uards
