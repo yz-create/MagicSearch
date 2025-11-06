@@ -212,6 +212,3 @@ class CardService():
         if Magicsearch_filtered == []:
             logging.warning(f"No results for filters: {filters}")
 
-
-if __name__ == "__main__":
-    print(CardService().id_search(12))
