@@ -1063,7 +1063,7 @@ class CardDao:
         --------
         list(Card)
         """
-        try :
+        try:
             variable_filtered = filter.variable_filtered
             type_of_filtering = filter.type_of_filtering
             filtering_value = filter.filtering_value
@@ -1072,16 +1072,16 @@ class CardDao:
             sql_parameter = []
 
             if type_of_filtering in ["positive", "negative"]:  # categorical filter
-                
+
                 if type_of_filtering == "positive":
                     sql_comparator = 'ILIKE'
                 else:
                     sql_comparator = 'NOT ILIKE'
-                    
+
                 if variable_filtered == 'color':
 
                     sql_query = sql.SQL(
-                        'SELECT* ' 
+                        'SELECT* '
                         'FROM "Card" c '
                         'JOIN "Colors" a USING("idCard")'
                         'JOIN "Color" b USING ("idColor")'
@@ -1089,9 +1089,9 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-                    
+
                     sql_parameter = [f"%{filtering_value}%"]
-                
+
                 else:  # variable_filtered is type
 
                     sql_query = sql.SQL(
@@ -1102,11 +1102,11 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-                    
+
                     sql_parameter = [f"%{filtering_value}%"]
             else:  # numerical filter
-                
-                if type_of_filtering == "higher_than": 
+
+                if type_of_filtering == "higher_than":
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":
                     sql_comparator = "="
@@ -1116,19 +1116,21 @@ class CardDao:
                     sql_query = sql.SQL(
                         'SELECT * '
                         'FROM "Card" c '
-                        'WHERE (CASE WHEN c."power" ~  %s THEN c."power"::int ELSE NULL END) {} %s').format(
+                        'WHERE (CASE WHEN c."power" ~  %s THEN c."power"::int ELSE NULL END) {} %s'
+                    ).format(
                         sql.SQL(sql_comparator)
                     )
-                    sql_parameter = ['^\d+$', filtering_value]
+                    sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
                         'SELECT * '
                         'FROM "Card" c '
-                        'WHERE (CASE WHEN c."toughness" ~  %s THEN c."toughness"::int ELSE NULL END) {} %s'
+                        'WHERE (CASE WHEN c."toughness" ~  %s '
+                        'THEN c."toughness"::int ELSE NULL END) {} %s'
                     ).format(
                         sql.SQL(sql_comparator)
                     )
-                    sql_parameter = ['^\d+$', filtering_value]
+                    sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 else:
                     sql_query = sql.SQL(
                         'SELECT *'
@@ -1140,7 +1142,10 @@ class CardDao:
                     sql_parameter = [filtering_value]
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
-                    logging.debug(f"Executing SQL: {sql_query.as_string(connection)} with params {sql_parameter}")
+                    logging.debug(
+                        f"Executing SQL: {sql_query.as_string(connection)} "
+                        f"with params {sql_parameter}"
+                    )
                     print(cursor.mogrify(sql_query, sql_parameter))
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
@@ -1169,16 +1174,16 @@ class CardDao:
         """
         Returns the 5 entries from the database with the embedding closest to the given
         [search_emb].
-        
+
         Args:
             conn: Database connection
             search_emb: The embedding vector to search for
             use_short_embed: If True, uses 'shortEmbed' column, otherwise uses 'embed' column
         """
         conn.execute('SET search_path TO defaultdb, public;')
-        
+
         embed_column = '"shortEmbed"' if use_short_embed else '"embed"'
-        
+
         query = f"""
             SELECT
                 "idCard",
@@ -1187,6 +1192,6 @@ class CardDao:
             ORDER BY dst
             LIMIT 5
         """
-        
+
         results = conn.execute(query, (search_emb,))
         return results.fetchall()
