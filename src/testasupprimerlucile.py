@@ -20,7 +20,7 @@ num_filter_higher= FilterNumeric(
     type_of_filtering="higher_than",
     filtering_value=2
 )
-filtertestlist=[cat_filter]
+filtertestlist=[num_filter_lower]
 
 
 print(cardservice.filter_search(filtertestlist))

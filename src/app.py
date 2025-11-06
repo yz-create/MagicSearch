@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from utils.auth import create_access_token, verify_token
 from datetime import timedelta
-from typing import List
+from typing import List, Union, Literal
 
 from service.user_service import UserService
 from service.card_service import CardService
@@ -87,15 +87,10 @@ class nameModel(BaseModel):
     name: str
 
 
-class NumericFilterModel(BaseModel):
-    variable_filtered: str
-    type_of_filtering: str
-    filtering_value: int 
-
-class CategoricalFilterModel(BaseModel):
-    variable_filtered: str
-    type_of_filtering: str
-    filtering_value: str  
+class AbstractFilterModel(BaseModel):
+    variable_filtered: Literal["Type", "Color", "edhrecRank", "mana_value", "defense", "toughness", "power"]
+    type_of_filtering: Literal["higher_than", "lower_than", "equal_to", "positive", "negative"]
+    filtering_value: Union[int, str]
 
 
 class UserCreateRequest(BaseModel):
@@ -177,19 +172,12 @@ async def semantic_search(search):
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
 @app.post("/card/NumericFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
-async def numerical_filter_search(filters: List[NumericFilterModel]) -> list[cardModel]:
+async def numerical_filter_search(filters: List[AbstractFilterModel]) -> list[cardModel]:
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
     return cards
 
-
-@app.post("/card/CategoricalFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
-async def categorical_filter_search(filters: List[CategoricalFilterModel]) -> list[cardModel]:
-    """Filters the database based on a list of filters"""
-    logging.info("Filters the database based on a list of filters")
-    cards = card_service.filter_search(filters)
-    return cards
     
 
 

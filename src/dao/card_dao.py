@@ -816,7 +816,7 @@ class CardDao:
             sql_parameter = []
 
             if type_of_filtering in ["positive", "negative"]:  # categorical filter
-                if variable_filtered not in ["type", "is_funny"]:
+                if variable_filtered not in ["Type", "Color"]:
                     raise ValueError(
                         "variable_filtered must be in the following list : 'type', 'is_funny'"
                         )
