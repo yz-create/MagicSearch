@@ -1117,34 +1117,22 @@ class CardDao:
         --------
         list(Card)
         """
-        try:
+        try :
             variable_filtered = filter.variable_filtered
             type_of_filtering = filter.type_of_filtering
             filtering_value = filter.filtering_value
 
-            if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
-                raise ValueError(
-                    "This is not a filter : type_of_filtering can only take "
-                    "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input "
-                    )
             sql_query = None
             sql_parameter = []
 
             if type_of_filtering in ["positive", "negative"]:  # categorical filter
-                if variable_filtered not in ["Type", "Color"]:
-                    raise ValueError(
-                        "variable_filtered must be in the following list : 'Type', 'Color'"
-                        )
-    
-                if not isinstance(filtering_value, str):
-                    raise ValueError("filtering_value must be a string")
                 
                 if type_of_filtering == "positive":
                     sql_comparator = 'ILIKE'
                 else:
                     sql_comparator = 'NOT ILIKE'
                     
-                if variable_filtered == 'Color':
+                if variable_filtered == 'color':
 
                     sql_query = sql.SQL(
                         'SELECT* ' 
@@ -1171,8 +1159,7 @@ class CardDao:
                     
                     sql_parameter = [f"%{filtering_value}%"]
             else:  # numerical filter
-                if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power", "type"]:
-                    raise ValueError("variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
+                
                 if type_of_filtering == "higher_than": 
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":

@@ -181,8 +181,8 @@ class CardService():
 
     def filter_search(self, filters: list[AbstractFilter]) -> list[Card]:
         """
-        Service method for searching by filtering : identifies the type of filter and calls the
-        corresponding DAO method
+        Service method for searching by filtering : checks if it is a valid filter and if it is, calls the
+        filtering DAO method for each filter un the list and only keeps the cards common to the different filtering
 
         Parameters :
         ------------
@@ -194,23 +194,48 @@ class CardService():
         List[Card]
             The Cards corresponding to our filter
         """
-        # we start a basic list with the first filter in our list
-        filter = filters[0]
-        Magicsearch_filtered = CardDao().filter_dao(filter) or []
-        # we do the same for all the filters and everytime, we only keep in magicsearch_filtered
-        # only the common cards
-        if len(filters) >= 2:
-            for filter in filters[1:]:  # checker que je parcours toute la liste (lucile)
-                new_filter_list = CardDao().filter_dao(filter) or []
-                # extract the id of every card
-                new_filter_list_idCard = { d.get("idCard") for d in new_filter_list if "idCard" in d }
+        try :
+            # we check if the filters are valid 
+            for filter in filters:
+                variable_filtered = filter.variable_filtered
+                type_of_filtering = filter.type_of_filtering
+                filtering_value = filter.filtering_value
+                if type_of_filtering in ["positive", "negative"]:  # categorical filter
+                    if variable_filtered not in ["type", "color"]:
+                        raise ValueError(
+                            "variable_filtered must be in the following list : 'type', 'color'")
+                    if not isinstance(filtering_value, str):
+                        raise TypeError(
+                            "filtering_value must be a string")
+                if type_of_filtering in ["higher_than", "lower_than", "equal_to"]:  # numerical filter
+                    if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power", "type"]:
+                        raise ValueError(
+                            "variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
+                if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
+                    raise ValueError(
+                    "This is not a filter : type_of_filtering can only take "
+                    "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
 
-                # keeping in Magicsearch_filtered only the common id_card
-                Magicsearch_filtered = [ d for d in Magicsearch_filtered
-                             if d.get("idCard") in new_filter_list_idCard ]
-        return 
-        if Magicsearch_filtered == []:
-            logging.warning(f"No results for filters: {filters}")
+            # we  start a basic list with the first filter in our list
+            filter = filters[0]
+            Magicsearch_filtered = CardDao().filter_dao(filter) or []
+            # we do the same for all the filters and everytime, we only keep in magicsearch_filtered
+            # only the common cards
+            if len(filters) >= 2:
+                for filter in filters[1:]:  # checker que je parcours toute la liste (lucile)
+                    new_filter_list = CardDao().filter_dao(filter) or []
+                    # extract the id of every card
+                    new_filter_list_idCard = { d.get("idCard") for d in new_filter_list if "idCard" in d }
+
+                    # keeping in Magicsearch_filtered only the common id_card
+                    Magicsearch_filtered = [ d for d in Magicsearch_filtered
+                                if d.get("idCard") in new_filter_list_idCard ]
+            return 
+            if Magicsearch_filtered == []:
+                logging.warning(f"No results for filters: {filters}")
+        except Exception as e:
+            logging.error(f"The input is not a filter : {e}")
+            return False
 
 
 if __name__ == "__main__":
