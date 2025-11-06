@@ -25,8 +25,9 @@ class UserService:
 
     @log
     def create_user(self, username: str, password: str) -> User | None:
-        hashed_password = hash_password(password, username)
-        new_user = User(username=username, password=hashed_password)
+        #hashed_password = hash_password(password, username)
+        #new_user = User(username=username, password=hashed_password)
+        new_user = User(username=username, password=password)
     
         result = self.user_dao.create(new_user)
         if result == "CREATED":
