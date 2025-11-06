@@ -18,6 +18,7 @@ def embedding(text: str) -> list:
     Embeds a text into a vector (as a list)
     """
     global error
+    time.sleep(0.5)
     data = {
         "model": "bge-m3:latest",
         "input": text
@@ -26,7 +27,7 @@ def embedding(text: str) -> list:
     if response.status_code != 200:
         print("❌ API Error:", response.status_code)
         print("Response text:", response.text)
-        error = True
+        embedding(text)
 
     try:
         json_response = response.json()
@@ -34,17 +35,19 @@ def embedding(text: str) -> list:
         print("❌ Could not decode JSON response")
         print("Response text:", response.text)
         error = False
-    print(type(json_response["embeddings"][0]))
     return json_response["embeddings"][0]
 
 
-# ---- Convertir une carte en texte pour l'embedding ----
 def card_to_text(card: dict) -> str:
     """
     Creates the text from a card that will be used to create the embed of said card.
     The card has to be a dict, meaning this function is only used for cards taken straight from the
     .json
     """
+    colors = {"G": "Green", "R": "Red", "B": "Black", "W": "White", "U": "Blue"}
+    card_colors = []
+    for color in card["colorIdentity"]:
+        card_colors.append(colors[color])
     fields = [
         card.get("name", ""),
         card.get("type", ""),
@@ -53,15 +56,14 @@ def card_to_text(card: dict) -> str:
         " ".join(card.get("types", [])),
         " ".join(card.get("subtypes", [])),
         card.get("text", ""),
-        f"Mana cost: {card.get('manaCost', '')}",
-        f"Colors: {', '.join(card.get('colors', []))}",
-        f"Rarity: {card.get('rarity', '')}",
+        f"Mana value: {card.get('manaValue', '')}",
+        f"Colors: {', '.join(card_colors)}",
         f"Power: {card.get('power', '')}",
         f"Toughness: {card.get('toughness', '')}",
         f"Defense: {card.get('defense', '')}",
         f"Loyalty: {card.get('loyalty', '')}"
     ]
-    return " | ".join([f for f in fields if f])  # concaténation lisible
+    return " | ".join([f for f in fields if f])
 
 
 def add_embed_to_csv(card: dict, writer) -> None:
@@ -76,7 +78,7 @@ def add_embed_to_csv(card: dict, writer) -> None:
         The writer of .csv. Basically it allows to write into the csv
     """
     text_repr = card_to_text(card)
-    emb = embedding(text_repr)  # liste de floats
+    emb = embedding(text_repr)
     writer.writerow([
         idCard,
         json.dumps(emb)
@@ -98,21 +100,17 @@ if __name__ == "__main__":
 
     with open("cards_with_embeddings.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        print(type(writer))
 
         writer.writerow(["id", "embedding"])
-        print("c")
 
         idCard = 0
         for card in cards:
-            time.sleep(0.5)
             try:
                 add_embed_to_csv(card, writer)
             except Exception:
                 print("Error with the card", card["idCard"])
                 error = True
             while error:
-                time.sleep(0.5)
                 print("Error with the card", card["idCard"])
                 try:
                     add_embed_to_csv(card, writer)

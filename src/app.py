@@ -40,7 +40,7 @@ card_service = CardService()
 class cardModel(BaseModel):
     """
     defines a Pydantic model for the uards
-    Pydantic model to validate and document the user objects 
+    Pydantic model to validate and document the user objects
     received as input and returned as output
     """
     id_card: int
@@ -90,26 +90,29 @@ class nameModel(BaseModel):
 class NumericFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: int 
+    filtering_value: int
+
 
 class CategoricalFilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
-    filtering_value: str  
+    filtering_value: str
 
 
 class UserCreateRequest(BaseModel):
     username: str
     password: str
 
+
 class UserResponse(BaseModel):
     user_id: int
     username: str
 
+
 class userModel(BaseModel):
     """
     defines a Pydantic model for the users
-    Pydantic model to validate and document the user objects 
+    Pydantic model to validate and document the user objects
     received as input and returned as output
     """
 
@@ -118,7 +121,7 @@ class userModel(BaseModel):
     password: str
 
 
-# USER LOG IN 
+# USER LOG IN
 # creating a user
 @app.post("/user/", tags=["User log in !"])
 async def create_user(j: userModel):
@@ -148,17 +151,18 @@ async def view_random():
     return card_service.view_random_card()
 
 
-# get a card by its id 
+# get a card by its id
 # Card_Service().id_search(id)
-@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"], response_model=cardModel)
-async def id_search(id: int) -> cardModel:
+@app.get("/card/{id}", tags=["Roaming in the MagicSearch Database"])
+async def id_search(id: int):
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
     return card_service.id_search(id)
 
+
 # get a card by its name
 # Card_Service().name_search(name)
-@app.get("/card/nameModel", tags=["Roaming in the MagicSearch Database"], response_model=cardModel) 
+@app.get("/card/by-name/{name}", tags=["Roaming in the MagicSearch Database"])
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
@@ -167,13 +171,13 @@ async def name_search(name: str):
 
 # get the result of a semantic search
 # Card_Service().semantic_search(search)
-@app.get("/card/{search}", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
 async def semantic_search(search):
     """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search")
     return card_service.semantic_search(search)
 
-    
+
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
 @app.post("/card/NumericFilterModel", tags=["Roaming in the MagicSearch Database"], response_model=list[cardModel])
@@ -190,12 +194,11 @@ async def categorical_filter_search(filters: List[CategoricalFilterModel]) -> li
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
     return cards
-    
 
 
 # DATABASE MANAGEMENT :CARDS
 # create a card
-@app.get("/card/{card}", tags=["Database management : cards"]) 
+@app.get("/card/{card}", tags=["Database management : cards"])
 async def Create_card(card):
     """Creates a card in the Magicsearch database"""
     logging.info("Creates a card in the Magicsearch database")
@@ -221,7 +224,7 @@ async def Delete_card(card):
 # DATABASE MANAGEMENT : USER
 # routes utilisateurs : get user et get user id
 # list the users
-### ajout pour le système de connexion avec token
+# ajout pour le système de connexion avec token
 @app.post("/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
@@ -241,8 +244,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     logging.info(f"User {user.username} successfully connected")
     return {"access_token": access_token, "token_type": "bearer"}
 
-#protéger fonctions faites que pour admin
-#lister tous les utlisateurs
+# protéger fonctions faites que pour admin
+# lister tous les utlisateurs
 
 
 @app.get("/user/", tags=["Database management : user"])
@@ -251,7 +254,7 @@ async def list_all_users(current_user: str = Depends(verify_token)):
     logging.info(f"List all users (demande de {current_user})")
     return user_service.list_all()
 
-#supprimer un utilisateur
+# supprimer un utilisateur
 
 
 @app.delete("/user/{id_user}", tags=["Database management : user"])
@@ -265,20 +268,20 @@ def delete_user(id_user: int, current_user: str = Depends(verify_token)):
     return f"User {user.username} deleted"
 
 
-#fin modif pour connexion et token
+# fin modif pour connexion et token
 
 
-#@app.get("/user/", tags=["Database management : user"])
-#async def list_all_users():
-#    """Lister tous les users"""
-#    logging.info("List all users")
-#    list_users = user_service.list_all()
+# @app.get("/user/", tags=["Database management : user"])
+# async def list_all_users():
+#     """Lister tous les users"""
+#     logging.info("List all users")
+#     list_users = user_service.list_all()
 #
-#    liste_model = []
-#    for user in list_users:
-#        liste_model.append(user)
+#     liste_model = []
+#     for user in list_users:
+#         liste_model.append(user)
 #
-#    return liste_model
+#     return liste_model
 
 
 # get a user by their id
@@ -308,16 +311,16 @@ def update_user(id_user: int, j: userModel):
 
 
 # deleting a user
-#@app.delete("/user/{id_user}", tags=["Database management : user"])
-#def Delete_user(id_user: int):
-#    """Deleting a user"""
-#    logging.info(f"Deleting user {id_user}")
-#    user = user_service.trouver_par_id(id_user)
-#    if not user:
-#        raise HTTPException(status_code=404, detail="user not found")
+# @app.delete("/user/{id_user}", tags=["Database management : user"])
+# def Delete_user(id_user: int):
+#     """Deleting a user"""
+#     logging.info(f"Deleting user {id_user}")
+#     user = user_service.trouver_par_id(id_user)
+#     if not user:
+#         raise HTTPException(status_code=404, detail="user not found")
 #
-#    user_service.supprimer(user)
-#    return f"user {user.username} deleted"
+#     user_service.supprimer(user)
+#     return f"user {user.username} deleted"
 
 
 # API TEST

@@ -212,4 +212,4 @@ class CardService():
 
 
 if __name__ == "__main__":
-    print(CardService().name_search("Lightning Bolt"))
+    print(CardService().id_search(12))

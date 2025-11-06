@@ -1,4 +1,4 @@
-from dao.card_dao import CardDao
+"""from dao.card_dao import CardDao
 from business_object.card import Card
 
 # Créer une carte simple
@@ -24,4 +24,10 @@ dao = CardDao()
 if dao.create_card(my_card):
     print("✅ Carte ajoutée avec succès !")
 else:
-    print("❌ Erreur lors de l'ajout")
+    print("❌ Erreur lors de l'ajout")"""
+
+import pandas as pd
+
+df = pd.read_csv("cards_with_embeddings.csv")
+
+print(df.head())
