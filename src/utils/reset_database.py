@@ -1,11 +1,12 @@
 import os
 import dotenv
 import json
+import csv
 
 from unittest import mock
 
 from utils.singleton import Singleton
-from utils.embed import card_to_text, embedding
+from utils.embed import card_to_text
 from db_connection import DBConnection
 
 
@@ -85,6 +86,14 @@ class ResetDatabase(metaclass=Singleton):
                                    {'brawl': False, 'commander': True, 'oathbreaker': False},
                                    {'brawl': True, 'commander': False, 'oathbreaker': False},
                                    {'brawl': False, 'commander': False, 'oathbreaker': False}]
+
+        embed_cards = []
+
+        with open("cards_with_embeddings.csv", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                embed_cards.append(row)
+
         idCard = 0
         idRuling = 0
         column_with_na = ['asciiName', 'convertedManaCost', 'edhrecRank', 'edhrecSaltiness',
@@ -207,9 +216,8 @@ class ResetDatabase(metaclass=Singleton):
                 for column in column_with_na:
                     self.add_value_that_could_be_na(card, column, card_dic)
 
-                card_dic["text_to_embed"] = card_to_text(card)
-                # card_dic["embed"] = embedding(card_dic["text_to_embed"])
-                card_dic["embed"] = [0] * 1024  # Placeholder since it's bugging
+                card_dic["embed"] = embed_cards[idCard]["embed_detailed"]
+                card_dic["shortEmbed"] = embed_cards[idCard]["embed_short"]
 
                 cards.append(card_dic)
                 idCard += 1
@@ -226,7 +234,7 @@ class ResetDatabase(metaclass=Singleton):
                             'penny', 'timeless', 'brawl', 'historic', 'gladiator', 'pioneer',
                             'predh', 'paupercommander', 'pauper', 'premodern', 'future',
                             'standardbrawl', 'standard', 'alchemy', 'oldschool']
-        card_columns = ['layout', 'name', 'type', 'text_to_embed', 'embed', 'asciiName',
+        card_columns = ['layout', 'name', 'type', 'embed', 'shortEmbed', 'asciiName',
                         'convertedManaCost', 'defense', 'edhrecRank', 'edhrecSaltiness',
                         'faceManaValue', 'faceName', 'firstPrinting', 'hand',
                         'hasAlternativeDeckLimit', 'isFunny', 'isReserved', 'leadershipSkills',
@@ -304,8 +312,8 @@ class ResetDatabase(metaclass=Singleton):
                     legality_values
                 )
                 cursor.executemany(
-                    'INSERT INTO "Card"("idCard", "layout", "name", "type", "text_to_embed", '
-                    '"embed", "asciiName", "convertedManaCost", "defense", "edhrecRank", '
+                    'INSERT INTO "Card"("idCard", "layout", "name", "type", "embed", "shortEmbed", '
+                    '"asciiName", "convertedManaCost", "defense", "edhrecRank", '
                     '"edhrecSaltiness", "faceManaValue", "faceName", "firstPrinting", "hand", '
                     '"hasAlternativeDeckLimit", "isFunny", "isReserved", "leadershipSkills", '
                     '"legalities", "life", "loyalty", "manaCost", "manaValue", "power", "side", '

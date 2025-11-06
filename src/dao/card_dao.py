@@ -75,7 +75,7 @@ class CardDao:
         # Calculer l'embedding
         card_embedding = embedding(text_to_embed)
 
-        return (text_to_embed, card_embedding)
+        return (card_embedding)
 
     def get_or_create_all_ids_from_foreign_keys(self, card):
         with DBConnection().connection as connection:
@@ -281,7 +281,7 @@ class CardDao:
 
         # Générer le nouvel ID de carte
         next_card_id = self.get_highest_id() + 1
-        (text_to_embed, card_embedding) = CardDao().get_embed(card)
+        card_embedding = CardDao().get_embed(card)
 
         (
             id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
@@ -297,14 +297,14 @@ class CardDao:
                 cursor.execute(
                     """
                     INSERT INTO "Card" (
-                        "idCard", "layout", "name", "type", "text_to_embed", "embed",
+                        "idCard", "layout", "name", "type", "embed", "shortEmbed"
                         "asciiName", "convertedManaCost", "defense", "edhrecRank",
                         "edhrecSaltiness", "faceManaValue", "faceName", "firstPrinting",
                         "hand", "hasAlternativeDeckLimit", "isFunny", "isReserved",
                         "leadershipSkills", "legalities", "life", "loyalty", "manaCost",
                         "manaValue", "power", "side", "text", "toughness"
                     ) VALUES (
-                        %(idCard)s, %(layout)s, %(name)s, %(type)s, %(text_to_embed)s, %(embed)s,
+                        %(idCard)s, %(layout)s, %(name)s, %(type)s, %(embed)s, %(shortEmbed)s,
                         %(asciiName)s, %(convertedManaCost)s, %(defense)s, %(edhrecRank)s,
                         %(edhrecSaltiness)s, %(faceManaValue)s, %(faceName)s,
                         %(firstPrinting)s, %(hand)s, %(hasAlternativeDeckLimit)s,
@@ -318,8 +318,8 @@ class CardDao:
                         "layout": id_layout,
                         "name": card.name,
                         "type": id_type,
-                        "text_to_embed": text_to_embed,
                         "embed": card_embedding,
+                        "shortEmbed": card_short_embedding,
                         "asciiName": card.ascii_name,
                         "convertedManaCost": card.converted_mana_cost,
                         "defense": card.defense,
@@ -521,7 +521,7 @@ class CardDao:
         bool
             True if update succeeded, False otherwise
         """
-        (text_to_embed, card_embedding) = CardDao().get_embed(card)
+        card_embedding = CardDao().get_embed(card)
 
         (
             id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
@@ -540,8 +540,8 @@ class CardDao:
                     SET "layout"               = %(layout)s,
                         "name"                 = %(name)s,
                         "type"                 = %(type)s,
-                        "text_to_embed"        = %(text_to_embed)s,
                         "embed"                = %(embed)s,
+                        "shortEmbed"           = %(shortEmbed)s,
                         "asciiName"            = %(asciiName)s,
                         "convertedManaCost"    = %(convertedManaCost)s,
                         "defense"              = %(defense)s,
@@ -571,8 +571,8 @@ class CardDao:
                         "layout": id_layout,
                         "name": card.name,
                         "type": id_type,
-                        "text_to_embed": text_to_embed,
                         "embed": card_embedding,
+                        "shortEmbed": card_short_embedding,
                         "asciiName": card.ascii_name,
                         "convertedManaCost": card.converted_mana_cost,
                         "defense": card.defense,
@@ -802,8 +802,8 @@ class CardDao:
                     'SELECT "idCard", "asciiName", "convertedManaCost", "defense", "edhrecRank", '
                     '"edhrecSaltiness", "embed", "faceManaValue", "faceName", "hand", '
                     '"hasAlternativeDeckLimit", "isFunny", "isReserved", "life", "loyalty", '
-                    '"manaCost", "manaValue", c."name", "power", "side", "text", "toughness", '
-                    'l."name" layout, t."name" type'
+                    '"manaCost", "manaValue", c."name", "power", "shortEmbed", "side", "text", '
+                    '"toughness", l."name" layout, t."name" type'
                     '  FROM "Card" c       '
                     '  JOIN "Layout" l ON l."idLayout" = c."layout"'
                     '  JOIN "Type" t ON t."idType" = c."type"'
@@ -999,15 +999,16 @@ class CardDao:
         types = CardDao().get_list_from_fetchall(res_types, "name")
 
         card = Card(
-            res_card["idCard"], res_card["embed"], res_card["layout"], res_card["name"],
-            res_card["type"], res_card["asciiName"], color_identity, color_indicator, colors,
-            res_card["convertedManaCost"], res_card["defense"], res_card["edhrecRank"],
-            res_card["edhrecSaltiness"], res_card["faceManaValue"], res_card["faceName"],
-            first_printing, foreign_data, res_card["hand"], res_card["hasAlternativeDeckLimit"],
-            res_card["isFunny"], res_card["isReserved"], keywords, leadership_skills, legalities,
-            res_card["life"], res_card["loyalty"], res_card["manaCost"], res_card["manaValue"],
-            res_card["power"], printings, purchase_urls, rulings, res_card["side"], subtypes,
-            supertypes, res_card["text"], res_card["toughness"], types
+            res_card["idCard"], res_card["embed"], res_card["shortEmbed"], res_card["layout"],
+            res_card["name"], res_card["type"], res_card["asciiName"], color_identity,
+            color_indicator, colors, res_card["convertedManaCost"], res_card["defense"],
+            res_card["edhrecRank"], res_card["edhrecSaltiness"], res_card["faceManaValue"],
+            res_card["faceName"], first_printing, foreign_data, res_card["hand"],
+            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
+            keywords, leadership_skills, legalities, res_card["life"], res_card["loyalty"],
+            res_card["manaCost"], res_card["manaValue"], res_card["power"], printings,
+            purchase_urls, rulings, res_card["side"], subtypes, supertypes, res_card["text"],
+            res_card["toughness"], types
             )
 
         return (card)
@@ -1172,7 +1173,3 @@ class CardDao:
             LIMIT 5
             """, (search_emb,))
         return results.fetchall()
-
-
-if __name__ == "__main__":
-    CardDao().create_card(Card(12, '[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]', 'normal', 'A Killer Among Us', 'Enchantment', None, ['G'], [], ['G'], 5.0, None, 21197, 0.11, None, None, 'MKM', [{'language': 'German', 'name': 'Mörder in unserer Mitte', 'faceName': None, 'flavorText': None, 'text': 'Wenn Mörder in unserer Mitte ins Spiel kommt, erzeuge einen 1/1 weißen Mensch-Kreaturenspielstein, einen 1/1 blauen Meervolk-Kreaturenspielstein und einen 1/1 roten Goblin-Kreaturenspielstein. Bestimme dann geheim Mensch, Meervolk oder Goblin.\nOpfere Mörder in unserer Mitte, offenbare den bestimmten Kreaturentyp: Falls ein angreifender Kreaturenspielstein deiner Wahl den bestimmten Typ hat, lege drei +1/+1-Marken auf ihn und er erhält Todesberührung bis zum Ende des Zuges.', 'type': 'Verzauberung'}, {'language': 'Spanish', 'name': 'Un asesino entre nosotros', 'faceName': None, 'flavorText': None, 'text': 'Cuando Un asesino entre nosotros entre al campo de batalla, crea una ficha de criatura Humano blanca 1/1, una ficha de criatura Tritón azul 1/1 y una ficha de criatura Trasgo roja 1/1. Luego, elige en secreto Humano, Tritón o Trasgo.\nSacrificar Un asesino entre nosotros, mostrar el tipo de criatura elegido: Si la ficha de criatura atacante objetivo es del tipo elegido, pon tres contadores +1/+1 sobre ella y gana la habilidad de toque mortal hasta el final del turno.', 'type': 'Encantamiento'}, {'language': 'French', 'name': 'Un meurtrier parmi nous', 'faceName': None, 'flavorText': None, 'text': "Quand Un meurtrier parmi nous arrive sur le champ de bataille, créez un jeton de créature 1/1 blanche Humain, un jeton de créature 1/1 bleue Ondin et un jeton de créature 1/1 rouge Gobelin. Puis choisissez secrètement humain, ondin ou gobelin.\nSacrifiez Un meurtrier parmi nous, révélez le type de créature choisi : Si un jeton de créature attaquant ciblé a le type choisi, mettez trois marqueurs +1/+1 sur lui et il acquiert le contact mortel jusqu'à la fin du tour.", 'type': 'Enchantement'}, {'language': 'Italian', 'name': 'Un Assassino tra Noi', 'faceName': None, 'flavorText': None, 'text': 'Quando Un Assassino tra Noi entra nel campo di battaglia, crea una pedina creatura Umano 1/1 bianca, una pedina creatura Tritone 1/1 blu e una pedina creatura Goblin 1/1 rossa. Poi scegli segretamente Umano, Tritone o Goblin.\nSacrifica Un Assassino tra Noi, Rivela il tipo di creatura scelto: Se una pedina creatura attaccante bersaglio è del tipo scelto, metti tre segnalini +1/+1 su di essa e ha tocco letale fino alla fine del turno.', 'type': 'Incantesimo'}, {'language': 'Japanese', 'name': '犯人はこの中にいる', 'faceName': None, 'flavorText': None, 'text': '犯人はこの中にいるが戦場に出たとき、白の１/１の人間・クリーチャー・トークン１体と、青の１/１のマーフォーク・クリーチャー・トークン１体と、赤の１/１のゴブリン・クリーチャー・トークン１体を生成する。その後、人間やマーフォークやゴブリンのうち１つを秘密裏に選ぶ。\n犯人はこの中にいるを生け贄に捧げる, その選んだクリーチャー・タイプを公開する：攻撃しているクリーチャー・トークン１体を対象とする。それがその選んだタイプなら、それの上に＋１/＋１カウンター３個を置き、ターン終了時まで、それは接死を得る。', 'type': 'エンチャント'}, {'language': 'Portuguese (Brazil)', 'name': 'Um Assassino Entre Nós', 'faceName': None, 'flavorText': None, 'text': 'Quando Um Assassino Entre Nós entrar no campo de batalha, crie uma ficha de criatura Humano branca 1/1, uma ficha de criatura Tritão azul 1/1 e uma ficha de criatura Goblin vermelha 1/1 Depois, escolha em segredo Humano, Tritão ou Goblin.\nSacrifique Um Assassino Entre Nós, revele o tipo de criatura escolhido: Se a ficha de criatura atacante alvo for do tipo escolhido, coloque três marcadores +1/+1 nela e ela ganha toque mortífero até o final do turno.', 'type': 'Encantamento'}, {'language': 'Chinese Simplified', 'name': '凶手在侧', 'faceName': None, 'flavorText': None, 'text': '当凶手在侧进战场时，派出一个1/1白色人类衍生生物，一个1/1蓝色人鱼衍生生物和一个1/1红色鬼怪衍生生物。然后私下选择人类，人鱼或鬼怪。\n牺牲凶手在侧，展示所选生物类别：如果目标进行攻击的衍生生物为该类别，则在其上放置三个+1/+1指示物且其获得死触异能直到回合结束。', 'type': '结界'}], None, None, None, None, [], None, {'commander': 'Legal', 'oathbreaker': 'Legal', 'duel': 'Legal', 'legacy': 'Legal', 'vintage': 'Legal', 'modern': 'Legal', 'penny': 'Legal', 'timeless': 'Legal', 'brawl': 'Legal', 'historic': 'Legal', 'gladiator': 'Legal', 'pioneer': 'Legal', 'future': 'Legal', 'standardbrawl': 'Legal', 'standard': 'Legal'}, None, None, '{4}{G}', 5.0, None, ['MKM'], {'tcgplayer': 'https://mtgjson.com/links/7d62d96762b70c80', 'cardKingdom': 'https://mtgjson.com/links/26815f9e4806660a', 'cardmarket': 'https://mtgjson.com/links/b287bdc88ddf7b5d', 'cardKingdomFoil': 'https://mtgjson.com/links/6312b82718576cf5'}, [{'date': datetime.date(2024, 2, 2), 'text': "A Killer Among Us's last ability can target any attacking creature token, not just one of the tokens created by its first ability, and not just one of the chosen type. Only a token of the chosen type will get the bonuses, though."}, {'date': datetime.date(2024, 2, 2), 'text': 'If you control multiple copies of A Killer Among Us, you may choose the same or different creature types for each one. Be careful to keep track of which type is chosen for each A Killer Among Us.'}, {'date': datetime.date(2024, 2, 2), 'text': 'Only the player who secretly chose the creature type can reveal the creature type they chose. If another player gains control of A Killer Among Us, they will be unable to activate its last ability.'}, {'date': datetime.date(2024, 2, 2), 'text': "There are several ways to secretly choose one of the creature types, including writing that type on a piece of paper that's kept with A Killer Among Us."}], None, [], [], 'When this enchantment enters, create a 1/1 white Human creature token, a 1/1 blue Merfolk creature token, and a 1/1 red Goblin creature token. Then secretly choose Human, Merfolk, or Goblin.\nSacrifice this enchantment, Reveal the creature type you chose: If target attacking creature token is the chosen type, put three +1/+1 counters on it and it gains deathtouch until end of turn.', None, ['test']))
