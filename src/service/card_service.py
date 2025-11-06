@@ -215,7 +215,6 @@ class CardService():
                     raise ValueError(
                     "This is not a filter : type_of_filtering can only take "
                     "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
-
             # we  start a basic list with the first filter in our list
             filter = filters[0]
             Magicsearch_filtered = CardDao().filter_dao(filter) or []
@@ -230,7 +229,7 @@ class CardService():
                     # keeping in Magicsearch_filtered only the common id_card
                     Magicsearch_filtered = [ d for d in Magicsearch_filtered
                                 if d.get("idCard") in new_filter_list_idCard ]
-            return 
+            return Magicsearch_filtered
             if Magicsearch_filtered == []:
                 logging.warning(f"No results for filters: {filters}")
         except Exception as e:

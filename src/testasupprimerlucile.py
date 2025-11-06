@@ -40,8 +40,8 @@ toughness_filter= FilterNumeric(
     type_of_filtering="equal_to",
     filtering_value=1
 )
-# print(carddao.filter_dao(cat2_filter))
-filtertestlist=[color_filterB, color_filterR]
+#print(carddao.filter_dao(type_filter))
+filtertestlist=[type_filter]
 
 
 
