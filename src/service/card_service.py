@@ -208,8 +208,8 @@ class CardService():
                 # keeping in Magicsearch_filtered only the common id_card
                 Magicsearch_filtered = [ d for d in Magicsearch_filtered
                              if d.get("idCard") in new_filter_list_idCard ]
-        return Magicsearch_filtered 
-        if not Magicsearch_filtered:
+        return 
+        if Magicsearch_filtered == []:
             logging.warning(f"No results for filters: {filters}")
 
 
