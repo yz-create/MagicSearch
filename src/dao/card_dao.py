@@ -1,5 +1,4 @@
 import logging
-import datetime
 from psycopg2 import sql
 
 from business_object.card import Card
@@ -45,7 +44,8 @@ class CardDao:
             cursor.execute(f'SELECT MAX("{id_column}") FROM "{table_name}"')
             id_max = cursor.fetchone()["max"]
             cursor.execute(
-                f'INSERT INTO "{table_name}"("{id_column}", "{name_column}") VALUES ({id_max + 1}, %(value)s) RETURNING "{id_column}"',
+                f'INSERT INTO "{table_name}"("{id_column}", "{name_column}") VALUES ({id_max + 1},'
+                f' %(value)s) RETURNING "{id_column}"',
                 {"value": value}
             )
             result = cursor.fetchone()
@@ -71,11 +71,16 @@ class CardDao:
         ]
 
         text_to_embed = " | ".join([f for f in fields if f])  # Filtrer les chaînes vides
+        if card.text:
+            text_to_embed_short = card.name + ": " + card.text
+        else:
+            text_to_embed_short = card.name
 
         # Calculer l'embedding
         card_embedding = embedding(text_to_embed)
+        card_short_embedding = embedding(text_to_embed_short)
 
-        return (card_embedding)
+        return (card_embedding, card_short_embedding)
 
     def get_or_create_all_ids_from_foreign_keys(self, card):
         with DBConnection().connection as connection:
@@ -281,7 +286,7 @@ class CardDao:
 
         # Générer le nouvel ID de carte
         next_card_id = self.get_highest_id() + 1
-        card_embedding = CardDao().get_embed(card)
+        card_embedding, card_short_embedding = CardDao().get_embed(card)
 
         (
             id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
@@ -297,7 +302,7 @@ class CardDao:
                 cursor.execute(
                     """
                     INSERT INTO "Card" (
-                        "idCard", "layout", "name", "type", "embed", "shortEmbed"
+                        "idCard", "layout", "name", "type", "embed", "shortEmbed",
                         "asciiName", "convertedManaCost", "defense", "edhrecRank",
                         "edhrecSaltiness", "faceManaValue", "faceName", "firstPrinting",
                         "hand", "hasAlternativeDeckLimit", "isFunny", "isReserved",
@@ -419,93 +424,102 @@ class CardDao:
 
                 # PurchaseURLs
                 if card.purchase_urls:
-                    cursor.execute(
-                        '''
-                        SELECT MAX("idPurchaseURLs")
-                        FROM "PurchaseURLs"
-                        '''
-                    )
-                    id_max_purchase_url = cursor.fetchone()["max"]
-                    cursor.execute(
-                        """
-                        INSERT INTO "PurchaseURLs"(
-                            "idPurchaseURLs", "idCard", "tcgplayer", "cardKingdom", "cardmarket",
-                            "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
-                        ) VALUES (
-                            %(idPurchaseURLs)s, %(idCard)s, %(tcgplayer)s, %(cardKingdom)s,
-                            %(cardmarket)s, %(cardKingdomFoil)s, %(cardKingdomEtched)s,
-                            %(tcgplayerEtched)s
-                        )
-                        """,
-                        {
-                            "idPurchaseURLs": id_max_purchase_url + 1,
-                            "idCard": id_card,
-                            "tcgplayer": card.purchase_urls.get("tcgplayer"),
-                            "cardKingdom": card.purchase_urls.get("cardKingdom"),
-                            "cardmarket": card.purchase_urls.get("cardmarket"),
-                            "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
-                            "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
-                            "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
-                        }
-                    )
+                    CardDao().insert_purchase_url(cursor, id_card, card)
 
                 # ForeignData
                 if card.foreign_data:
                     for foreign in card.foreign_data:
-                        cursor.execute(
-                            '''
-                            SELECT MAX("idForeign")
-                            FROM "ForeignData"
-                            '''
-                        )
-                        id_max_foreign = cursor.fetchone()["max"]
-                        cursor.execute(
-                            """
-                            INSERT INTO "ForeignData"(
-                                "idForeign", "idCard", "language", "name", "faceName",
-                                "flavorText", "text", "type"
-                            ) VALUES (
-                                %(idForeign)s, %(idCard)s, %(language)s, %(name)s, %(faceName)s,
-                                %(flavorText)s, %(text)s, %(type)s
-                            )
-                            """,
-                            {
-                                "idForeign": id_max_foreign + 1,
-                                "idCard": id_card,
-                                "language": foreign.get("language"),
-                                "name": foreign.get("name"),
-                                "faceName": foreign.get("faceName"),
-                                "flavorText": foreign.get("flavorText"),
-                                "text": foreign.get("text"),
-                                "type": foreign.get("type")
-                            }
-                        )
+                        CardDao().insert_foreign_data(cursor, id_card, foreign)
 
                 # Rulings
                 if card.rulings:
                     for ruling in card.rulings:
-                        cursor.execute(
-                            '''
-                            SELECT MAX("idRuling")
-                            FROM "Ruling"
-                            '''
-                        )
-                        id_max_ruling = cursor.fetchone()["max"]
-                        cursor.execute(
-                            """
-                            INSERT INTO "Ruling"("idRuling", "idCard", "date", "text")
-                            VALUES (%(idRuling)s, %(idCard)s, %(date)s, %(text)s)
-                            """,
-                            {
-                                "idRuling": id_max_ruling + 1,
-                                "idCard": id_card,
-                                "date": ruling.get("date"),
-                                "text": ruling.get("text")
-                            }
-                        )
+                        CardDao().insert_rulings(cursor, id_card, ruling)
 
                 connection.commit()
                 return True
+
+    def insert_purchase_url(self, cursor, id_card, card):
+        cursor.execute(
+            '''
+            SELECT MAX("idPurchaseURLs")
+            FROM "PurchaseURLs"
+            '''
+        )
+        id_max_purchase_url = cursor.fetchone()["max"]
+        cursor.execute(
+            """
+            INSERT INTO "PurchaseURLs"(
+                "idPurchaseURLs", "idCard", "tcgplayer", "cardKingdom", "cardmarket",
+                "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
+            ) VALUES (
+                %(idPurchaseURLs)s, %(idCard)s, %(tcgplayer)s, %(cardKingdom)s,
+                %(cardmarket)s, %(cardKingdomFoil)s, %(cardKingdomEtched)s,
+                %(tcgplayerEtched)s
+            )
+            """,
+            {
+                "idPurchaseURLs": id_max_purchase_url + 1,
+                "idCard": id_card,
+                "tcgplayer": card.purchase_urls.get("tcgplayer"),
+                "cardKingdom": card.purchase_urls.get("cardKingdom"),
+                "cardmarket": card.purchase_urls.get("cardmarket"),
+                "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
+                "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
+                "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
+            }
+        )
+
+    def insert_foreign_data(self, cursor, id_card, foreign):
+        cursor.execute(
+            '''
+            SELECT MAX("idForeign")
+            FROM "ForeignData"
+            '''
+        )
+        id_max_foreign = cursor.fetchone()["max"]
+        cursor.execute(
+            """
+            INSERT INTO "ForeignData"(
+                "idForeign", "idCard", "language", "name", "faceName",
+                "flavorText", "text", "type"
+            ) VALUES (
+                %(idForeign)s, %(idCard)s, %(language)s, %(name)s, %(faceName)s,
+                %(flavorText)s, %(text)s, %(type)s
+            )
+            """,
+            {
+                "idForeign": id_max_foreign + 1,
+                "idCard": id_card,
+                "language": foreign.get("language"),
+                "name": foreign.get("name"),
+                "faceName": foreign.get("faceName"),
+                "flavorText": foreign.get("flavorText"),
+                "text": foreign.get("text"),
+                "type": foreign.get("type")
+            }
+        )
+
+    def insert_ruling(self, cursor, id_card, ruling):
+        cursor.execute(
+            '''
+            SELECT MAX("idRuling")
+            FROM "Ruling"
+            '''
+        )
+        id_max_ruling = cursor.fetchone()["max"]
+        cursor.execute(
+            """
+            INSERT INTO "Ruling"("idRuling", "idCard", "date", "text")
+            VALUES (%(idRuling)s, %(idCard)s, %(date)s, %(text)s)
+            """,
+            {
+                "idRuling": id_max_ruling + 1,
+                "idCard": id_card,
+                "date": ruling.get("date"),
+                "text": ruling.get("text")
+            }
+        )
 
     def update_card(self, card: Card) -> bool:
         """
@@ -521,7 +535,7 @@ class CardDao:
         bool
             True if update succeeded, False otherwise
         """
-        card_embedding = CardDao().get_embed(card)
+        card_embedding, card_short_embedding = CardDao().get_embed(card)
 
         (
             id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
@@ -673,86 +687,35 @@ class CardDao:
                     )
 
                 # PurchaseURLs
+                CardDao().delete_from_table(cursor, "PurchaseURLs", id_card)
                 if card.purchase_urls:
-                    cursor.execute(
-                        """
-                        INSERT INTO "PurchaseURLs"(
-                            "idCard", "tcgplayer", "cardKingdom", "cardmarket",
-                            "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
-                        ) VALUES (
-                            %(idCard)s, %(tcgplayer)s, %(cardKingdom)s, %(cardmarket)s,
-                            %(cardKingdomFoil)s, %(cardKingdomEtched)s, %(tcgplayerEtched)s
-                        )
-                        """,
-                        {
-                            "idCard": id_card,
-                            "tcgplayer": card.purchase_urls.get("tcgplayer"),
-                            "cardKingdom": card.purchase_urls.get("cardKingdom"),
-                            "cardmarket": card.purchase_urls.get("cardmarket"),
-                            "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
-                            "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
-                            "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
-                        }
-                    )
+                    CardDao().insert_purchase_url(cursor, id_card, card)
 
                 # ForeignData
+                CardDao().delete_from_table(cursor, "ForeignData", id_card)
                 if card.foreign_data:
                     for foreign in card.foreign_data:
-                        cursor.execute(
-                            """
-                            INSERT INTO "ForeignData"(
-                                "idCard", "language", "name", "faceName",
-                                "flavorText", "text", "type"
-                            ) VALUES (
-                                %(idCard)s, %(language)s, %(name)s, %(faceName)s,
-                                %(flavorText)s, %(text)s, %(type)s
-                            )
-                            """,
-                            {
-                                "idCard": id_card,
-                                "language": foreign.get("language"),
-                                "name": foreign.get("name"),
-                                "faceName": foreign.get("faceName"),
-                                "flavorText": foreign.get("flavorText"),
-                                "text": foreign.get("text"),
-                                "type": foreign.get("type")
-                            }
-                        )
+                        CardDao().insert_foreign_data(cursor, id_card, foreign)
 
                 # Rulings
+                CardDao().delete_from_table(cursor, "Ruling", id_card)
                 if card.rulings:
                     for ruling in card.rulings:
-                        cursor.execute(
-                            """
-                            INSERT INTO "Ruling"("idCard", "date", "text")
-                            VALUES (%(idCard)s, %(date)s, %(text)s)
-                            """,
-                            {
-                                "idCard": id_card,
-                                "date": ruling.get("date"),
-                                "text": ruling.get("text")
-                            }
-                        )
+                        CardDao().insert_ruling(cursor, id_card, ruling)
 
                 connection.commit()
                 return True
 
     def delete_from_table(self, cursor, table, id_card):
-        cursor.execute(
-            '''DELETE FROM "%(table)s"
-            WHERE "idCard" = %(idCard)s;
-            ''',
-            {"idCard": id_card,
-             "table": table}
-        )
+        cursor.execute(f'DELETE FROM "{table}" WHERE "idCard" = {id_card};')
 
-    def delete_card(self, card_id: int) -> bool:
+    def delete_card(self, id_card: int) -> bool:
         """
         Delete a card from the database
 
         Parameters
         ----------
-        card_id : int
+        id_card : int
             ID of the card to delete
 
         Returns
@@ -761,12 +724,18 @@ class CardDao:
             True if deletion succeeded, False otherwise
         """
         try:
+            column_with_foreign_key = [
+                "Colors", "ColorIndicator", "ColorIndicator", "Keywords", "Types", "Subtypes",
+                "Supertypes", "Printings", "PurchaseURLs", "ForeignData", "Ruling"
+            ]
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute('SET search_path TO defaultdb, public;')
+                    for column in column_with_foreign_key:
+                        CardDao().delete_from_table(cursor, column, id_card)
                     cursor.execute(
                         'DELETE FROM "Card" WHERE "idCard" = %(idCard)s;',
-                        {"idCard": card_id}
+                        {"idCard": id_card}
                     )
                     return cursor.rowcount > 0
         except Exception as e:
@@ -1011,6 +980,19 @@ class CardDao:
             res_card["toughness"], types
             )
 
+        print((
+            res_card["idCard"], res_card["embed"], res_card["shortEmbed"], res_card["layout"],
+            res_card["name"], res_card["type"], res_card["asciiName"], color_identity,
+            color_indicator, colors, res_card["convertedManaCost"], res_card["defense"],
+            res_card["edhrecRank"], res_card["edhrecSaltiness"], res_card["faceManaValue"],
+            res_card["faceName"], first_printing, foreign_data, res_card["hand"],
+            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
+            keywords, leadership_skills, legalities, res_card["life"], res_card["loyalty"],
+            res_card["manaCost"], res_card["manaValue"], res_card["power"], printings,
+            purchase_urls, rulings, res_card["side"], subtypes, supertypes, res_card["text"],
+            res_card["toughness"], types
+            ))
+
         return (card)
 
     def get_list_from_fetchall(self, res, column_name: str) -> list:
@@ -1086,32 +1068,20 @@ class CardDao:
             type_of_filtering = filter.type_of_filtering
             filtering_value = filter.filtering_value
 
-            if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
-                raise ValueError(
-                    "This is not a filter : type_of_filtering can only take "
-                    "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input "
-                    )
             sql_query = None
             sql_parameter = []
 
             if type_of_filtering in ["positive", "negative"]:  # categorical filter
-                if variable_filtered not in ["Type", "Color"]:
-                    raise ValueError(
-                        "variable_filtered must be in the following list : 'Type', 'Color'"
-                        )
-    
-                if not isinstance(filtering_value, str):
-                    raise ValueError("filtering_value must be a string")
-                
+
                 if type_of_filtering == "positive":
                     sql_comparator = 'ILIKE'
                 else:
                     sql_comparator = 'NOT ILIKE'
-                    
-                if variable_filtered == 'Color':
+
+                if variable_filtered == 'color':
 
                     sql_query = sql.SQL(
-                        'SELECT* ' 
+                        'SELECT* '
                         'FROM "Card" c '
                         'JOIN "Colors" a USING("idCard")'
                         'JOIN "Color" b USING ("idColor")'
@@ -1119,9 +1089,9 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-                    
+
                     sql_parameter = [f"%{filtering_value}%"]
-                
+
                 else:  # variable_filtered is type
 
                     sql_query = sql.SQL(
@@ -1132,12 +1102,11 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-                    
+
                     sql_parameter = [f"%{filtering_value}%"]
             else:  # numerical filter
-                if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power", "type"]:
-                    raise ValueError("variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
-                if type_of_filtering == "higher_than": 
+
+                if type_of_filtering == "higher_than":
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":
                     sql_comparator = "="
@@ -1147,19 +1116,21 @@ class CardDao:
                     sql_query = sql.SQL(
                         'SELECT * '
                         'FROM "Card" c '
-                        'WHERE (CASE WHEN c."power" ~  %s THEN c."power"::int ELSE NULL END) {} %s').format(
+                        'WHERE (CASE WHEN c."power" ~  %s THEN c."power"::int ELSE NULL END) {} %s'
+                    ).format(
                         sql.SQL(sql_comparator)
                     )
-                    sql_parameter = ['^\d+$', filtering_value]
+                    sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
                         'SELECT * '
                         'FROM "Card" c '
-                        'WHERE (CASE WHEN c."toughness" ~  %s THEN c."toughness"::int ELSE NULL END) {} %s'
+                        'WHERE (CASE WHEN c."toughness" ~  %s '
+                        'THEN c."toughness"::int ELSE NULL END) {} %s'
                     ).format(
                         sql.SQL(sql_comparator)
                     )
-                    sql_parameter = ['^\d+$', filtering_value]
+                    sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 else:
                     sql_query = sql.SQL(
                         'SELECT *'
@@ -1171,12 +1142,14 @@ class CardDao:
                     sql_parameter = [filtering_value]
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
-                    logging.debug(f"Executing SQL: {sql_query.as_string(connection)} with params {sql_parameter}")
+                    logging.debug(
+                        f"Executing SQL: {sql_query.as_string(connection)} "
+                        f"with params {sql_parameter}"
+                    )
                     print(cursor.mogrify(sql_query, sql_parameter))
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
                     res = cursor.fetchall()
-                        
             return res or []
         except Exception as e:
             logging.error(f"The input is not a filter : {e}")
@@ -1197,18 +1170,28 @@ class CardDao:
 
         return res['max']
 
-    def get_similar_entries(self, conn, search_emb):
+    def get_similar_entries(self, conn, search_emb, use_short_embed=False):
         """
         Returns the 5 entries from the database with the embedding closest to the given
         [search_emb].
+
+        Args:
+            conn: Database connection
+            search_emb: The embedding vector to search for
+            use_short_embed: If True, uses 'shortEmbed' column, otherwise uses 'embed' column
         """
         conn.execute('SET search_path TO defaultdb, public;')
-        results = conn.execute("""
+
+        embed_column = '"shortEmbed"' if use_short_embed else '"embed"'
+
+        query = f"""
             SELECT
                 "idCard",
-                "embed" <-> %s as dst
+                {embed_column} <-> %s as dst
             FROM "Card"
             ORDER BY dst
             LIMIT 5
-            """, (search_emb,))
+        """
+
+        results = conn.execute(query, (search_emb,))
         return results.fetchall()

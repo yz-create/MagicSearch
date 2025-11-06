@@ -37,7 +37,7 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel): 
+class cardModel(BaseModel):
     # checker à lafin si il est utilisé parce qu'il ya moyen qu'il serve à rien
     """
     defines a Pydantic model for the uards
@@ -163,13 +163,22 @@ async def name_search(name: str):
     return card_service.name_search(name)
 
 
-# get the result of a semantic search
+# get the result of a semantic search (Detailed Embed = normal)
 # Card_Service().semantic_search(search)
 @app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
 async def semantic_search(search):
     """Finds a card based on its a semantic search"""
+    logging.info("Finds a card based on its a semantic search (recommended)")
+    return card_service.semantic_search(search, False)
+
+
+# get the result of a semantic search (shortEmbed = FO1a)
+# Card_Service().semantic_search(search)
+@app.get("/card/semantic/{search}", tags=["Roaming in the MagicSearch Database"])
+async def semantic_search_shortEmbed(search):
+    """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search")
-    return card_service.semantic_search(search)
+    return card_service.semantic_search_shortEmbed(search, True)
 
 
 # get a filtered list of cards
