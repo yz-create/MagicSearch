@@ -6,17 +6,17 @@ from business_object.filters.filter_numerical import FilterNumeric
 cardservice = CardService()
 carddao = CardDao()
 type_filter = FilterCategory(
-    variable_filtered="Type",
+    variable_filtered="type",
     type_of_filtering="positive",
     filtering_value="Enchantment"
 )
 color_filterR = FilterCategory(
-    variable_filtered="Color",
+    variable_filtered="color",
     type_of_filtering="positive",
     filtering_value="R"
 )
 color_filterB = FilterCategory(
-    variable_filtered="Color",
+    variable_filtered="color",
     type_of_filtering="positive",
     filtering_value="B"
 )

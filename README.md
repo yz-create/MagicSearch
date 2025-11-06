@@ -12,7 +12,7 @@ Go to the module src/app.py :
 - Run this python file
 - At the bottom right of your screen, you should have a pop-up giving you the option to "Open in Browser", click it
  
-When you want to close the API make sure to right ctrl+c in your terminal !
+When you want to close the API make sure to write ctrl+c in your terminal !
 
 ## To reset the database in case of need :
 Download AtomicCards.json on https://mtgjson.com/downloads/all-files/
