@@ -25,41 +25,52 @@ class UserDao:
         """Re"""
         pass
 
-    @log
     def create(self, user: User) -> str:
-        """
-        Create a User in the database.
-
-          Returns:
-            "CREATED" if successful
-            "EXISTS" if username already exists
-            "ERROR" if some other DB error occurs
-        """
         try:
-            with self.db.connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        'SELECT 1 FROM "User" WHERE username = %(username)s;',
-                        {"username": user.username}
-                    )
-                    if cursor.fetchone() is not None:
-                        return "EXISTS"
+            conn = self.db.connection
 
-                    cursor.execute(
-                        """
-                        INSERT INTO "User" (username, password, isAdmin)
-                        VALUES (%(username)s, %(password)s, False)
-                        RETURNING idUser;
-                        """,
-                        {"username": user.username, "password": user.password}
-                    )
-                    res = cursor.fetchone()
-                    if res:
-                        user.user_id = res[0]
-                        return "CREATED"
+            with conn.cursor() as cursor:
+                # vérifier si le username existe
+                cursor.execute(
+                    'SELECT 1 FROM defaultdb."User" WHERE "username" = %(username)s;',
+                    {"username": user.username}
+                )
+                if cursor.fetchone() is not None:
+                    return "EXISTS"
+
+                # insertion
+                cursor.execute(
+                    """
+                    INSERT INTO defaultdb."User" ("username", "password", "isAdmin")
+                    VALUES (%(username)s, %(password)s, False)
+                    RETURNING "idUser";
+                    """,
+                    {"username": user.username, "password": user.password}
+                )
+                res = cursor.fetchone()
+                print("Résultat fetchone après insertion :", res)  # <- debug
+                if res:
+                    user.user_id = res["idUser"]
+                    conn.commit()
+                    print("User créé avec ID :", user.user_id)  # <- debug
+                    return "CREATED"
+                else:
+                    print("Aucun ID retourné par la base !")
+                    return "ERROR"
+
         except Exception as e:
+            import logging
+            logging.exception("Erreur lors de la création de l'utilisateur")
+            return "ERROR"
+
+
+        except Exception as e:
+            import logging
             logging.error(f"Error while creating a user: {e}")
             return "ERROR"
+
+
+
 
     def delete(self, user_id: int):
         """Supprimer un utilisateur"""
