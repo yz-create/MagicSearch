@@ -44,7 +44,7 @@ class UserService:
 
     @log
     def list_all(self, current_user):
-        if not current_user["isAdmin"]:
+        if not current_user.is_admin:
             raise HTTPException(status_code=403, detail="Admin rights required")
 
         return self.user_dao.read_all_user()

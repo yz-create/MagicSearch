@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
@@ -247,8 +248,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/user/", tags=["Database management : user"])
 async def list_all_users(current_user=Depends(verify_admin)):
     """List all users, only for admins."""
-    logging.info(f"List all users requested by {current_user.username}")
-    return user_service.list_all()
+    logging.info(f"List all users requested by {getattr(current_user, 'username', current_user)}")
+    return user_service.list_all(current_user)
 
 # suppress a user
 

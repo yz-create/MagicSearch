@@ -16,39 +16,40 @@ class UserDao:
 
     def read_all_user(self):
         """Return all users"""
-        query = "SELECT username, isAdmin FROM User"
-        self.db.cursor.execute(query)
-        rows = self.db.cursor.fetchall()
-        return [{"username": r[0], "isAdmin": r[1]} for r in rows]
-
-    def get_by_username(self, username: str):
-        """Return user corresponding to the username"""
-        res = None
+        query = 'SELECT "username", "isAdmin" FROM defaultdb."User";'
+        rows = []
         try:
-            with DBConnection().connection as connection:
-                with connection.cursor(cursor_factory=DictCursor) as cursor:
-                    query = """
-                        SELECT "idUser", "username", "password", "isAdmin"
-                        FROM defaultdb."User"
-                        WHERE "username" = %s;
-                    """
-                    cursor.execute(query, (username))
-                    res = cursor.fetchone()
+            with self.db.connection as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cursor:
+                    cursor.execute(query)
+                    rows = cursor.fetchall()
         except Exception as e:
-            logging.error(f"Error querying user: {e}")
+            logging.error(f"Error reading all users: {e}")
+        return [{"username": r["username"], "isAdmin": r["isAdmin"]} for r in rows]
+
+    def get_by_username(self, username: str) -> User | None:
+        """Return user corresponding to the username"""
+        try:
+            with self.db.connection as connection:
+                with connection.cursor(cursor_factory=DictCursor) as cursor:
+                    cursor.execute(
+                        'SELECT "idUser", "username", "password", "isAdmin" '
+                        'FROM defaultdb."User" WHERE "username" = %s;',
+                        (username,),
+                    )
+                    res = cursor.fetchone()
+            if not res:
+                return None
+
+            return User(
+                user_id=res["idUser"],
+                username=res["username"],
+                password=res["password"],
+                is_admin=res["isAdmin"],
+                )
+        except Exception as e:
+            logging.error(f"Error querying user by username {username}: {e}")
             return None
-
-        if not res:
-            return None
-
-        user = User(
-            user_id=res["idUser"],
-            username=res["username"],
-            password=res["password"],
-            is_admin=res["isAdmin"]
-        )
-
-        return user
 
 
     def create(self, user: User) -> str:

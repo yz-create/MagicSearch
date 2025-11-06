@@ -26,7 +26,7 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        user = user_service.get_by_username(username)
+        user = user_service.find_by_username(username)
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         return user
