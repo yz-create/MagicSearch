@@ -1219,18 +1219,28 @@ class CardDao:
 
         return res['max']
 
-    def get_similar_entries(self, conn, search_emb):
+    def get_similar_entries(self, conn, search_emb, use_short_embed=False):
         """
         Returns the 5 entries from the database with the embedding closest to the given
         [search_emb].
+        
+        Args:
+            conn: Database connection
+            search_emb: The embedding vector to search for
+            use_short_embed: If True, uses 'shortEmbed' column, otherwise uses 'embed' column
         """
         conn.execute('SET search_path TO defaultdb, public;')
-        results = conn.execute("""
+        
+        embed_column = '"shortEmbed"' if use_short_embed else '"embed"'
+        
+        query = f"""
             SELECT
                 "idCard",
-                "embed" <-> %s as dst
+                {embed_column} <-> %s as dst
             FROM "Card"
             ORDER BY dst
             LIMIT 5
-            """, (search_emb,))
+        """
+        
+        results = conn.execute(query, (search_emb,))
         return results.fetchall()
