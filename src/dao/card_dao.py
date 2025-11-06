@@ -1,5 +1,4 @@
 import logging
-import datetime
 from psycopg2 import sql
 
 from business_object.card import Card
@@ -45,7 +44,8 @@ class CardDao:
             cursor.execute(f'SELECT MAX("{id_column}") FROM "{table_name}"')
             id_max = cursor.fetchone()["max"]
             cursor.execute(
-                f'INSERT INTO "{table_name}"("{id_column}", "{name_column}") VALUES ({id_max + 1}, %(value)s) RETURNING "{id_column}"',
+                f'INSERT INTO "{table_name}"("{id_column}", "{name_column}") VALUES ({id_max + 1},'
+                f' %(value)s) RETURNING "{id_column}"',
                 {"value": value}
             )
             result = cursor.fetchone()
@@ -71,11 +71,13 @@ class CardDao:
         ]
 
         text_to_embed = " | ".join([f for f in fields if f])  # Filtrer les chaînes vides
+        text_to_embed_short = card.name + ": " + card.text
 
         # Calculer l'embedding
         card_embedding = embedding(text_to_embed)
+        card_short_embedding = embedding(text_to_embed_short)
 
-        return (card_embedding)
+        return (card_embedding, card_short_embedding)
 
     def get_or_create_all_ids_from_foreign_keys(self, card):
         with DBConnection().connection as connection:
@@ -281,7 +283,7 @@ class CardDao:
 
         # Générer le nouvel ID de carte
         next_card_id = self.get_highest_id() + 1
-        card_embedding = CardDao().get_embed(card)
+        card_embedding, card_short_embedding = CardDao().get_embed(card)
 
         (
             id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
@@ -419,35 +421,7 @@ class CardDao:
 
                 # PurchaseURLs
                 if card.purchase_urls:
-                    cursor.execute(
-                        '''
-                        SELECT MAX("idPurchaseURLs")
-                        FROM "PurchaseURLs"
-                        '''
-                    )
-                    id_max_purchase_url = cursor.fetchone()["max"]
-                    cursor.execute(
-                        """
-                        INSERT INTO "PurchaseURLs"(
-                            "idPurchaseURLs", "idCard", "tcgplayer", "cardKingdom", "cardmarket",
-                            "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
-                        ) VALUES (
-                            %(idPurchaseURLs)s, %(idCard)s, %(tcgplayer)s, %(cardKingdom)s,
-                            %(cardmarket)s, %(cardKingdomFoil)s, %(cardKingdomEtched)s,
-                            %(tcgplayerEtched)s
-                        )
-                        """,
-                        {
-                            "idPurchaseURLs": id_max_purchase_url + 1,
-                            "idCard": id_card,
-                            "tcgplayer": card.purchase_urls.get("tcgplayer"),
-                            "cardKingdom": card.purchase_urls.get("cardKingdom"),
-                            "cardmarket": card.purchase_urls.get("cardmarket"),
-                            "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
-                            "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
-                            "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
-                        }
-                    )
+                    CardDao().insert_purchase_url(cursor, id_card, card)
 
                 # ForeignData
                 if card.foreign_data:
@@ -507,6 +481,37 @@ class CardDao:
                 connection.commit()
                 return True
 
+    def insert_purchase_url(self, cursor, id_card, card):
+        cursor.execute(
+            '''
+            SELECT MAX("idPurchaseURLs")
+            FROM "PurchaseURLs"
+            '''
+        )
+        id_max_purchase_url = cursor.fetchone()["max"]
+        cursor.execute(
+            """
+            INSERT INTO "PurchaseURLs"(
+                "idPurchaseURLs", "idCard", "tcgplayer", "cardKingdom", "cardmarket",
+                "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
+            ) VALUES (
+                %(idPurchaseURLs)s, %(idCard)s, %(tcgplayer)s, %(cardKingdom)s,
+                %(cardmarket)s, %(cardKingdomFoil)s, %(cardKingdomEtched)s,
+                %(tcgplayerEtched)s
+            )
+            """,
+            {
+                "idPurchaseURLs": id_max_purchase_url + 1,
+                "idCard": id_card,
+                "tcgplayer": card.purchase_urls.get("tcgplayer"),
+                "cardKingdom": card.purchase_urls.get("cardKingdom"),
+                "cardmarket": card.purchase_urls.get("cardmarket"),
+                "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
+                "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
+                "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
+            }
+        )
+
     def update_card(self, card: Card) -> bool:
         """
         Update an existing card in the database
@@ -521,7 +526,7 @@ class CardDao:
         bool
             True if update succeeded, False otherwise
         """
-        card_embedding = CardDao().get_embed(card)
+        card_embedding, card_short_embedding = CardDao().get_embed(card)
 
         (
             id_layout, id_type, id_first_printing, id_leadership, id_legalities, color_ids,
@@ -675,15 +680,15 @@ class CardDao:
                 # PurchaseURLs
                 if card.purchase_urls:
                     cursor.execute(
-                        """
-                        INSERT INTO "PurchaseURLs"(
-                            "idCard", "tcgplayer", "cardKingdom", "cardmarket",
-                            "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
-                        ) VALUES (
-                            %(idCard)s, %(tcgplayer)s, %(cardKingdom)s, %(cardmarket)s,
-                            %(cardKingdomFoil)s, %(cardKingdomEtched)s, %(tcgplayerEtched)s
-                        )
-                        """,
+                        '''
+                        SELECT *
+                        FROM "PurchaseURLs"
+                        WHERE ("idCard", "tcgplayer", "cardKingdom", "cardmarket",
+                                "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched")
+                        IS NOT DISTINCT FROM
+                        (%(idCard)s, %(tcgplayer)s, %(cardKingdom)s, %(cardmarket)s,
+                        %(cardKingdomFoil)s, %(cardKingdomEtched)s, %(tcgplayerEtched)s)
+                        ''',
                         {
                             "idCard": id_card,
                             "tcgplayer": card.purchase_urls.get("tcgplayer"),
@@ -694,6 +699,37 @@ class CardDao:
                             "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
                         }
                     )
+                    if cursor.fetchone() is None:
+                        cursor.execute(
+                            '''
+                            SELECT MAX("idPurchaseURLs")
+                            FROM "PurchaseURLs"
+                            '''
+                        )
+                        id_max_purchase_url = cursor.fetchone()["max"]
+                        cursor.execute(
+                            """
+                            INSERT INTO "PurchaseURLs"(
+                                "idPurchaseURLs", "idCard", "tcgplayer", "cardKingdom", "cardmarket",
+                                "cardKingdomFoil", "cardKingdomEtched", "tcgplayerEtched"
+                            ) VALUES (
+                                %(idPurchaseURLs)s, %(idCard)s, %(tcgplayer)s, %(cardKingdom)s,
+                                %(cardmarket)s, %(cardKingdomFoil)s, %(cardKingdomEtched)s,
+                                %(tcgplayerEtched)s
+                            )
+                            """,
+                            {
+                                "idPurchaseURLs": id_max_purchase_url + 1,
+                                "idCard": id_card,
+                                "tcgplayer": card.purchase_urls.get("tcgplayer"),
+                                "cardKingdom": card.purchase_urls.get("cardKingdom"),
+                                "cardmarket": card.purchase_urls.get("cardmarket"),
+                                "cardKingdomFoil": card.purchase_urls.get("cardKingdomFoil"),
+                                "cardKingdomEtched": card.purchase_urls.get("cardKingdomEtched"),
+                                "tcgplayerEtched": card.purchase_urls.get("tcgplayerEtched")
+                            }
+                        )
+
 
                 # ForeignData
                 if card.foreign_data:
@@ -1176,7 +1212,6 @@ class CardDao:
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
                     res = cursor.fetchall()
-                        
             return res or []
         except Exception as e:
             logging.error(f"The input is not a filter : {e}")

@@ -37,7 +37,7 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel): 
+class cardModel(BaseModel):
     # checker à lafin si il est utilisé parce qu'il ya moyen qu'il serve à rien
     """
     defines a Pydantic model for the uards
@@ -321,6 +321,6 @@ async def hello_name(name: str):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9878)
+    uvicorn.run(app, host="0.0.0.0", port=9876)
 
     logging.info("Arret du Webservice")
