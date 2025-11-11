@@ -1,6 +1,6 @@
 from business_object.card import Card
 from dao.card_dao import CardDao
-from business_object.filters.abstract_filter import AbstractFilter
+from business_object.filter import Filter
 
 from dotenv import load_dotenv
 import random
@@ -179,14 +179,14 @@ class CardService():
 
         return self.id_search(idrand)
 
-    def filter_search(self, filters: list[AbstractFilter]) -> list[Card]:
+    def filter_search(self, filters: list[Filter]) -> list[Card]:
         """
         Service method for searching by filtering : checks if it is a valid filter and if it is, calls the
         filtering DAO method for each filter un the list and only keeps the cards common to the different filtering
 
         Parameters :
         ------------
-        filters : list[AbstractFilter]
+        filters : list[Filter]
             the list of filters we want to apply to our research
 
         Return :

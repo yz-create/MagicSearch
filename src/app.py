@@ -156,7 +156,7 @@ async def semantic_search_shortEmbed(search):
 
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.get("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
+@app.post("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
 async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")

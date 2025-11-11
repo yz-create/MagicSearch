@@ -3,7 +3,7 @@ from psycopg2 import sql
 
 from business_object.card import Card
 from db_connection import DBConnection
-from business_object.filters.abstract_filter import AbstractFilter
+from business_object.filter import Filter
 from utils.embed import embedding
 
 
@@ -1043,7 +1043,7 @@ class CardDao:
             cards.append(CardDao().id_search(card["idCard"]))
         return cards
 
-    def filter_dao(self, filter: AbstractFilter):
+    def filter_dao(self, filter: Filter):
         """"
         This function checks that this is filter object and selects in the database the elements
         corresponding to the parameters of the filter
