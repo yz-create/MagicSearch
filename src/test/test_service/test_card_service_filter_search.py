@@ -1,17 +1,20 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import re
 import pytest
-
 from service.card_service import CardService
 from business_object.filters.filter_category import FilterCategory
 from business_object.filters.filter_numerical import FilterNumeric
 
 
-cardservice=CardService()
+
 # input test on filter_search
 @pytest.mark.parametrize(
     "param"
     [
-        (
+        
             [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
@@ -28,9 +31,7 @@ cardservice=CardService()
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]
-        ),
-        (
+            )],
             [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
@@ -47,9 +48,7 @@ cardservice=CardService()
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]
-        ),
-        (
+            )],
             [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
@@ -66,9 +65,7 @@ cardservice=CardService()
                 variable_filtered="color",
                 type_of_filtering="positive",
                 filtering_value="B"
-            )]
-        ),
-        (
+            )],
             [FilterNumeric(
                 variable_filtered="toughness",
                 type_of_filtering="equal_to",
@@ -86,9 +83,11 @@ cardservice=CardService()
                 type_of_filtering="positive",
                 filtering_value="B"
             )]
-        )
+        
     ]
 )
 def test_filter_search_service_input(param):
+    cardservice=CardService()
     assert cardservice.filter_search(param) is False
 
+# faire test sur cumul des filtres

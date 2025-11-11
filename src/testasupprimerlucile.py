@@ -10,10 +10,10 @@ type_filter = FilterCategory(
     type_of_filtering="positive",
     filtering_value="Enchantment"
 )
-color_filterR = FilterCategory(
+color_filterW = FilterCategory(
     variable_filtered="color",
     type_of_filtering="positive",
-    filtering_value="R"
+    filtering_value="W"
 )
 color_filterB = FilterCategory(
     variable_filtered="color",
@@ -41,7 +41,6 @@ toughness_filter= FilterNumeric(
     filtering_value=1
 )
 #print(carddao.filter_dao(type_filter))
-filtertestlist=[type_filter]
 
 
 

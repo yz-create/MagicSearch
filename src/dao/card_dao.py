@@ -1133,7 +1133,7 @@ class CardDao:
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 else:
                     sql_query = sql.SQL(
-                        'SELECT *'
+                        'SELECT * '
                         'FROM "Card" WHERE {} {} %s'
                         ).format(
                         sql.Identifier(variable_filtered),
@@ -1142,10 +1142,16 @@ class CardDao:
                     sql_parameter = [filtering_value]
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
-                    logging.debug(
-                        f"Executing SQL: {sql_query.as_string(connection)} "
-                        f"with params {sql_parameter}"
-                    )
+                    try:
+                        logging.debug(
+                            f"Executing SQL: {sql_query.as_string(connection)} "
+                            f"with params {sql_parameter}"
+                        )
+                    except Exception:
+                        logging.debug(
+                            f"Executing SQL (mocked connection): {sql_query} "
+                            f"with params {sql_parameter}"
+                        )
                     print(cursor.mogrify(sql_query, sql_parameter))
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
