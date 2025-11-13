@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
