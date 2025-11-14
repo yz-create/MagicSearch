@@ -182,3 +182,49 @@ class UserDao:
         )
 
         return user
+
+    def add_favourite_card(self, user_id: int, idCard: int) -> str:
+        try:
+            conn = self.db.connection
+
+            with conn.cursor() as cursor:
+                # check if the idCard already is in the list
+                cursor.execute(
+                    'SELECT 1 FROM defaultdb."Favourite" WHERE "idUser" = %(user_id)s AND  "idCard"= %(idCard)s;',
+                    {"user_id": user_id, "idCard": idCard}
+                )
+                if cursor.fetchone() is not None:
+                    return "EXISTS"
+
+                # insertion
+                cursor.execute(
+                    """
+                    INSERT INTO defaultdb."Favourite" ("idUser", "idCard")
+                    VALUES (%(user_id)s, %(idCard)s)
+                    RETURN idCard;
+                    """,
+                    {"user_id": user_id, "idCard": idCard}
+                )
+                res = cursor.fetchone()
+                print("Fetchone result after insertion :", res)  # <- debug
+                # check whether it has been added
+                user = User()
+                if UserDao.add_favourite_card(user_id, idCard) == None:
+                    user.user_id = res["idUser"]
+                    conn.commit()
+                    print("User créé avec ID :", user.user_id)  # <- debug
+                    return "CREATED"
+                else:
+                    print("Aucun ID retourné par la base !")
+                    return "ERROR"
+
+        except Exception as e:
+            import logging
+            logging.exception("Erreur lors de la création de l'utilisateur")
+            return "ERROR"
+
+
+        except Exception as e:
+            import logging
+            logging.error(f"Error while creating a user: {e}")
+            return "ERROR"

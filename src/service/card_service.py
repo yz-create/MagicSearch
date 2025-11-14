@@ -113,7 +113,7 @@ class CardService():
             print(f"Failed to fetch card from DB: {e}")
             return None
 
-    def name_search(self, name: str) -> Card:
+    def name_search(self, name: str) -> list[Card]:
         """
         Searches for a card based on its name
 
@@ -142,7 +142,7 @@ class CardService():
             print(f"Failed to fetch card from DB: {e}")
             return None
 
-    def semantic_search(self, search: str, use_short_embed: bool) -> list[Card]:
+    def semantic_search(self, search: str) -> list[Card]:
         """
         Given a search as a sentence (for example "Blue bird with 5 mana"), returns the 5 closest
         cards to the reasearch
@@ -160,7 +160,30 @@ class CardService():
         search_emb = np.array(embedding(search))
 
         cards = []
-        for entry in CardDao().get_similar_entries(conn, search_emb, use_short_embed):
+        for entry in CardDao().get_similar_entries(conn, search_emb, False):
+            cards.append(CardService().id_search(entry[0]))
+
+        return (cards)
+
+    def semantic_search_shortEmbed(self, search: str) -> list[Card]:
+        """
+        Given a search as a sentence (for example "Blue bird with 5 mana"), returns the 5 closest
+        cards to the reasearch
+
+        Parameters:
+        -----------
+        search: str
+            The research the user made as an str
+
+        Returns:
+        --------
+        list[Card]
+            The 5 closest cards to match the description made by the user
+        """
+        search_emb = np.array(embedding(search))
+
+        cards = []
+        for entry in CardDao().get_similar_entries(conn, search_emb, True):
             cards.append(CardService().id_search(entry[0]))
 
         return (cards)
@@ -229,7 +252,8 @@ class CardService():
                     # keeping in Magicsearch_filtered only the common id_card
                     Magicsearch_filtered = [ d for d in Magicsearch_filtered
                                 if d.get("idCard") in new_filter_list_idCard ]
-            return Magicsearch_filtered
+            return Magicsearch_filtered 
+            logging.info(f"Your filter is valid !")
             if Magicsearch_filtered == []:
                 logging.warning(f"No results for filters: {filters}")
         except Exception as e:
