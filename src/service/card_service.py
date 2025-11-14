@@ -113,7 +113,7 @@ class CardService():
             print(f"Failed to fetch card from DB: {e}")
             return None
 
-    def name_search(self, name: str) -> Card:
+    def name_search(self, name: str) -> list[Card]:
         """
         Searches for a card based on its name
 
