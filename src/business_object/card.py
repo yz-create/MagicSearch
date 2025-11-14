@@ -121,46 +121,51 @@ class Card:
     def get_embedded(self): return self._embedded
     def get_short_embedded(self): return self._short_embedded
 
+    """
+        leadership_skills: dict = None,
+        legalities: dict = None,
+        purchase_urls: dict = None,"""
+
     def show_card(self):
-        return {
-            "id_card": self.id_card,
-            "layout": self.layout,
-            "name": self.name,
-            "type_line": self.type_line,
-            "ascii_name": self.ascii_name,
-            "color_identity": self.color_identity,
-            "color_indicator": self.color_indicator,
-            "colors": self.colors,
-            "converted_mana_cost": self.converted_mana_cost,
-            "defense": self.defense,
-            "edhrec_rank": self.edhrec_rank,
-            "edhrec_saltiness": self.edhrec_saltiness,
-            "face_mana_value": self.face_mana_value,
-            "face_name": self.face_name,
-            "first_printing": self.first_printing,
-            "foreign_data": self.foreign_data,
-            "hand": self.hand,
-            "has_alternative_deck_limit": self.has_alternative_deck_limit,
-            "is_funny": self.is_funny,
-            "is_reserved": self.is_reserved,
-            "keywords": self.keywords,
-            "leadership_skills": self.leadership_skills,
-            "legalities": self.legalities,
-            "life": self.life,
-            "loyalty": self.loyalty,
-            "mana_cost": self.mana_cost,
-            "mana_value": self.mana_value,
-            "power": self.power,
-            "printings": self.printings,
-            "purchase_urls": self.purchase_urls,
-            "rulings": self.rulings,
-            "side": self.side,
-            "subtypes": self.subtypes,
-            "supertypes": self.supertypes,
-            "text": self.text,
-            "toughness": self.toughness,
-            "types": self.types
-        }
+        card_dict = {"id_card": self.id_card,
+                     "layout": self.layout,
+                     "name": self.name,
+                     "type_line": self.type_line}
+        list_columns = [
+            "color_identity", "color_indicator", "colors", "keywords", "printings",
+            "rulings", "subtypes", "supertypes", "types"
+            ]
+        dict_columns = ["leadership_skills", "legalities", "purchase_urls"]
+        other_columns = [
+            "ascii_name", "converted_mana_cost", "defense", "edhrec_rank", "edhrec_saltiness",
+            "face_mana_value", "face_name", "first_printing", "hand", "has_alternative_deck_limit",
+            "is_funny", "is_reserved", "life", "loyalty", "mana_cost", "mana_value", "power",
+            "side", "text", "toughness"
+        ]
+        for column in other_columns:
+            if getattr(self, column) is not None:
+                card_dict[column] = getattr(self, column)
+        for column in list_columns:
+            if len(getattr(self, column)) != 0:
+                card_dict[column] = getattr(self, column)
+        if len(self.foreign_data) != 0:
+            print(self.foreign_data)
+            foreign_data = []
+            for language in self.foreign_data:
+                language_data = {}
+                for key in language:
+                    if language[key] is not None:
+                        language_data[key] = language[key]
+                foreign_data.append(language_data)
+            card_dict["foreignData"] = foreign_data
+        for column in dict_columns:
+            column_dict = {}
+            for key in getattr(self, column):
+                if getattr(self, column)[key]:
+                    column_dict[key] = getattr(self, column)[key]
+            if column_dict != {}:
+                card_dict[column] = column_dict
+        return card_dict
 
     def __str__(self):
         return f"Card(name={self.name}, id={self.id_card})"

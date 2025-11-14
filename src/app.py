@@ -156,7 +156,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def view_random():
     """get a random card"""
     logging.info("get a random card")
-    return card_service.view_random_card()
+    return card_service.view_random_card().show_card()
 
 
 # get a card by its id
@@ -165,7 +165,7 @@ async def view_random():
 async def id_search(id: int):
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
-    return card_service.id_search(id)
+    return card_service.id_search(id).show_card()
 
 
 # get a card by its name
@@ -174,7 +174,11 @@ async def id_search(id: int):
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
-    return card_service.name_search(name)
+    card_list = card_service.name_search(name)
+    cards_as_dict = []
+    for card in card_list:
+        cards_as_dict.append(card.show_card())
+    return cards_as_dict
 
 
 # get the result of a semantic search (Detailed Embed = normal)
