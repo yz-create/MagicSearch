@@ -968,8 +968,8 @@ class CardDao:
         types = CardDao().get_list_from_fetchall(res_types, "name")
 
         card = Card(
-            res_card["idCard"], res_card["embed"], res_card["shortEmbed"], res_card["layout"],
-            res_card["name"], res_card["type"], res_card["asciiName"], color_identity,
+            res_card["idCard"], res_card["layout"], res_card["name"], res_card["type"],
+            res_card["embed"], res_card["shortEmbed"], res_card["asciiName"], color_identity,
             color_indicator, colors, res_card["convertedManaCost"], res_card["defense"],
             res_card["edhrecRank"], res_card["edhrecSaltiness"], res_card["faceManaValue"],
             res_card["faceName"], first_printing, foreign_data, res_card["hand"],
@@ -979,19 +979,6 @@ class CardDao:
             purchase_urls, rulings, res_card["side"], subtypes, supertypes, res_card["text"],
             res_card["toughness"], types
             )
-
-        print((
-            res_card["idCard"], res_card["embed"], res_card["shortEmbed"], res_card["layout"],
-            res_card["name"], res_card["type"], res_card["asciiName"], color_identity,
-            color_indicator, colors, res_card["convertedManaCost"], res_card["defense"],
-            res_card["edhrecRank"], res_card["edhrecSaltiness"], res_card["faceManaValue"],
-            res_card["faceName"], first_printing, foreign_data, res_card["hand"],
-            res_card["hasAlternativeDeckLimit"], res_card["isFunny"], res_card["isReserved"],
-            keywords, leadership_skills, legalities, res_card["life"], res_card["loyalty"],
-            res_card["manaCost"], res_card["manaValue"], res_card["power"], printings,
-            purchase_urls, rulings, res_card["side"], subtypes, supertypes, res_card["text"],
-            res_card["toughness"], types
-            ))
 
         return (card)
 
