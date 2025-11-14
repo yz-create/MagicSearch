@@ -89,7 +89,8 @@ class UserService:
         logging.info(f"User {username} logged in successfully.")
         return user
 
-    def add_favourite_card(self, user_id : int, idCard:int): 
+
+    def add_favourite_card(self, user_id: int, idCard: int): 
         """"Check whether the idCard exists and adds it to the list of 
         favourite cards of the user corresponding to idUser
         
@@ -106,14 +107,17 @@ class UserService:
                 raise ValueError("This idCard doesn't match any card... try again !")
             else: 
                 add = self.user_dao.add_favourite_card(user_id, idCard)
-                if result == "ADDED":
+                if add == "ADDED":
                     print(f"The card '{idCard}' had been added to your favourites!")
                     return idCard
-                elif result == "EXISTS":
-                    print(f"The card '{idCard}' is already!")
+                elif add == "EXISTS":
+                    print(
+                        f"The card '{idCard}' is already in your favourites... you really like this one !")
                     return None
                 else:
-                    print(f"Error creating user '{username}'. Please try again later.")
+                    print(f"Error adding the card '{idCard}'. Please try again later.")
                     return None
+        except Exception as e:
+            logging.error(f"The input is not an existing card : {e}")
+            return False
 
-        except :
