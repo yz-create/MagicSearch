@@ -37,6 +37,49 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
+class cardModel(BaseModel): 
+    """
+    defines a Pydantic model for the uards
+    Pydantic model to validate and document the user objects
+    received as input and returned as output
+    """
+    id_card: int
+    layout: str
+    name: str
+    type_line: str
+    ascii_name: str | None = None
+    color_identity: list | None = None
+    color_indicator: list | None = None
+    colors: list | None = None
+    converted_mana_cost: float | None = None
+    defense: int | None = None
+    edhrec_rank: int | None = None
+    edhrec_saltiness: float | None = None
+    face_mana_value: float | None = None
+    face_name: str | None = None
+    first_printing: str | None = None
+    foreign_data: list | None = None
+    hand: int | None = None
+    has_alternative_deck_limit: bool | None = None
+    is_funny: bool | None = None
+    is_reserved: bool | None = None
+    keywords: list | None = None
+    leadership_skills: dict | None = None
+    legalities: Union[dict, int] | None = None
+    life: int | None = None
+    loyalty: str | None = None
+    mana_cost: str | None = None
+    mana_value: float | None = None
+    power: str | None = None
+    printings: list | None = None
+    purchase_urls: dict | None = None
+    rulings: list | None = None
+    side: str | None = None
+    subtypes: list | None = None
+    supertypes: list | None = None
+    text: str | None = None
+    toughness: str | None = None
+    types: list | None = None
 
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
@@ -60,7 +103,6 @@ class userModel(BaseModel):
     Pydantic model to validate and document the user objects
     received as input and returned as output
     """
-    user_id: int | None | None = None
     username: str
     password: str
 
@@ -114,7 +156,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def view_random():
     """get a random card"""
     logging.info("get a random card")
-    return card_service.view_random_card()
+    return card_service.view_random_card().show_card()
 
 
 # get a card by its id
@@ -123,7 +165,7 @@ async def view_random():
 async def id_search(id: int):
     """Finds a card based on its id """
     logging.info("Finds a card based on its id ")
-    return card_service.id_search(id)
+    return card_service.id_search(id).show_card()
 
 
 # get a card by its name
@@ -132,7 +174,11 @@ async def id_search(id: int):
 async def name_search(name: str):
     """Finds a card based on its name """
     logging.info("Finds a card based on its name")
-    return card_service.name_search(name)
+    card_list = card_service.name_search(name)
+    cards_as_dict = []
+    for card in card_list:
+        cards_as_dict.append(card.show_card())
+    return cards_as_dict
 
 
 # get the result of a semantic search (Detailed Embed = normal)
@@ -165,24 +211,24 @@ async def filter_search(filters: List[AbstractFilterModel]):
 
 # DATABASE MANAGEMENT :CARDS
 # create a card
-@app.post("/card/{card}", tags=["Database management : cards"])
-async def Create_card(card):
+@app.post("/card/create/cardModel", tags=["Database management : cards"])
+async def Create_card(card:cardModel):
     """Creates a card in the Magicsearch database"""
     logging.info("Creates a card in the Magicsearch database")
     return card_service.create_card(card)
 
 
 # update a card
-@app.put("/card/{card}", tags=["Database management : cards"])
-async def Update_card(card):
+@app.put("/card/create/cardModel", tags=["Database management : cards"])
+async def Update_card(card:cardModel):
     """Updates a card in the Magicsearch database"""
     logging.info("Updates a card in the Magicsearch database")
     return card_service.update_card(card)
 
 
 # delete a card
-@app.delete("/card/{card}", tags=["Database management : cards"])
-async def Delete_card(card):
+@app.delete("/card/delete/cardModel}", tags=["Database management : cards"])
+async def Delete_card(card: cardModel):
     """Deletes a card in the Magicsearch database"""
     logging.info("Deletes a card in the Magicsearch database")
     return card_service.delete_card(card)

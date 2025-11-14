@@ -113,7 +113,7 @@ class CardService():
             print(f"Failed to fetch card from DB: {e}")
             return None
 
-    def name_search(self, name: str) -> Card:
+    def name_search(self, name: str) -> list[Card]:
         """
         Searches for a card based on its name
 
@@ -252,7 +252,8 @@ class CardService():
                     # keeping in Magicsearch_filtered only the common id_card
                     Magicsearch_filtered = [ d for d in Magicsearch_filtered
                                 if d.get("idCard") in new_filter_list_idCard ]
-            return Magicsearch_filtered
+            return Magicsearch_filtered 
+            logging.info(f"Your filter is valid !")
             if Magicsearch_filtered == []:
                 logging.warning(f"No results for filters: {filters}")
         except Exception as e:

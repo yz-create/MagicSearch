@@ -369,6 +369,10 @@ class ResetDatabase(metaclass=Singleton):
                     ' %s)',
                     rulings
                 )
+                cursor.execute(
+                    'INSERT INTO "User"("idUser", "username", "password", "isAdmin") VALUES (1, '
+                    '"nono", "nono", true)'
+                )
             connection.commit()
 
     def fill_table_with_na_values(self, columns: list[str], values: list[dict]) -> list[tuple]:
