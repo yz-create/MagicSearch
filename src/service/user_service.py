@@ -26,14 +26,12 @@ class UserService:
 
     @log
     def create_user(self, username: str, password: str) -> User | None:
-        #hashed_password = hash_password(password, username)
-        #new_user = User(username=username, password=hashed_password)
         new_user = User(username=username, password=password)
     
         result = self.user_dao.create(new_user)
         if result == "CREATED":
             print(f"User '{username}' created successfully!")
-            return new_user # j'ai limprssion que ça fait pas le lien avec la couche DAO (lucile)
+            return new_user 
         elif result == "EXISTS":
             print(f"Username '{username}' already exists!")
             return None
