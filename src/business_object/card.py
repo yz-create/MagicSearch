@@ -2,11 +2,11 @@ class Card:
     def __init__(
         self,
         id_card: int,
-        embedded: list,
-        short_embedded: list,
         layout: str,
         name: str,
         type_line: str,
+        embedded: list = None,
+        short_embedded: list = None,
         ascii_name: str = None,
         color_identity: list = None,
         color_indicator: list = None,
@@ -121,11 +121,46 @@ class Card:
     def get_embedded(self): return self._embedded
     def get_short_embedded(self): return self._short_embedded
 
-    def show_card(self) -> str:
-        """
-        Return the official (or informal) representation.
-        """
-        return f"MagicTG Card : {self._name}"
+    def show_card(self):
+        return {
+            "id_card": self.id_card,
+            "layout": self.layout,
+            "name": self.name,
+            "type_line": self.type_line,
+            "ascii_name": self.ascii_name,
+            "color_identity": self.color_identity,
+            "color_indicator": self.color_indicator,
+            "colors": self.colors,
+            "converted_mana_cost": self.converted_mana_cost,
+            "defense": self.defense,
+            "edhrec_rank": self.edhrec_rank,
+            "edhrec_saltiness": self.edhrec_saltiness,
+            "face_mana_value": self.face_mana_value,
+            "face_name": self.face_name,
+            "first_printing": self.first_printing,
+            "foreign_data": self.foreign_data,
+            "hand": self.hand,
+            "has_alternative_deck_limit": self.has_alternative_deck_limit,
+            "is_funny": self.is_funny,
+            "is_reserved": self.is_reserved,
+            "keywords": self.keywords,
+            "leadership_skills": self.leadership_skills,
+            "legalities": self.legalities,
+            "life": self.life,
+            "loyalty": self.loyalty,
+            "mana_cost": self.mana_cost,
+            "mana_value": self.mana_value,
+            "power": self.power,
+            "printings": self.printings,
+            "purchase_urls": self.purchase_urls,
+            "rulings": self.rulings,
+            "side": self.side,
+            "subtypes": self.subtypes,
+            "supertypes": self.supertypes,
+            "text": self.text,
+            "toughness": self.toughness,
+            "types": self.types
+        }
 
     def __str__(self):
         return f"Card(name={self.name}, id={self.id_card})"
