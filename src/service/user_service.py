@@ -55,9 +55,9 @@ class UserService:
         return self.user_dao.get_by_username(username)
 
     @log
-    def delete(self, user_id: int) -> bool:
+    def delete(self, username: str) -> bool:
         """Delete a user account."""
-        return self.user_dao.delete(user_id)
+        return self.user_dao.delete(username)
 
     @log
     def display_all(self) -> str:
