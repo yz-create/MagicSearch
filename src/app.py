@@ -14,7 +14,7 @@ from utils.log_init import initialize_logs
 
 
 # SETTING UP THE API
-root_path = "/proxy/9875"
+root_path = "/proxy/9876"
 app = FastAPI(
     title="MagicSearch",
     root_path=root_path,
@@ -214,11 +214,23 @@ async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
-    cards_as_dict = []
-    for card in cards:
-        cards_as_dict.append(card.show_card())
-    return cards_as_dict
+    
+    return cards
 
+# add a favourite card
+@app.post("/user/add_to_favourite/{idCard}", tags=["Roaming in the MagicSearch Database"])
+async def Add_favourite_card(idCard:int, current_user=Depends(verify_token)):
+    """Adds a card to the favourite cards of the current user"""
+    logging.info("Adds a card to the favourite cards of the current user")
+    user_id = current_user.user_id
+    return user_service.add_favourite_card(user_id, idCard)
+
+@app.get("/user/see_favourites/", tags=["Roaming in the MagicSearch Database"])
+async def List_favourite_cards(current_user=Depends(verify_token)):
+    """List all the favourite cards of the current user"""
+    logging.info("List all the favourite cards of the current user")
+    user_id = current_user.user_id
+    return user_service.list_favourite_cards(user_id)
 
 # DATABASE MANAGEMENT :CARDS
 # create a card
@@ -336,6 +348,6 @@ def update_user(id_user: int, j: userModel):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=9875)
+    uvicorn.run(app, host="0.0.0.0", port=9876)
 
     logging.info("Arret du Webservice")

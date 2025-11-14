@@ -260,3 +260,5 @@ class CardService():
             logging.error(f"The input is not a filter : {e}")
             return False
 
+       
+

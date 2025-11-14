@@ -1068,7 +1068,7 @@ class CardDao:
                 if variable_filtered == 'color':
 
                     sql_query = sql.SQL(
-                        'SELECT* '
+                        'SELECT "idCard" '
                         'FROM "Card" c '
                         'JOIN "Colors" a USING("idCard")'
                         'JOIN "Color" b USING ("idColor")'
@@ -1082,7 +1082,7 @@ class CardDao:
                 else:  # variable_filtered is type
 
                     sql_query = sql.SQL(
-                        'SELECT * '
+                        'SELECT "idCard"'
                         'FROM "Card" c '
                         'JOIN "Type" t ON c."type" = t."idType"'
                         'WHERE t."name" {} %s'
@@ -1101,7 +1101,7 @@ class CardDao:
                     sql_comparator = "<"
                 if variable_filtered == "power":
                     sql_query = sql.SQL(
-                        'SELECT * '
+                        'SELECT "idCard" '
                         'FROM "Card" c '
                         'WHERE (CASE WHEN c."power" ~  %s THEN c."power"::int ELSE NULL END) {} %s'
                     ).format(
@@ -1110,7 +1110,7 @@ class CardDao:
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
-                        'SELECT * '
+                        'SELECT "idCard" '
                         'FROM "Card" c '
                         'WHERE (CASE WHEN c."toughness" ~  %s '
                         'THEN c."toughness"::int ELSE NULL END) {} %s'
@@ -1120,7 +1120,7 @@ class CardDao:
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
                 else:
                     sql_query = sql.SQL(
-                        'SELECT * '
+                        'SELECT "idCard" '
                         'FROM "Card" WHERE {} {} %s'
                         ).format(
                         sql.Identifier(variable_filtered),
@@ -1143,7 +1143,10 @@ class CardDao:
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
                     res = cursor.fetchall()
-            return res or []
+            cards = []
+            for card in res:
+                cards.append(CardDao().id_search(card["idCard"]))
+            return cards
         except Exception as e:
             logging.error(f"The input is not a filter : {e}")
             return False
