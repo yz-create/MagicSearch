@@ -206,7 +206,10 @@ async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
-    return cards
+    cards_as_dict = []
+    for card in cards:
+        cards_as_dict.append(card.show_card())
+    return cards_as_dict
 
 
 # DATABASE MANAGEMENT :CARDS
