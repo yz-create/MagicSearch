@@ -272,13 +272,13 @@ async def list_all_users(current_user=Depends(verify_admin)):
 # delete a user
 
 @app.delete("/user/{id_user}", tags=["Database management : user"])
-def delete_user(id_user: int, current_user: str = Depends(verify_token)):
-    """Deleting a user (protégé par token)"""
-    logging.info(f"Suppression de l'utilisateur {id_user} par {current_user}")
-    user = user_service.trouver_par_id(id_user)
+def delete_user(username: str, current_user=Depends(verify_admin)):
+    """Deleting a user, only for admins."""
+    logging.info(f"Suppression de l'utilisateur {username} par {current_user}")
+    user = user_service.find_by_username(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    user_service.supprimer(user)
+    user_service.delete(user)
     return f"User {user.username} deleted"
 
 

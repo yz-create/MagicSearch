@@ -76,11 +76,11 @@ class UserDao:
                     {"username": user.username, "password": user.password}
                 )
                 res = cursor.fetchone()
-                print("Résultat fetchone après insertion :", res)  # <- debug
+                print("Résultat fetchone après insertion :", res)
                 if res:
                     user.user_id = res["idUser"]
                     conn.commit()
-                    print("User créé avec ID :", user.user_id)  # <- debug
+                    print("User créé avec ID :", user.user_id)
                     return "CREATED"
                 else:
                     print("Aucun ID retourné par la base !")
@@ -98,10 +98,25 @@ class UserDao:
             return "ERROR"
 
 
-
-
-    def delete(self, user_id: int):
-        """Supprimer un utilisateur"""
+#####A FINIR########
+    @log
+    def delete(self, username: str):
+        """
+        Delete an user according to their username.
+        
+        Parameters
+        ----------
+        username (str): username of the user to delete
+        
+        Returns
+        -------
+        the informations about the user deleted
+        """
+        try:
+            with self.db.connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User" WHERE;')
+                    rows = cursor.fetchall()
         pass
 
     @log
