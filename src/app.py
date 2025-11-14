@@ -187,7 +187,7 @@ async def name_search(name: str):
 async def semantic_search(search):
     """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search (recommended)")
-    return card_service.semantic_search(search, False)
+    return card_service.semantic_search(search)
 
 
 # get the result of a semantic search (shortEmbed = FO1a)
@@ -196,7 +196,7 @@ async def semantic_search(search):
 async def semantic_search_shortEmbed(search):
     """Finds a card based on its a semantic search"""
     logging.info("Finds a card based on its a semantic search")
-    return card_service.semantic_search_shortEmbed(search, True)
+    return card_service.semantic_search_shortEmbed(search)
 
 
 # get a filtered list of cards
