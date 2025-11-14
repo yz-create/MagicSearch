@@ -4,6 +4,7 @@ from utils.log_decorator import log
 from utils.security import hash_password
 
 from business_object.user import User
+from card_service import CardService
 from dao.user_dao import UserDao
 from db_connection import DBConnection
 import logging
@@ -89,3 +90,32 @@ class UserService:
 
         logging.info(f"User {username} logged in successfully.")
         return user
+
+    def add_favourite_card(self, user_id : int, idCard:int): 
+        """"Check whether the idCard exists and adds it to the list of 
+        favourite cards of the user corresponding to idUser
+        
+        Parameters :
+        ------------
+        user_id : int
+            id of the user calling the method
+            
+        idCard : int
+            id of the card, that the user wants to add to their favourites
+        """
+        try: 
+            if CardService.id_search(idCard) == None: 
+                raise ValueError("This idCard doesn't match any card... try again !")
+            else: 
+                add = self.user_dao.add_favourite_card(user_id, idCard)
+                if result == "ADDED":
+                    print(f"The card '{idCard}' had been added to your favourites!")
+                    return idCard
+                elif result == "EXISTS":
+                    print(f"The card '{idCard}' is already!")
+                    return None
+                else:
+                    print(f"Error creating user '{username}'. Please try again later.")
+                    return None
+
+        except :
