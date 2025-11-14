@@ -60,7 +60,6 @@ class userModel(BaseModel):
     Pydantic model to validate and document the user objects
     received as input and returned as output
     """
-    user_id: int | None | None = None
     username: str
     password: str
 
