@@ -4,7 +4,7 @@ from utils.log_decorator import log
 from utils.security import hash_password
 
 from business_object.user import User
-from card_service import CardService
+from service.card_service import CardService
 from dao.user_dao import UserDao
 from db_connection import DBConnection
 import logging

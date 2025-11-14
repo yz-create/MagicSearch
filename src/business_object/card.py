@@ -149,7 +149,6 @@ class Card:
             if len(getattr(self, column)) != 0:
                 card_dict[column] = getattr(self, column)
         if len(self.foreign_data) != 0:
-            print(self.foreign_data)
             foreign_data = []
             for language in self.foreign_data:
                 language_data = {}

@@ -194,7 +194,7 @@ class UserDao:
                 print("Fetchone result after insertion :", res)  # <- debug
                 # check whether it has been added
                 user = User()
-                if add_favourite_card(user_id, idCard)== None
+                if UserDao.add_favourite_card(user_id, idCard) == None:
                     user.user_id = res["idUser"]
                     conn.commit()
                     print("User créé avec ID :", user.user_id)  # <- debug
