@@ -11,7 +11,6 @@ from db_connection import DBConnection
 import logging
 from psycopg2.extras import DictCursor
 from fastapi import HTTPException, Depends
-from typing import List
 
 
 class UserService:
@@ -92,38 +91,4 @@ class UserService:
         return user
 
 
-    def add_favourite_card(self, user_id: int, idCard: int): 
-        """"Check whether the idCard exists and adds it to the list of 
-        favourite cards of the user corresponding to idUser
-        
-        Parameters :
-        ------------
-        user_id : int
-            id of the user calling the method
-            
-        idCard : int
-            id of the card, that the user wants to add to their favourites
-        """
-        try: 
-            new_favourite= idCard
-            add = self.user_dao.add_favourite_card(user_id, idCard)
-            if add == "ADDED":
-                print(f"The card '{idCard}' had been added to your favourites!")
-                return new_favourite
-            elif add == "EXISTS":
-                print(
-                    f"The card '{idCard}' is already in your favourites... you really like this one !")
-                return None
-            else:
-                print(f"Error adding the card '{idCard}'. Please try again later.")
-                return None
-        except Exception as e:
-            logging.error(f"The input is not an existing card : {e}")
-            return False
-
-    def list_favourite_cards(self, user_id:int)->List[Card]:
-        try: 
-            return UserDao.list_favourite_cards(user_id)
-        except Exception as e:
-            logging.error(f"There has been a problem showing the list of favourite cards : {e}")
-            return False
+    

@@ -1191,3 +1191,116 @@ class CardDao:
 
         results = conn.execute(query, (search_emb,))
         return results.fetchall()
+
+    def add_favourite_card(self, user_id: int, idCard: int) -> str:
+        """
+        Adds the card 'idCard' to the list of favourite of the user 'user_id'
+
+        Parameters :
+        ------------
+        user_id : int 
+            the id of the user with the list of favourites we want to add the card to
+        idCard : int
+            the card we want to add to the list of favourites
+
+        Return : 
+        --------
+        str 
+            description of what the dao method did : "EXISTS" if the idCard is already in the 
+            list, "ADDED" if it has been added and "ERROR" if something didn't work out
+        """
+        try:
+            with DBConnection().connection as conn:
+                with conn.cursor() as cursor:
+                    # check if the idCard already is in the list
+                    cursor.execute(
+                        'SELECT 1 '
+                        'FROM defaultdb."Favourite" '
+                        'WHERE "idUser" = %(user_id)s '
+                        'AND  "idCard"= %(idCard)s;',
+                        {"user_id": user_id, "idCard": idCard}
+                    )
+                    if cursor.fetchone() is not None:
+                        return "EXISTS"
+                    
+                    # insertion
+                    cursor.execute(
+                        'INSERT INTO defaultdb."Favourite" ("idUser", "idCard") '
+                        'VALUES (%(user_id)s, %(idCard)s) '
+                        'RETURNING "idCard";', 
+                        {"user_id": user_id, "idCard": idCard}
+                    )
+                    res = cursor.fetchone()
+                    print("Fetchone result after insertion :", res)
+                    
+                    if res is not None:
+                        return "ADDED"
+                    else:
+                        print("Adding card failed")
+                        return "ERROR"
+    
+        except Exception as e:
+            logging.error(f"Error while adding the card: {e}")
+            return "ERROR"
+
+
+    def list_favourite_cards(self, user_id): 
+        """ Lists all the favourite card of the user corresponding to user_id
+        Parameter :
+        -----------
+        user_id : int
+            the user with the list of favourites we want to show
+            """
+        card_dao = CardDao()
+        favourites= []
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'SELECT "idCard" '
+                        'FROM defaultdb."Favourite" '
+                        'WHERE "idUser"=%(user_id)s;',
+                        {"user_id": user_id})
+                    rows = cursor.fetchall()
+                    card_ids = [row["idCard"] for row in rows]
+        
+            
+            for card_id in card_ids:
+                card = card_dao.id_search(card_id)
+                if card:
+                    favourites.append(card)
+        except Exception as e:
+            logging.error(f"Error while listing users: {e}")
+        return favourites
+
+    def delete_favourite_card(self, user_id:int, id_card: int) -> bool:
+        """
+        Delete a card 'idCard' from the favourites of the user 'user_id'
+
+        Parameters
+        ----------
+        user_id : int
+            ID of the user with favourite list we want to delete from
+
+        id_card : int
+            ID of the card to delete
+
+        Returns
+        -------
+        bool
+            True if deletion succeeded, False otherwise
+        """
+        try: 
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'DELETE FROM defaultdb."Favourite" '
+                        'WHERE "idUser"=%(user_id)s '
+                        'AND "idCard" = %(idCard)s;',
+                        {"user_id": user_id, "idCard": id_card}
+                    )
+                    return cursor.rowcount > 0 
+        except Exception as e:
+            logging.error(f"Error deleting card: {e}")
+            return False
+

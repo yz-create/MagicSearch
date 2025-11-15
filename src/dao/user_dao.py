@@ -112,11 +112,10 @@ class UserDao:
         -------
         the informations about the user deleted
         """
-        try:
-            with self.db.connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User" WHERE;')
-                    rows = cursor.fetchall()
+        with self.db.connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User" WHERE;')
+                rows = cursor.fetchall()
         pass
 
     @log
@@ -184,67 +183,4 @@ class UserDao:
 
         return user
 
-    def add_favourite_card(self, user_id: int, idCard: int) -> str:
-        try:
-            with self.db.connection as conn :
-                with conn.cursor() as cursor:
-                    # check if the idCard already is in the list
-                    cursor.execute(
-                        'SELECT 1 '
-                        'FROM defaultdb."Favourite" '
-                        'WHERE "idUser" = %(user_id)s '
-                        'AND  "idCard"= %(idCard)s;',
-                        {"user_id": user_id, "idCard": idCard}
-                    )
-                    if cursor.fetchone() is not None:
-                        return "EXISTS"
-
-                    # insertion
-                    cursor.execute(
-                        """
-                        INSERT INTO defaultdb."Favourite" ("idUser", "idCard")
-                        VALUES (%(user_id)s, %(idCard)s)
-                        RETURN idCard;
-                        """,
-                        {"user_id": user_id, "idCard": idCard}
-                    )
-                    res = cursor.fetchone()
-                    print("Fetchone result after insertion :", res)  # <- debug
-                    # check whether it has been added
-                    if UserDao.add_favourite_card(user_id, idCard) == None:
-                        return "ADDED"
-                    else:
-                        print("Adding card failed")
-                        return "ERROR"
-
-        except Exception as e:
-            import logging
-            logging.exception("It seems the card was not added")
-            return "ERROR"
-        except Exception as e:
-            import logging
-            logging.error(f"Error while adding the card: {e}")
-            return "ERROR"
-
-
-    def list_favourite_cards(user_id): 
-        """ Lists all the favourite card of the user corresponding to user_id"""
-        card_dao = CardDao()
-        favourites= []
-        try:
-            with self.db.connection as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        'SELECT "idCard" '
-                        'FROM defaultdb."Favourite" '
-                        'WHERE "idUser"==%(user_id)s;',
-                        {"user_id": user_id})
-                    rows = cursor.fetchall()
-
-                    for row in rows:
-                        favourites.append(card_dao.id_search(row["idCard"])
-                        )
-
-        except Exception as e:
-            logging.error(f"Error while listing users: {e}")
-        return favourites
+    

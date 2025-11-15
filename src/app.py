@@ -223,14 +223,21 @@ async def Add_favourite_card(idCard:int, current_user=Depends(verify_token)):
     """Adds a card to the favourite cards of the current user"""
     logging.info("Adds a card to the favourite cards of the current user")
     user_id = current_user.user_id
-    return user_service.add_favourite_card(user_id, idCard)
+    return card_service.add_favourite_card(user_id, idCard)
 
 @app.get("/user/see_favourites/", tags=["Roaming in the MagicSearch Database"])
 async def List_favourite_cards(current_user=Depends(verify_token)):
     """List all the favourite cards of the current user"""
     logging.info("List all the favourite cards of the current user")
     user_id = current_user.user_id
-    return user_service.list_favourite_cards(user_id)
+    return card_service.list_favourite_cards(user_id)
+    
+@app.delete("/user/delete_favourite/{idCard}", tags=["Roaming in the MagicSearch Database"])
+async def Delete_favourite_card(idCard: int, current_user=Depends(verify_token)):
+    """Delete the card "idCard" from the list of favourites of the current user"""
+    logging.info("Delete the card 'idCard' from the list of favourites of the current user")
+    user_id = current_user.user_id
+    return card_service.delete_favourite_card(user_id, idCard)
 
 # DATABASE MANAGEMENT :CARDS
 # create a card
