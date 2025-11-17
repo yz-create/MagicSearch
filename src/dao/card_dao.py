@@ -434,7 +434,7 @@ class CardDao:
                 # Rulings
                 if card.rulings:
                     for ruling in card.rulings:
-                        CardDao().insert_rulings(cursor, id_card, ruling)
+                        CardDao().insert_ruling(cursor, id_card, ruling)
 
                 connection.commit()
                 return True
@@ -725,7 +725,7 @@ class CardDao:
         """
         try:
             column_with_foreign_key = [
-                "Colors", "ColorIndicator", "ColorIndicator", "Keywords", "Types", "Subtypes",
+                "Colors", "ColorIdentity", "ColorIndicator", "Keywords", "Types", "Subtypes",
                 "Supertypes", "Printings", "PurchaseURLs", "ForeignData", "Ruling"
             ]
             with DBConnection().connection as connection:
@@ -1198,15 +1198,15 @@ class CardDao:
 
         Parameters :
         ------------
-        user_id : int 
+        user_id : int
             the id of the user with the list of favourites we want to add the card to
         idCard : int
             the card we want to add to the list of favourites
 
-        Return : 
+        Return :
         --------
-        str 
-            description of what the dao method did : "EXISTS" if the idCard is already in the 
+        str
+            description of what the dao method did : "EXISTS" if the idCard is already in the
             list, "ADDED" if it has been added and "ERROR" if something didn't work out
         """
         try:
@@ -1222,29 +1222,28 @@ class CardDao:
                     )
                     if cursor.fetchone() is not None:
                         return "EXISTS"
-                    
+
                     # insertion
                     cursor.execute(
                         'INSERT INTO defaultdb."Favourite" ("idUser", "idCard") '
                         'VALUES (%(user_id)s, %(idCard)s) '
-                        'RETURNING "idCard";', 
+                        'RETURNING "idCard";',
                         {"user_id": user_id, "idCard": idCard}
                     )
                     res = cursor.fetchone()
                     print("Fetchone result after insertion :", res)
-                    
+
                     if res is not None:
                         return "ADDED"
                     else:
                         print("Adding card failed")
                         return "ERROR"
-    
+
         except Exception as e:
             logging.error(f"Error while adding the card: {e}")
             return "ERROR"
 
-
-    def list_favourite_cards(self, user_id): 
+    def list_favourite_cards(self, user_id):
         """ Lists all the favourite card of the user corresponding to user_id
         Parameter :
         -----------
@@ -1252,7 +1251,7 @@ class CardDao:
             the user with the list of favourites we want to show
             """
         card_dao = CardDao()
-        favourites= []
+        favourites = []
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
@@ -1263,8 +1262,7 @@ class CardDao:
                         {"user_id": user_id})
                     rows = cursor.fetchall()
                     card_ids = [row["idCard"] for row in rows]
-        
-            
+
             for card_id in card_ids:
                 card = card_dao.id_search(card_id)
                 if card:
@@ -1273,7 +1271,7 @@ class CardDao:
             logging.error(f"Error while listing users: {e}")
         return favourites
 
-    def delete_favourite_card(self, user_id:int, id_card: int) -> bool:
+    def delete_favourite_card(self, user_id: int, id_card: int) -> bool:
         """
         Delete a card 'idCard' from the favourites of the user 'user_id'
 
@@ -1290,7 +1288,7 @@ class CardDao:
         bool
             True if deletion succeeded, False otherwise
         """
-        try: 
+        try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -1299,8 +1297,7 @@ class CardDao:
                         'AND "idCard" = %(idCard)s;',
                         {"user_id": user_id, "idCard": id_card}
                     )
-                    return cursor.rowcount > 0 
+                    return cursor.rowcount > 0
         except Exception as e:
             logging.error(f"Error deleting card: {e}")
             return False
-

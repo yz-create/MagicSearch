@@ -37,7 +37,7 @@ card_service = CardService()
 
 
 # librairie Pydantic BaseModel
-class cardModel(BaseModel): 
+class cardModel(BaseModel):
     """
     defines a Pydantic model for the uards
     Pydantic model to validate and document the user objects
@@ -58,7 +58,7 @@ class cardModel(BaseModel):
     face_mana_value: float | None = None
     face_name: str | None = None
     first_printing: str | None = None
-    foreign_data: list | None = None
+    foreign_data: list[dict] | None = None
     hand: int | None = None
     has_alternative_deck_limit: bool | None = None
     is_funny: bool | None = None
@@ -73,13 +73,14 @@ class cardModel(BaseModel):
     power: str | None = None
     printings: list | None = None
     purchase_urls: dict | None = None
-    rulings: list | None = None
+    rulings: list[dict] | None = None
     side: str | None = None
     subtypes: list | None = None
     supertypes: list | None = None
     text: str | None = None
     toughness: str | None = None
     types: list | None = None
+
 
 class AbstractFilterModel(BaseModel):
     variable_filtered: str
@@ -126,7 +127,8 @@ async def create_user(j: userModel):
 
     return {"message": f"User '{j.username}' created successfully!"}
 
-# user sign in 
+# user sign in
+
 
 # ajout pour le système de connexion avec token
 @app.post("/login", tags=["User : log in !"])
@@ -148,6 +150,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
     logging.info(f"User '{user.username}' successfully logged in")
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 # ROAMING IN THE MAGICSEARCH DATABASE
 # get a random card
@@ -214,16 +217,18 @@ async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
-    
+
     return cards
+
 
 # add a favourite card
 @app.post("/user/add_to_favourite/{idCard}", tags=["Roaming in the MagicSearch Database"])
-async def Add_favourite_card(idCard:int, current_user=Depends(verify_token)):
+async def Add_favourite_card(idCard: int, current_user=Depends(verify_token)):
     """Adds a card to the favourite cards of the current user"""
     logging.info("Adds a card to the favourite cards of the current user")
     user_id = current_user.user_id
     return card_service.add_favourite_card(user_id, idCard)
+
 
 @app.get("/user/see_favourites/", tags=["Roaming in the MagicSearch Database"])
 async def List_favourite_cards(current_user=Depends(verify_token)):
@@ -231,7 +236,8 @@ async def List_favourite_cards(current_user=Depends(verify_token)):
     logging.info("List all the favourite cards of the current user")
     user_id = current_user.user_id
     return card_service.list_favourite_cards(user_id)
-    
+
+
 @app.delete("/user/delete_favourite/{idCard}", tags=["Roaming in the MagicSearch Database"])
 async def Delete_favourite_card(idCard: int, current_user=Depends(verify_token)):
     """Delete the card "idCard" from the list of favourites of the current user"""
@@ -239,29 +245,30 @@ async def Delete_favourite_card(idCard: int, current_user=Depends(verify_token))
     user_id = current_user.user_id
     return card_service.delete_favourite_card(user_id, idCard)
 
+
 # DATABASE MANAGEMENT :CARDS
 # create a card
 @app.post("/card/create/cardModel", tags=["Database management : cards"])
-async def Create_card(card:cardModel):
+async def Create_card(card: cardModel, current_user=Depends(verify_admin)):
     """Creates a card in the Magicsearch database"""
     logging.info("Creates a card in the Magicsearch database")
-    return card_service.create_card(card)
+    return card_service.create_card(card_service.cardModel_to_Card(card))
 
 
 # update a card
-@app.put("/card/create/cardModel", tags=["Database management : cards"])
-async def Update_card(card:cardModel):
+@app.put("/card/update/cardModel", tags=["Database management : cards"])
+async def Update_card(card: cardModel, current_user=Depends(verify_admin)):
     """Updates a card in the Magicsearch database"""
     logging.info("Updates a card in the Magicsearch database")
-    return card_service.update_card(card)
+    return card_service.update_card(card_service.cardModel_to_Card(card))
 
 
 # delete a card
 @app.delete("/card/delete/cardModel}", tags=["Database management : cards"])
-async def Delete_card(card: cardModel):
+async def Delete_card(idcard: int, current_user=Depends(verify_admin)):
     """Deletes a card in the Magicsearch database"""
     logging.info("Deletes a card in the Magicsearch database")
-    return card_service.delete_card(card)
+    return card_service.delete_card(idcard)
 
 
 # DATABASE MANAGEMENT : USER
@@ -277,6 +284,7 @@ async def list_all_users(current_user=Depends(verify_admin)):
     return user_service.list_all(current_user)
 
 # delete a user
+
 
 @app.delete("/user/{id_user}", tags=["Database management : user"])
 def delete_user(username: str, current_user=Depends(verify_admin)):
@@ -346,7 +354,7 @@ def update_user(id_user: int, j: userModel):
 
 # API TEST
 # @app.get("/hello/{name}")
-#async def hello_name(name: str):
+# async def hello_name(name: str):
 #    """Afficher Hello"""
 #    logging.info(f"Afficher Hello {name}")
 #    return f"message : Hello {name}"

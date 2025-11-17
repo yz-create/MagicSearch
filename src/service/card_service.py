@@ -61,17 +61,17 @@ class CardService():
             print(f"Failed to update card in DB: {e}")
             return None
 
-    def delete_card(self, card: Card) -> bool | None:
+    def delete_card(self, id_card: int) -> bool | None:
         """
         Deletes a card from the database.
         Returns True if successful, None if input is invalid or DB fails.
         """
-        if not isinstance(card, Card):
-            print("Invalid input: must be a Card instance.")
+        if not isinstance(id_card, int):
+            print("Invalid input: id_card must be the id of the card you want to delete.")
             return None
 
         try:
-            return CardDao().delete_card(card)
+            return CardDao().delete_card(id_card)
         except Exception as e:
             print(f"Failed to delete card from DB: {e}")
             return None
@@ -206,8 +206,9 @@ class CardService():
 
     def filter_search(self, filters: list[Filter]) -> list[Card]:
         """
-        Service method for searching by filtering : checks if it is a valid filter and if it is, calls the
-        filtering DAO method for each filter un the list and only keeps the cards common to the different filtering
+        Service method for searching by filtering : checks if it is a valid filter and if it is,
+        calls the filtering DAO method for each filter un the list and only keeps the cards common
+        to the different filtering
 
         Parameters :
         ------------
@@ -219,8 +220,8 @@ class CardService():
         List[Card]
             The Cards corresponding to our filter
         """
-        try :
-            # we check if the filters are valid 
+        try:
+            # we check if the filters are valid
             for filter in filters:
                 variable_filtered = filter.variable_filtered
                 type_of_filtering = filter.type_of_filtering
@@ -232,14 +233,23 @@ class CardService():
                     if not isinstance(filtering_value, str):
                         raise TypeError(
                             "filtering_value must be a string")
-                if type_of_filtering in ["higher_than", "lower_than", "equal_to"]:  # numerical filter
-                    if variable_filtered not in ["manaValue", "defense", "edhrecRank", "toughness", "power", "type"]:
+                if type_of_filtering in [
+                    "higher_than", "lower_than", "equal_to"
+                ]:  # numerical filter
+                    if variable_filtered not in [
+                        "manaValue", "defense", "edhrecRank", "toughness", "power", "type"
+                    ]:
                         raise ValueError(
-                            "variable_filtered must be in the following list :'manaValue', 'defense', 'edhrecRank', 'toughness', 'power'")
-                if type_of_filtering not in ["higher_than", "lower_than", "equal_to", "positive", "negative"]:
+                            "variable_filtered must be in the following list :'manaValue', "
+                            "'defense', 'edhrecRank', 'toughness', 'power'"
+                        )
+                if type_of_filtering not in [
+                    "higher_than", "lower_than", "equal_to", "positive", "negative"
+                ]:
                     raise ValueError(
-                    "This is not a filter : type_of_filtering can only take "
-                    "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input ")
+                        "This is not a filter : type_of_filtering can only take "
+                        "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input"
+                        )
             # we  start a basic list with the first filter in our list
             filter = filters[0]
             Magicsearch_filtered = CardDao().filter_dao(filter) or []
@@ -249,50 +259,53 @@ class CardService():
                 for filter in filters[1:]:  # checker que je parcours toute la liste (lucile)
                     new_filter_list = CardDao().filter_dao(filter) or []
                     # extract the id of every card
-                    new_filter_list_idCard = { d.get("idCard") for d in new_filter_list if "idCard" in d }
+                    new_filter_list_idCard = {
+                        d.get("idCard") for d in new_filter_list if "idCard" in d}
 
                     # keeping in Magicsearch_filtered only the common id_card
-                    Magicsearch_filtered = [ d for d in Magicsearch_filtered
-                                if d.get("idCard") in new_filter_list_idCard ]
-            return Magicsearch_filtered 
-            logging.info(f"Your filter is valid !")
+                    Magicsearch_filtered = [
+                        d for d in Magicsearch_filtered if d.get("idCard") in new_filter_list_idCard
+                    ]
+            return Magicsearch_filtered
+            logging.info("Your filter is valid !")
             if Magicsearch_filtered == []:
                 logging.warning(f"No results for filters: {filters}")
         except Exception as e:
             logging.error(f"The input is not a filter : {e}")
             return False
 
-    def add_favourite_card(self, user_id: int, idCard: int)->bool: 
-        """"Check whether the idCard exists and adds it to the list of 
+    def add_favourite_card(self, user_id: int, idCard: int) -> bool:
+        """"Check whether the idCard exists and adds it to the list of
         favourite cards of the user corresponding to idUser
-        
+
         Parameters :
         ------------
         user_id : int
             id of the user calling the method
-            
+
         idCard : int
             id of the card, that the user wants to add to their favourites
-        
+
         Return:
         -------
-        bool 
+        bool
             True if the card is now in the favourite list, False if it's not
         """
-        try: 
-            card_dao=CardDao()
+        try:
+            card_dao = CardDao()
             if not isinstance(user_id, int):
                 raise TypeError("user_id must be an integer")
             if not isinstance(idCard, int):
                 raise TypeError("idCard must be an integer")
-            new_favourite= idCard
+            # new_favourite = idCard
             add = card_dao.add_favourite_card(user_id, idCard)
             if add == "ADDED":
                 print(f"The card '{idCard}' had been added to your favourites!")
                 return True
             elif add == "EXISTS":
                 print(
-                    f"The card '{idCard}' is already in your favourites... you really like this one !")
+                    f"The card '{idCard}' is already in your favourites... "
+                    "you really like this one !")
                 return True
             else:
                 print(f"Error adding the card '{idCard}'. Please try again later.")
@@ -301,21 +314,21 @@ class CardService():
             logging.error(f"The input is not an existing card : {e}")
             return False
 
-    def list_favourite_cards(self, user_id: int)->List[Card]:
+    def list_favourite_cards(self, user_id: int) -> List[Card]:
         """list all the card marked as favourite by the user 'user_id'"""
-        try: 
-            card_dao=CardDao()
+        try:
+            card_dao = CardDao()
             if not isinstance(user_id, int):
                 raise TypeError("user_id must be an integer")
             return card_dao.list_favourite_cards(user_id)
         except Exception as e:
             logging.error(f"There has been a problem showing the list of favourite cards : {e}")
             return False
-    
-    def delete_favourite_card(self, user_id: int, idCard: int)-> bool:
+
+    def delete_favourite_card(self, user_id: int, idCard: int) -> bool:
         """Delete a card, from the list of favourites of "user_id" """
-        try :
-            card_dao=CardDao()
+        try:
+            card_dao = CardDao()
             if not isinstance(user_id, int):
                 raise TypeError("user_id must be an integer")
             if not isinstance(idCard, int):
@@ -325,3 +338,17 @@ class CardService():
             logging.error(f"There has been a problem deleting the card from favourites : {e}")
             return False
 
+    def cardModel_to_Card(self, card_model):
+        return Card(
+            card_model.id_card, card_model.layout, card_model.name, card_model.type_line, None,
+            None, card_model.ascii_name, card_model.color_identity, card_model.color_indicator,
+            card_model.colors, card_model.converted_mana_cost, card_model.defense,
+            card_model.edhrec_rank, card_model.edhrec_saltiness, card_model.face_mana_value,
+            card_model.face_name, card_model.first_printing, card_model.foreign_data,
+            card_model.hand, card_model.has_alternative_deck_limit, card_model.is_funny,
+            card_model.is_funny, card_model.keywords, card_model.leadership_skills,
+            card_model.legalities, card_model.life, card_model.loyalty, card_model.mana_cost,
+            card_model.mana_value, card_model.power, card_model.printings, card_model.purchase_urls,
+            card_model.rulings, card_model.side, card_model.subtypes, card_model.supertypes,
+            card_model.text, card_model.toughness, card_model.types
+        )
