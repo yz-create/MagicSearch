@@ -1,6 +1,6 @@
 # MagicSearch IT project 2A
 
-Welcome in the promised land of trading card games players! By following these instructions, you will access our API where we gave our blood and tears to provide you with a diversity of searching tool !
+Welcome in the promised land of trading card games players! By following these instructions, you will access our API where we gave our blood and tears to provide you with a diversity of searching tools !
 
 ## To access the app :
 Install all modules in requirements.txt : 
@@ -110,3 +110,24 @@ For "rulings", it is a list of dict and all columns are mandatory. In the date c
 The id_card you put is the card that is gonna get updated.
 You need to still write everything you don't want to get changed. If you keep a column empty, the card will get updated to have no value in that column.
 Otherwise, same rules as creating a card when it comes to the dict values.
+
+## To do a filtered search using the API
+The input is a list of "filter" objects, with the following format :
+{
+    "variable_filtered": "string",
+    "type_of_filtering": "string",
+    "filtering_value": "string" or int
+}
+
+"variable_filtered" is the variable on which we apply the filter
+"type_of_filtering
+
+### Categorical filter
+"variable_filtered" 
+    The filter can be applied only to the following list of categorical variables :
+    -"type"
+    -"color"
+
+fil
+
+

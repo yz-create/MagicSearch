@@ -12,7 +12,33 @@ from service.user_service import UserService
 from service.card_service import CardService
 from utils.log_init import initialize_logs
 
-
+tags = [
+    {
+        "name": "User : sign up !",
+        "description": "User registration method",
+    },
+    {
+        "name": "User : log in !",
+        "description": "User authentication method : generate 24h token",
+    },
+    {
+        "name": "Roaming in the MagicSearch Database",
+        "description": "Browse and search cards",
+    },
+    {
+        "name": "Your very own favourite cards list",
+        "description": "Management of the User's favourite cards list ",
+    },
+    
+    {
+        "name": "Database management : cards",
+        "description": "Admin operations for card management",
+    },
+    {
+        "name": "Database management : user",
+        "description": "Admin operations for user management",
+    },
+]
 # SETTING UP THE API
 root_path = "/proxy/9876"
 app = FastAPI(
@@ -20,7 +46,8 @@ app = FastAPI(
     root_path=root_path,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    openapi_tags=tags
 )
 
 initialize_logs("WebserviceOK")
@@ -221,8 +248,9 @@ async def filter_search(filters: List[AbstractFilterModel]):
     return cards
 
 
+# FAVOURITE CARDS
 # add a favourite card
-@app.post("/user/add_to_favourite/{idCard}", tags=["Roaming in the MagicSearch Database"])
+@app.post("/user/add_to_favourite/{idCard}", tags=["Your very own favourite cards list"])
 async def Add_favourite_card(idCard: int, current_user=Depends(verify_token)):
     """Adds a card to the favourite cards of the current user"""
     logging.info("Adds a card to the favourite cards of the current user")
@@ -230,7 +258,7 @@ async def Add_favourite_card(idCard: int, current_user=Depends(verify_token)):
     return card_service.add_favourite_card(user_id, idCard)
 
 
-@app.get("/user/see_favourites/", tags=["Roaming in the MagicSearch Database"])
+@app.get("/user/see_favourites/", tags=["Your very own favourite cards list"])
 async def List_favourite_cards(current_user=Depends(verify_token)):
     """List all the favourite cards of the current user"""
     logging.info("List all the favourite cards of the current user")
@@ -238,7 +266,7 @@ async def List_favourite_cards(current_user=Depends(verify_token)):
     return card_service.list_favourite_cards(user_id)
 
 
-@app.delete("/user/delete_favourite/{idCard}", tags=["Roaming in the MagicSearch Database"])
+@app.delete("/user/delete_favourite/{idCard}", tags=["Your very own favourite cards list"])
 async def Delete_favourite_card(idCard: int, current_user=Depends(verify_token)):
     """Delete the card "idCard" from the list of favourites of the current user"""
     logging.info("Delete the card 'idCard' from the list of favourites of the current user")
