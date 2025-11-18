@@ -123,7 +123,7 @@ The input is a list of "filter" objects, with the following format :
 "type_of_filtering" is the way we want to apply the filter
 "filtering_value" is a value around which the filter operates
 
-The point of the input being a list of filters is that filters can be cumulative, by listing filters you get a more precise fit to your requirements (see the example)
+The point of the input being a list of filters is that filters can be cumulative, by listing filters you get a more precise fit to your requirements (see the example).
 
 ### Categorical filter
 "variable_filtered" : str
