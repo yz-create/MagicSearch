@@ -19,10 +19,8 @@ class UserService:
     def __init__(self, user_dao: UserDao = None):
         """Initialize the service with a DAO (can be injected for testing)."""
         if user_dao:
-            # Mock or custom DAO for testing
             self.user_dao = user_dao
         else:
-            # Default: create a real DAO with a DB connection
             db = DBConnection()
             self.user_dao = UserDao(db)
 
@@ -55,6 +53,13 @@ class UserService:
         return self.user_dao.get_by_username(username)
 
     @log
+    def find_by_id(self, user_id: int, current_user) -> User | None:
+        """Find a user by their id."""
+        if not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin rights required")
+        return self.user_dao.get_by_id(user_id)
+
+    @log
     def delete(self, current_user, username: str) -> bool:
         """Delete a user account."""
         if not current_user.is_admin:
@@ -67,7 +72,6 @@ class UserService:
         headers = ["Username", "Is Admin"]
 
         users = self.user_dao.list_all() or []
-        # Filter out admin user if needed
         users = [u for u in users if u.username != "admin"]
 
         users_as_list = [u.as_list() for u in users]
@@ -91,6 +95,3 @@ class UserService:
 
         logging.info(f"User {username} logged in successfully.")
         return user
-
-
-    

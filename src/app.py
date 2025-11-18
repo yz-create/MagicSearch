@@ -304,28 +304,17 @@ async def delete_user(username: str, current_user=Depends(verify_admin)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-# fin modif pour connexion et token
-
-
-# @app.get("/user/", tags=["Database management : user"])
-# async def list_all_users():
-#     """Lister tous les users"""
-#     logging.info("List all users")
-#     list_users = user_service.list_all()
-#
-#     liste_model = []
-#     for user in list_users:
-#         liste_model.append(user)
-#
-#     return liste_model
-
-
 # get a user by their id
 @app.get("/user/{user_id}", tags=["Database management : user"])
-async def user_by_id(user_id: int):
+async def user_by_id(user_id: int, current_user=Depends(verify_admin)):
     """Finds a user based on their id """
-    logging.info("Finds a user based on their id")
-    return user_service.find_by_id(user_id)
+    logging.info(
+        f"User with id {user_id} requested by {getattr(current_user, 'username', current_user)}"
+        )
+    user = user_service.find_by_id(user_id, current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 # updating of a user
