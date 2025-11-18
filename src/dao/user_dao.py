@@ -17,7 +17,7 @@ class UserDao:
 
     def read_all_user(self):
         """Return all users"""
-        query = 'SELECT "username", "isAdmin" FROM defaultdb."User";'
+        query = 'SELECT "username", "idUser", "isAdmin" FROM defaultdb."User";'
         rows = []
         try:
             with self.db.connection as conn:
@@ -26,7 +26,7 @@ class UserDao:
                     rows = cursor.fetchall()
         except Exception as e:
             logging.error(f"Error reading all users: {e}")
-        return [{"username": r["username"], "isAdmin": r["isAdmin"]} for r in rows]
+        return [{"username": r["username"], "idUser": r["idUser"], "isAdmin": r["isAdmin"]} for r in rows]
 
     def get_by_username(self, username: str) -> User | None:
         """Return user corresponding to the username"""
@@ -98,25 +98,30 @@ class UserDao:
             return "ERROR"
 
 
-#####A FINIR########
     @log
-    def delete(self, username: str):
+    def delete(self, username: str) -> bool:
         """
-        Delete an user according to their username.
+        Delete a user according to their username.
         
         Parameters
         ----------
-        username (str): username of the user to delete
+        username (str): Username of the user to delete
         
         Returns
         -------
-        the informations about the user deleted
+        bool: True if deletion was successful, False otherwise
         """
-        with self.db.connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User" WHERE;')
-                rows = cursor.fetchall()
-        pass
+        try:
+            with self.db.connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'DELETE FROM defaultdb."User" WHERE "username" = %(username)s;',
+                        {"username": username}
+                    )
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error deleting user from database: {e}")
+            return False
 
     @log
     def list_all(self) -> list[User]:
@@ -183,4 +188,36 @@ class UserDao:
 
         return user
 
-    
+    def get_by_id(self, user_id: int) -> User | None:
+        """
+        Retrieve a User by id.
+
+        Returns a User object if id match, else None.
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor(cursor_factory=DictCursor) as cursor:
+                    query = """
+                        SELECT "idUser", "username", "password", "isAdmin"
+                        FROM defaultdb."User"
+                        WHERE "idUser" = %s;
+                    """
+                    cursor.execute(query, (user_id,))
+                    res = cursor.fetchone()
+
+                    if not res:
+                        logging.info(f"No user found with id {user_id}")
+                        return None
+
+                    user = User(
+                        user_id=res["idUser"],
+                        username=res["username"],
+                        password=res["password"],
+                        is_admin=res["isAdmin"]
+                    )
+
+                    return user
+
+        except Exception as e:
+            logging.error(f"Error querying user by id {user_id}: {e}")
+            return None
