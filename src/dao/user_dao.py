@@ -100,23 +100,29 @@ class UserDao:
 
 #####A FINIR########
     @log
-    def delete(self, username: str):
+    def delete(self, username: str) -> bool:
         """
-        Delete an user according to their username.
+        Delete a user according to their username.
         
         Parameters
         ----------
-        username (str): username of the user to delete
+        username (str): Username of the user to delete
         
         Returns
         -------
-        the informations about the user deleted
+        bool: True if deletion was successful, False otherwise
         """
-        with self.db.connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute('SELECT "idUser", "username", "password", "isAdmin" FROM defaultdb."User" WHERE;')
-                rows = cursor.fetchall()
-        pass
+        try:
+            with self.db.connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'DELETE FROM defaultdb."User" WHERE "username" = %(username)s;',
+                        {"username": username}
+                    )
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error deleting user from database: {e}")
+            return False
 
     @log
     def list_all(self) -> list[User]:

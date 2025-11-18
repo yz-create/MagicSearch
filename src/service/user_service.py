@@ -55,8 +55,10 @@ class UserService:
         return self.user_dao.get_by_username(username)
 
     @log
-    def delete(self, username: str) -> bool:
+    def delete(self, current_user, username: str) -> bool:
         """Delete a user account."""
+        if not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin rights required")
         return self.user_dao.delete(username)
 
     @log

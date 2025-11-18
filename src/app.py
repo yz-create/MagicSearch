@@ -285,16 +285,23 @@ async def list_all_users(current_user=Depends(verify_admin)):
 
 # delete a user
 
-
-@app.delete("/user/{id_user}", tags=["Database management : user"])
-def delete_user(username: str, current_user=Depends(verify_admin)):
+@app.delete("/user/{username}", tags=["Database management : user"])
+async def delete_user(username: str, current_user=Depends(verify_admin)):
     """Deleting a user, only for admins."""
-    logging.info(f"Suppression de l'utilisateur {username} par {current_user}")
+    logging.info(f"Attempting to delete user: {username} by {current_user.username}")
     user = user_service.find_by_username(username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    user_service.delete(user)
-    return f"User {user.username} deleted"
+    try:
+        logging.info("Deleting user in the Magicsearch database")
+        deleted = user_service.delete(current_user, username)
+        if not deleted:
+            raise HTTPException(status_code=500, detail="Failed to delete user")
+        logging.info(f"User {username} successfully deleted.")
+        return {"message": f"User {username} deleted successfully."}
+    except Exception as e:
+        logging.error(f"Error during deletion: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # fin modif pour connexion et token
