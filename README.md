@@ -120,14 +120,68 @@ The input is a list of "filter" objects, with the following format :
 }
 
 "variable_filtered" is the variable on which we apply the filter
-"type_of_filtering
+"type_of_filtering" is the way we want to apply the filter
+"filtering_value" is a value around which the filter operates
+
+The point of the input being a list of filters is that filters can be cumulative, by listing filters you get a more precise fit to your requirements (see the example)
 
 ### Categorical filter
-"variable_filtered" 
+"variable_filtered" : str
     The filter can be applied only to the following list of categorical variables :
     -"type"
     -"color"
 
-fil
+"type_of_filtering" : str
+    A filter on categorical variables can be applied in only two ways :
+    -"positive" : we select all the cards that have the "filtering_value" in the "variable_filtered"
+    -"negative" : we select all the cards EXCEPT the ones that have the "filtering_value" in the "variable_filtered"
 
+"filtering_value" :str
+    Could be anything but, for your information: 
+    -the variable "type" mostly has the modalities "Land", "Creature", "Enchantment", "Artifact", "Sorcerie", "Instant", "Interrupt" and "Planeswalker"
+    -the variable "color" mostly refers to "B" (black), "U" (blue), "R" (red), "W" (white), "G" (green)
 
+### Numerical filter
+"variable_filtered" : str
+    The filter can be applied only to the following list of numerical variables :
+    -"power"
+    -"toughness"
+    -"manaValue"
+    -"edhecRank"
+
+"type_of_filtering" : str
+    A filter on categorical variables can be applied in only two ways :
+    -"higher_than" : we select all the cards that have a value in their "variable_filtered" higher than the "filtering_value"
+    -"equal_to": same idea
+    -"lower_than" : ditto
+
+"filtering_value" :int
+    Could be anything.
+
+### An enlightening example
+
+If you wish to find a card that has a high edhecRank (higher than 1000) and that has also a fairly low manaValue (equal to 1) but that's not all ! This card just HAS to be a creature and be anything but blue !
+ 
+Your input would be :
+[
+  {
+    "variable_filtered": "edhecRank",
+    "type_of_filtering": "higher_than",
+    "filtering_value": 1000
+  }, 
+  {
+    "variable_filtered": "power",
+    "type_of_filtering": "equal_to",
+    "filtering_value": 1
+  }, 
+  {
+    "variable_filtered": "type",
+    "type_of_filtering": "positive",
+    "filtering_value": "Creature"
+  }, 
+  {
+    "variable_filtered": "colour",
+    "type_of_filtering": "negative",
+    "filtering_value": "U"
+  }
+]
