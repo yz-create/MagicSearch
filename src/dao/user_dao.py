@@ -194,7 +194,6 @@ class UserDao:
 
         Returns a User object if id match, else None.
         """
-        res = None
         try:
             with DBConnection().connection as connection:
                 with connection.cursor(cursor_factory=DictCursor) as cursor:
@@ -205,18 +204,20 @@ class UserDao:
                     """
                     cursor.execute(query, (user_id,))
                     res = cursor.fetchone()
+
+                    if not res:
+                        logging.info(f"No user found with id {user_id}")
+                        return None
+
+                    user = User(
+                        user_id=res["idUser"],
+                        username=res["username"],
+                        password=res["password"],
+                        is_admin=res["isAdmin"]
+                    )
+
+                    return user
+
         except Exception as e:
             logging.error(f"Error querying user by id {user_id}: {e}")
             return None
-
-        if not res:
-            return None
-
-        user = User(
-            user_id=res["idUser"],
-            username=res["username"],
-            password=res["password"],
-            is_admin=res["isAdmin"]
-        )
-
-        return user
