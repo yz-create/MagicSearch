@@ -209,14 +209,12 @@ class UserDao:
                         logging.info(f"No user found with id {user_id}")
                         return None
 
-                    user = User(
+                    return User(
                         user_id=res["idUser"],
                         username=res["username"],
                         password=res["password"],
                         is_admin=res["isAdmin"]
                     )
-
-                    return user
 
         except Exception as e:
             logging.error(f"Error querying user by id {user_id}: {e}")
