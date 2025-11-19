@@ -52,7 +52,6 @@ class UserDao:
             logging.error(f"Error querying user by username {username}: {e}")
             return None
 
-
     def create(self, user: User) -> str:
         try:
             conn = self.db.connection
@@ -221,3 +220,51 @@ class UserDao:
         except Exception as e:
             logging.error(f"Error querying user by id {user_id}: {e}")
             return None
+
+    def update(self, user_id: int, username: str, password: str) -> User | None:
+        """
+        Update username and/or password for a given user.
+
+        Returns the updated User object if success, else None.
+        """
+
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor(cursor_factory=DictCursor) as cursor:
+
+                    # Vérifier si l'utilisateur existe
+                    check_query = """
+                        SELECT "idUser", "username", "password", "isAdmin"
+                        FROM defaultdb."User"
+                        WHERE "idUser" = %s;
+                    """
+                    cursor.execute(check_query, (user_id,))
+                    existing = cursor.fetchone()
+
+                    if not existing:
+                        return None  # user non trouvé
+
+                    # Effectuer la mise à jour
+                    update_query = """
+                        UPDATE defaultdb."User"
+                        SET "username" = %s, "password" = %s
+                        WHERE "idUser" = %s
+                        RETURNING "idUser", "username", "password", "isAdmin";
+                    """
+                    cursor.execute(update_query, (username, password, user_id))
+                    updated = cursor.fetchone()
+
+                    if not updated:
+                        return None
+
+        except Exception as e:
+            logging.error(f"Error updating user: {e}")
+            return None
+
+        # Retourne l'utilisateur mis à jour
+        return User(
+            user_id=updated["idUser"],
+            username=updated["username"],
+            password=updated["password"],
+            is_admin=updated["isAdmin"]
+        )
