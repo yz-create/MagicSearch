@@ -27,7 +27,6 @@ class UserService:
     @log
     def create_user(self, username: str, password: str) -> User | None:
         new_user = User(username=username, password=password)
-    
         result = self.user_dao.create(new_user)
         if result == "CREATED":
             print(f"User '{username}' created successfully!")
@@ -38,7 +37,6 @@ class UserService:
         else:
             print(f"Error creating user '{username}'. Please try again later.")
             return None
-
 
     @log
     def list_all(self, current_user):
@@ -95,3 +93,19 @@ class UserService:
 
         logging.info(f"User {username} logged in successfully.")
         return user
+    
+    @log
+    def update_user(self, user_id: int, username: str, password: str) -> User | None:
+        """
+        Update username and/or password for a user.
+        Calls the DAO update function.
+    """
+
+        # Appeler le DAO pour modifier en base
+        updated_user = self.user_dao.update(user_id, username, password)
+
+        # Si le DAO retourne None => l’utilisateur n’existe pas ou erreur SQL
+        if not updated_user:
+            return None
+
+        return updated_user
