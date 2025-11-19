@@ -344,23 +344,19 @@ async def user_by_id(user_id: int, current_user=Depends(verify_admin)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-
-# updating of a user
+#update user
 @app.put("/user/{id_user}", tags=["Database management : user"])
 def update_user(id_user: int, j: userModel):
-    """updating of a user"""
+    """Updating of a user"""
     logging.info(f"updating of user {id_user}")
-    user = user_service.trouver_par_id(id_user)
-    if not user:
-        raise HTTPException(status_code=404, detail="user not found")
 
-    user.username = j.username
-    user.password = j.password
-    user = user_service.modifier(user)
-    if not user:
-        raise HTTPException(status_code=404, detail="Error while updating user")
+    updated_user = user_service.update_user(id_user, j.username, j.password)
 
-    return f"user {j.username} updated"
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="User not found or update failed")
+
+    return {"message": f"user {updated_user.username} updated"}
+
 
 
 # deleting a user

@@ -101,7 +101,7 @@ class UserDao:
     def delete(self, username: str) -> bool:
         """
         Delete a user according to their username.
-        
+               
         Parameters
         ----------
         username (str): Username of the user to delete
@@ -268,3 +268,5 @@ class UserDao:
             password=updated["password"],
             is_admin=updated["isAdmin"]
         )
+
+
