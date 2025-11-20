@@ -1030,9 +1030,9 @@ class CardDao:
             cards.append(CardDao().id_search(card["idCard"]))
         return cards
 
-    def filter_dao(self, filter: Filter):
+    def filter_dao(self, filter: Filter) -> list[int]:
         """"
-        This function checks that this is filter object and selects in the database the elements
+        This method selects in the database the elements
         corresponding to the parameters of the filter
         First the function checks that type_of_filtering is in ["higher_than", "lower_than",
         "equal_to", "positive", "negative] as it is the easiest way to exclude non-filter objects
@@ -1048,7 +1048,8 @@ class CardDao:
 
         Return :
         --------
-        list(Card)
+        list[int]
+            list th ids of all the cards corresponding to the filter
         """
         try:
             variable_filtered = filter.variable_filtered
@@ -1066,7 +1067,6 @@ class CardDao:
                     sql_comparator = 'NOT ILIKE'
 
                 if variable_filtered == 'color':
-
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
                         'FROM "Card" c '
@@ -1076,11 +1076,9 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-
                     sql_parameter = [f"%{filtering_value}%"]
 
                 else:  # variable_filtered is type
-
                     sql_query = sql.SQL(
                         'SELECT "idCard"'
                         'FROM "Card" c '
@@ -1089,16 +1087,16 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-
                     sql_parameter = [f"%{filtering_value}%"]
-            else:  # numerical filter
 
+            else:  # numerical filter
                 if type_of_filtering == "higher_than":
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":
                     sql_comparator = "="
                 else:
                     sql_comparator = "<"
+
                 if variable_filtered == "power":
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1108,6 +1106,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
+
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1118,6 +1117,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
+
                 else:
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1127,6 +1127,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [filtering_value]
+
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     try:
@@ -1143,12 +1144,10 @@ class CardDao:
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
                     res = cursor.fetchall()
-            cards = []
-            for card in res:
-                cards.append(CardDao().id_search(card["idCard"]))
-            return cards
+            card_ids = [card["idCard"] for card in res]
+            return card_ids
         except Exception as e:
-            logging.error(f"The input is not a filter : {e}")
+            logging.error(f"Error in filter_dao : {e}")
             return False
 
     def get_highest_id(self) -> int:
@@ -1243,13 +1242,18 @@ class CardDao:
             logging.error(f"Error while adding the card: {e}")
             return "ERROR"
 
-    def list_favourite_cards(self, user_id):
+    def list_favourite_cards(self, user_id) -> list[Card]:
         """ Lists all the favourite card of the user corresponding to user_id
         Parameter :
         -----------
         user_id : int
             the user with the list of favourites we want to show
-            """
+
+        Return:
+        -------
+        list[Card]
+            list of cards in the list of favourites of the user
+        """
         card_dao = CardDao()
         favourites = []
         try:

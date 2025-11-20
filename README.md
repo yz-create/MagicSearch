@@ -112,7 +112,7 @@ You need to still write everything you don't want to get changed. If you keep a 
 Otherwise, same rules as creating a card when it comes to the dict values.
 
 ## To do a filtered search using the API
-The input is a list of "filter" objects, with the following format :
+The input is a list of "filter" objects and an integer 'page', with the following format :
 {
     "variable_filtered": "string",
     "type_of_filtering": "string",
@@ -124,6 +124,8 @@ The input is a list of "filter" objects, with the following format :
 "filtering_value" is a value around which the filter operates
 
 The point of the input being a list of filters is that filters can be cumulative, by listing filters you get a more precise fit to your requirements (see the example).
+
+The point of the integer is to page the results : instead of getting the thousands of cards matching your description you get for 'page'=1 the 50 first cards and for 'page'=2 the next 50 cards etc.
 
 ### Categorical filter
 "variable_filtered" : str
@@ -147,7 +149,7 @@ The point of the input being a list of filters is that filters can be cumulative
     -"power"
     -"toughness"
     -"manaValue"
-    -"edhecRank"
+    -"edhrecRank"
 
 "type_of_filtering" : str
     A filter on categorical variables can be applied in only two ways :
@@ -160,12 +162,12 @@ The point of the input being a list of filters is that filters can be cumulative
 
 ### An enlightening example
 
-If you wish to find a card that has a high edhecRank (higher than 1000) and that has also a fairly low manaValue (equal to 1) but that's not all ! This card just HAS to be a creature and be anything but blue !
+If you wish to find a card that has a high edhrecRank (higher than 1000) and that has also a fairly low manaValue (equal to 1) but that's not all ! This card just HAS to be a creature and be anything but blue !
  
-Your input would be :
+Your input in the list of filters would be :
 [
   {
-    "variable_filtered": "edhecRank",
+    "variable_filtered": "edhrecRank",
     "type_of_filtering": "higher_than",
     "filtering_value": 1000
   }, 
@@ -180,7 +182,7 @@ Your input would be :
     "filtering_value": "Creature"
   }, 
   {
-    "variable_filtered": "colour",
+    "variable_filtered": "color",
     "type_of_filtering": "negative",
     "filtering_value": "U"
   }

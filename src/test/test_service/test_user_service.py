@@ -206,3 +206,83 @@ def test_login_fail():
 
     mock_dao.get_by_username_and_password.assert_called_once_with("admin", "wrongpwd")
     assert res is None
+
+
+# -------------------------------------------------------------------
+# TESTS update_user
+# -------------------------------------------------------------------
+
+def test_update_user_username_only():
+    """Update only the username."""
+    mock_dao = MagicMock(spec=UserDao)
+
+    updated = User(username="newname", password="1234")
+    mock_dao.update.return_value = updated
+
+    service = UserService(user_dao=mock_dao)
+
+    res = service.update_user(user_id=1, username="newname", password=None)
+
+    mock_dao.update.assert_called_once_with(1, "newname", None)
+    assert res[0].username == "newname"
+    assert res[0].password == "1234"
+
+
+def test_update_user_password_only():
+    """Update only the password."""
+    mock_dao = MagicMock(spec=UserDao)
+
+    updated = User(username="bob", password="newpass")
+    mock_dao.update.return_value = updated
+
+    service = UserService(user_dao=mock_dao)
+
+    res = service.update_user(user_id=1, username=None, password="newpass")
+
+    mock_dao.update.assert_called_once_with(1, None, "newpass")
+    assert res[0].username == "bob"
+    assert res[0].password == "newpass"
+
+
+def test_update_user_both_fields():
+    """Update username and password."""
+    mock_dao = MagicMock(spec=UserDao)
+
+    updated = User(username="alice", password="xyz")
+    mock_dao.update.return_value = updated
+
+    service = UserService(user_dao=mock_dao)
+
+    res = service.update_user(user_id=1, username="alice", password="xyz")
+
+    mock_dao.update.assert_called_once_with(1, "alice", "xyz")
+    assert res[0].username == "alice"
+    assert res[0].password == "xyz"
+
+
+def test_update_user_not_found():
+    """DAO returns None => user not found or SQL error."""
+    mock_dao = MagicMock(spec=UserDao)
+    mock_dao.update.return_value = None
+
+    service = UserService(user_dao=mock_dao)
+
+    res = service.update_user(user_id=99, username="new", password="pwd")
+
+    mock_dao.update.assert_called_once_with(99, "new", "pwd")
+    assert res is None
+
+
+def test_update_user_returns_tuple():
+    """Ensure service returns (user,) tuple as coded."""
+    mock_dao = MagicMock(spec=UserDao)
+
+    updated = User(username="charles", password="pass")
+    mock_dao.update.return_value = updated
+
+    service = UserService(user_dao=mock_dao)
+
+    res = service.update_user(5, "charles", "pass")
+
+    assert isinstance(res, tuple)
+    assert isinstance(res[0], User)

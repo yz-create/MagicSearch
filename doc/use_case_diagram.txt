@@ -1,8 +1,8 @@
-@startuml
-' à coller ici pour visualiser : https://www.plantuml.com/plantuml/uml/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000
+
+' paste here to visualise : https://www.plantuml.com/plantuml/uml/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000
 ' doc : https://plantuml.com/fr/use-case-diagram
 
-
+@startuml
 left to right direction
 
 actor "User"      as user
@@ -11,55 +11,53 @@ actor "Admin"   as admin
 user <|-- admin
 
 rectangle {
-  usecase "Search cards "        as Search
-  
+  usecase "Roam in the Magic database "        as Search
   usecase "Show a random card"   as Show
-  usecase "Upload a new card"    as Upload
-  usecase "Filter" as filter
+  usecase "Apply filters" as filter
   usecase "Semantic search" as semantic
   usecase "Search by id" as id_search
   usecase "Search by name" as name_search
-  usecase "Edit a card" as edit
-  usecase "Remove a card" as remove
+  usecase "Update a card" as edit
+  usecase "Delete a card" as remove
+  usecase "Upload a card"    as Upload
   usecase "Add to favourite" as add_favourite
   usecase "Remove from favourite" as remove_favourite
   usecase "Read all users" as list_users
   usecase "Read all favourites" as list_favourites
   usecase "Add user" as add_user
+  usecase "Update user" as update_user
   usecase "Remove user" as remove_user
   usecase "Login" as login
   usecase "Create an account" as create_account
   usecase "Login" as login_admin
-  usecase "Exclude specific cards" as exclude
-  usecase "Classic filters" as classic
 
 }
 
+user-->Search
+user --> Show
+user --> create_account
+user --> login
 
-login --> Search
 
-login --> Show
 login --> add_favourite
 login --> remove_favourite
 login --> list_favourites
-user --> login
-user --> create_account
+
+
 
 
 admin --> login_admin
-login_admin --> Upload
-login_admin --> add_user
 login_admin --> remove_user
+login_admin --> update_user
 login_admin --> edit
 login_admin --> remove
+login_admin --> Upload
 login_admin --> list_users
 
 
 Search ..> filter : "include"
-filter ..> exclude : "include"
-filter ..> classic : "include"
+
 Search ..> semantic : "include"
 Search ..> id_search : "include"
 Search ..> name_search : "include"
 @enduml
-#à coller sur : https://www.plantuml.com/plantuml/uml/
