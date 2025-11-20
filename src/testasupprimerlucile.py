@@ -43,6 +43,6 @@ toughness_filter= Filter(
 filtertestlist=[toughness_filter, mana_filter, color_filterB]
 
 
-#print(cardservice.filter_search(filtertestlist))
-print(cardservice.list_favourite_cards("caramba"))
+print(cardservice.filter_search(filtertestlist))
+#print(cardservice.list_favourite_cards("caramba"))
 
