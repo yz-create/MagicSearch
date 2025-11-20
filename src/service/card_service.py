@@ -287,7 +287,6 @@ class CardService():
             logging.error(f"Error in filter_search: {e}")
             return []
 
-
     def add_favourite_card(self, user_id: int, idCard: int) -> bool:
         """"Check whether the idCard exists and adds it to the list of
         favourite cards of the user corresponding to idUser
