@@ -266,22 +266,20 @@ class CardService():
                     return []
                 card_ids_sets.append(set(ids))
 
-            # ✅ Intersection de tous les sets d'IDs
             common_ids = set.intersection(*card_ids_sets)
 
             if not common_ids:
                 logging.warning(f"No common results for all filters")
                 return []
 
-            # ✅ UNE SEULE requête pour récupérer tous les objets Card
-            result_cards = []
+            magicsearch_filtered = []
             for card_id in common_ids:
                 card = CardDao().id_search(card_id)
                 if card:
-                    result_cards.append(card)
+                    magicsearch_filtered.append(card)
 
-            logging.info(f"Filter search completed: {len(result_cards)} cards found")
-            return result_cards
+            logging.info(f"Filter search completed: {len(magicsearch_filtered)} cards found")
+            return magicsearch_filtered
 
         except Exception as e:
             logging.error(f"Error in filter_search: {e}")
