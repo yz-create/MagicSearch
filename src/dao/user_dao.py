@@ -59,7 +59,7 @@ class UserDao:
             with conn.cursor() as cursor:
                 # vérifier si le username existe
                 cursor.execute(
-                    'SELECT 1 FROM defaultdb."User" WHERE "username" = %(username)s;',
+                'SELECT 1 FROM defaultdb."User" WHERE "username" = %(username)s;',
                     {"username": user.username}
                 )
                 if cursor.fetchone() is not None:

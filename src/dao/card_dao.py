@@ -1031,7 +1031,7 @@ class CardDao:
             cards.append(CardDao().id_search(card["idCard"]))
         return cards
 
-    def filter_dao(self, filter: Filter):
+    def filter_dao(self, filter: Filter)->list[int]:
         """"
         This function checks that this is filter object and selects in the database the elements
         corresponding to the parameters of the filter
@@ -1244,13 +1244,18 @@ class CardDao:
             logging.error(f"Error while adding the card: {e}")
             return "ERROR"
 
-    def list_favourite_cards(self, user_id):
+    def list_favourite_cards(self, user_id) -> list[Card]:
         """ Lists all the favourite card of the user corresponding to user_id
         Parameter :
         -----------
         user_id : int
             the user with the list of favourites we want to show
-            """
+
+        Return:
+        -------
+        list[Card]
+            list of cards in the list of favourites of the user    
+        """
         card_dao = CardDao()
         favourites = []
         try:
