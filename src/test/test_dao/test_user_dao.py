@@ -174,46 +174,41 @@ class TestUserDao(unittest.TestCase):
         self.assertIsNone(user)
         mock_cursor.execute.assert_called_once()
 
-
-
-if __name__ == "__main__":
-    import pytest
-    pytest.main([__file__])
-
     # -------------------------------------------------------------------
-# TESTS update
-# -------------------------------------------------------------------
+    # TESTS update
+    # -------------------------------------------------------------------
 
     @patch("dao.user_dao.DBConnection")
-    def test_update_user_not_found(mock_db):
+    def test_update_user_not_found(self, mock_db_connection):
         """L'utilisateur n'existe pas -> return None"""
 
-    # Mock connexion + curseur
+        # Mock connexion + curseur
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
 
-        mock_db.return_value.connection.__enter__.return_value = mock_conn
+        mock_db_connection.return_value.connection.__enter__.return_value = mock_conn
         mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
 
         # Le SELECT renvoie None
         mock_cursor.fetchone.return_value = None
 
-        dao = UserDao()
+        fake_db = mock_db_connection.return_value
+        dao = UserDao(fake_db)
+        
         res = dao.update(1, "new", "pwd")
 
         # 1 seul appel : SELECT
         mock_cursor.execute.assert_called_once()
-        assert res is None
-
+        self.assertIsNone(res)
 
     @patch("dao.user_dao.DBConnection")
-    def test_update_user_success(mock_db):
+    def test_update_user_success(self, mock_db_connection):
         """Mise à jour complète OK"""
 
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
 
-        mock_db.return_value.connection.__enter__.return_value = mock_conn
+        mock_db_connection.return_value.connection.__enter__.return_value = mock_conn
         mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
 
         # 1er fetch : utilisateur existant
@@ -232,32 +227,33 @@ if __name__ == "__main__":
             }
         ]
 
-        dao = UserDao()
+        fake_db = mock_db_connection.return_value
+        dao = UserDao(fake_db)
+        
         res = dao.update(1, "new_username", "new_pwd")
 
         # Vérification de la valeur retournée
-        assert isinstance(res, User)
-        assert res.user_id == 1
-        assert res.username == "new_username"
-        assert res.password == "new_pwd"
-        assert res.is_admin is False
+        self.assertIsInstance(res, User)
+        self.assertEqual(res.user_id, 1)
+        self.assertEqual(res.username, "new_username")
+        self.assertEqual(res.password, "new_pwd")
+        self.assertFalse(res.is_admin)
 
         # Vérification que la requête UPDATE a bien été appelée
         update_call = mock_cursor.execute.call_args_list[1]  # le 2e appel
         query, params = update_call[0][0], update_call[0][1]
 
-        assert "UPDATE" in query
-        assert params == ("new_username", "new_pwd", 1)
-
+        self.assertIn("UPDATE", query)
+        self.assertEqual(params, ("new_username", "new_pwd", 1))
 
     @patch("dao.user_dao.DBConnection")
-    def test_update_user_update_failed(mock_db):
+    def test_update_user_update_failed(self, mock_db_connection):
         """SELECT OK mais UPDATE retourne None -> échec"""
 
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
 
-        mock_db.return_value.connection.__enter__.return_value = mock_conn
+        mock_db_connection.return_value.connection.__enter__.return_value = mock_conn
         mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
 
         # SELECT renvoie un utilisateur
@@ -266,26 +262,34 @@ if __name__ == "__main__":
             None   # UPDATE RETURNING -> None
         ]
 
-        dao = UserDao()
+        fake_db = mock_db_connection.return_value
+        dao = UserDao(fake_db)
+        
         res = dao.update(1, "x", "y")
 
-        assert res is None
-
+        self.assertIsNone(res)
 
     @patch("dao.user_dao.DBConnection")
-    def test_update_user_exception(mock_db):
+    def test_update_user_exception(self, mock_db_connection):
         """Une exception SQL doit renvoyer None"""
 
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
 
-        mock_db.return_value.connection.__enter__.return_value = mock_conn
+        mock_db_connection.return_value.connection.__enter__.return_value = mock_conn
         mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
 
         # Simuler une exception lors du SELECT
         mock_cursor.execute.side_effect = Exception("SQL ERROR")
 
-        dao = UserDao()
+        fake_db = mock_db_connection.return_value
+        dao = UserDao(fake_db)
+        
         res = dao.update(1, "x", "y")
 
-        assert res is None
+        self.assertIsNone(res)
+
+
+if __name__ == "__main__":
+    import pytest
+    pytest.main([__file__])
