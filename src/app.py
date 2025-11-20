@@ -239,14 +239,14 @@ async def semantic_search_shortEmbed(search):
 
 # get a filtered list of cards
 # card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.post("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
+@app.get("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
 async def filter_search(filters: List[AbstractFilterModel]):
     """Filters the database based on a list of filters"""
     logging.info("Filters the database based on a list of filters")
     cards = card_service.filter_search(filters)
 
-    return cards
-
+    return [card.show_card() for card in cards]
+    
 
 # FAVOURITE CARDS
 # add a favourite card
@@ -311,8 +311,8 @@ async def list_all_users(current_user=Depends(verify_admin)):
     logging.info(f"List all users requested by {getattr(current_user, 'username', current_user)}")
     return user_service.list_all(current_user)
 
-# delete a user
 
+# delete a user
 @app.delete("/user/{username}", tags=["Database management : user"])
 async def delete_user(username: str, current_user=Depends(verify_admin)):
     """Deleting a user, only for admins."""
@@ -344,7 +344,8 @@ async def user_by_id(user_id: int, current_user=Depends(verify_admin)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-#update user
+
+# update user
 @app.put("/user/{id_user}", tags=["Database management : user"])
 def update_user(
     id_user: int,
@@ -367,7 +368,6 @@ def update_user(
         raise HTTPException(status_code=404, detail="User not found or update failed")
 
     return {"message": f"user {updated_user.username} updated successfully"}
-
 
 
 # deleting a user

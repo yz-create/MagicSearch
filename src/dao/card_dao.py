@@ -982,6 +982,7 @@ class CardDao:
 
         return (card)
 
+
     def get_list_from_fetchall(self, res, column_name: str) -> list:
         """
         To transform a fetchall (which is a RealDictRow) of elements with one column into a list
@@ -1048,7 +1049,8 @@ class CardDao:
 
         Return :
         --------
-        list(Card)
+        list[int]
+            list th ids of all the cards corresponding to the filter 
         """
         try:
             variable_filtered = filter.variable_filtered
@@ -1066,7 +1068,6 @@ class CardDao:
                     sql_comparator = 'NOT ILIKE'
 
                 if variable_filtered == 'color':
-
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
                         'FROM "Card" c '
@@ -1076,11 +1077,9 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-
                     sql_parameter = [f"%{filtering_value}%"]
 
                 else:  # variable_filtered is type
-
                     sql_query = sql.SQL(
                         'SELECT "idCard"'
                         'FROM "Card" c '
@@ -1089,16 +1088,16 @@ class CardDao:
                         ).format(
                         sql.SQL(sql_comparator)
                     )
-
                     sql_parameter = [f"%{filtering_value}%"]
-            else:  # numerical filter
 
+            else:  # numerical filter
                 if type_of_filtering == "higher_than":
                     sql_comparator = ">"
                 elif type_of_filtering == "equal_to":
                     sql_comparator = "="
                 else:
                     sql_comparator = "<"
+
                 if variable_filtered == "power":
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1108,6 +1107,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
+                
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1118,6 +1118,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
+                
                 else:
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1127,6 +1128,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [filtering_value]
+
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     try:
@@ -1143,12 +1145,10 @@ class CardDao:
                     cursor.execute('SET search_path TO defaultdb, public;')
                     cursor.execute(sql_query, sql_parameter)
                     res = cursor.fetchall()
-            cards = []
-            for card in res:
-                cards.append(CardDao().id_search(card["idCard"]))
-            return cards
+            card_ids = [card["idCard"] for card in res]
+            return card_ids
         except Exception as e:
-            logging.error(f"The input is not a filter : {e}")
+            logging.error(f"Error in filter_dao : {e}")
             return False
 
     def get_highest_id(self) -> int:
@@ -1165,6 +1165,7 @@ class CardDao:
                 res = cursor.fetchone()
 
         return res['max']
+
 
     def get_similar_entries(self, conn, search_emb, use_short_embed=False):
         """

@@ -226,6 +226,7 @@ class CardService():
                 variable_filtered = filter.variable_filtered
                 type_of_filtering = filter.type_of_filtering
                 filtering_value = filter.filtering_value
+
                 if type_of_filtering in ["positive", "negative"]:  # categorical filter
                     if variable_filtered not in ["type", "color"]:
                         raise ValueError(
@@ -233,6 +234,7 @@ class CardService():
                     if not isinstance(filtering_value, str):
                         raise TypeError(
                             "filtering_value must be a string")
+
                 if type_of_filtering in [
                     "higher_than", "lower_than", "equal_to"
                 ]:  # numerical filter
@@ -243,6 +245,7 @@ class CardService():
                             "variable_filtered must be in the following list :'manaValue', "
                             "'defense', 'edhrecRank', 'toughness', 'power'"
                         )
+
                 if type_of_filtering not in [
                     "higher_than", "lower_than", "equal_to", "positive", "negative"
                 ]:
@@ -250,29 +253,40 @@ class CardService():
                         "This is not a filter : type_of_filtering can only take "
                         "'higher_than', 'lower_than', 'equal_to', 'positive' or 'negative' as input"
                         )
-            # we  start a basic list with the first filter in our list
-            filter = filters[0]
-            Magicsearch_filtered = CardDao().filter_dao(filter) or []
-            # we do the same for all the filters and everytime, we only keep in magicsearch_filtered
-            # only the common cards
-            if len(filters) >= 2:
-                for filter in filters[1:]:  # checker que je parcours toute la liste (lucile)
-                    new_filter_list = CardDao().filter_dao(filter) or []
-                    # extract the id of every card
-                    new_filter_list_idCard = {
-                        d.get("idCard") for d in new_filter_list if "idCard" in d}
+                if not filters:
+                    logging.warning("Empty filters list")
+                    return []
 
-                    # keeping in Magicsearch_filtered only the common id_card
-                    Magicsearch_filtered = [
-                        d for d in Magicsearch_filtered if d.get("idCard") in new_filter_list_idCard
-                    ]
-            return Magicsearch_filtered
-            logging.info("Your filter is valid !")
-            if Magicsearch_filtered == []:
-                logging.warning(f"No results for filters: {filters}")
+            # we apply each filter and get the card ids corresponding 
+            card_ids_sets = []
+            for filter in filters:
+                ids = CardDao().filter_dao(filter)
+                if not ids:  # Si un filtre ne retourne rien, le résultat final est vide
+                    logging.warning(f"No results for filter: {filter}")
+                    return []
+                card_ids_sets.append(set(ids))
+
+            # ✅ Intersection de tous les sets d'IDs
+            common_ids = set.intersection(*card_ids_sets)
+
+            if not common_ids:
+                logging.warning(f"No common results for all filters")
+                return []
+
+            # ✅ UNE SEULE requête pour récupérer tous les objets Card
+            result_cards = []
+            for card_id in common_ids:
+                card = CardDao().id_search(card_id)
+                if card:
+                    result_cards.append(card)
+
+            logging.info(f"Filter search completed: {len(result_cards)} cards found")
+            return result_cards
+
         except Exception as e:
-            logging.error(f"The input is not a filter : {e}")
-            return False
+            logging.error(f"Error in filter_search: {e}")
+            return []
+
 
     def add_favourite_card(self, user_id: int, idCard: int) -> bool:
         """"Check whether the idCard exists and adds it to the list of

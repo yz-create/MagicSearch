@@ -147,7 +147,7 @@ The point of the input being a list of filters is that filters can be cumulative
     -"power"
     -"toughness"
     -"manaValue"
-    -"edhecRank"
+    -"edhrecRank"
 
 "type_of_filtering" : str
     A filter on categorical variables can be applied in only two ways :
@@ -160,12 +160,12 @@ The point of the input being a list of filters is that filters can be cumulative
 
 ### An enlightening example
 
-If you wish to find a card that has a high edhecRank (higher than 1000) and that has also a fairly low manaValue (equal to 1) but that's not all ! This card just HAS to be a creature and be anything but blue !
+If you wish to find a card that has a high edhrecRank (higher than 1000) and that has also a fairly low manaValue (equal to 1) but that's not all ! This card just HAS to be a creature and be anything but blue !
  
 Your input would be :
 [
   {
-    "variable_filtered": "edhecRank",
+    "variable_filtered": "edhrecRank",
     "type_of_filtering": "higher_than",
     "filtering_value": 1000
   }, 
@@ -180,7 +180,7 @@ Your input would be :
     "filtering_value": "Creature"
   }, 
   {
-    "variable_filtered": "colour",
+    "variable_filtered": "color",
     "type_of_filtering": "negative",
     "filtering_value": "U"
   }
