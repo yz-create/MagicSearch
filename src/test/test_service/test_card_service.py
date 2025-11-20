@@ -11,13 +11,13 @@ from service.card_service import CardService
 
 @pytest.fixture
 def card_service():
-    """Fixture pour créer une instance de CardService"""
+    """Fixture to create a CardService instance"""
     return CardService()
 
 
 @pytest.fixture
 def sample_card():
-    """Fixture pour créer une carte exemple"""
+    """Fixture to create a sample card"""
     return Card(
         id_card=1,
         layout="normal",
@@ -33,7 +33,7 @@ def sample_card():
 
 @pytest.fixture
 def sample_filter():
-    """Fixture pour créer un filtre exemple"""
+    """Fixture to create a sample filter"""
     return Filter(
         variable_filtered="manaValue",
         type_of_filtering="equal_to",
@@ -41,11 +41,11 @@ def sample_filter():
     )
 
 
-# ========== Tests pour create_card ==========
+# ========== Tests for create_card ==========
 
 @patch('service.card_service.CardDao')
 def test_create_card_success(mock_dao, card_service, sample_card):
-    """Test de création réussie d'une carte"""
+    """Test successful card creation"""
     mock_dao_instance = Mock()
     mock_dao_instance.create_card.return_value = True
     mock_dao.return_value = mock_dao_instance
@@ -57,7 +57,7 @@ def test_create_card_success(mock_dao, card_service, sample_card):
 
 
 def test_create_card_invalid_input(card_service, capsys):
-    """Test de création avec une entrée invalide"""
+    """Test card creation with invalid input"""
     result = card_service.create_card("not a card")
     
     assert result is None
@@ -67,7 +67,7 @@ def test_create_card_invalid_input(card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_create_card_db_exception(mock_dao, card_service, sample_card, capsys):
-    """Test de création avec une exception de base de données"""
+    """Test card creation with database exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.create_card.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -79,11 +79,11 @@ def test_create_card_db_exception(mock_dao, card_service, sample_card, capsys):
     assert "Failed to create card in DB" in captured.out
 
 
-# ========== Tests pour update_card ==========
+# ========== Tests for update_card ==========
 
 @patch('service.card_service.CardDao')
 def test_update_card_success(mock_dao, card_service, sample_card):
-    """Test de mise à jour réussie d'une carte"""
+    """Test successful card update"""
     mock_dao_instance = Mock()
     mock_dao_instance.update_card.return_value = True
     mock_dao.return_value = mock_dao_instance
@@ -95,7 +95,7 @@ def test_update_card_success(mock_dao, card_service, sample_card):
 
 
 def test_update_card_invalid_input(card_service, capsys):
-    """Test de mise à jour avec une entrée invalide"""
+    """Test card update with invalid input"""
     result = card_service.update_card(123)
     
     assert result is None
@@ -105,7 +105,7 @@ def test_update_card_invalid_input(card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_update_card_db_exception(mock_dao, card_service, sample_card, capsys):
-    """Test de mise à jour avec une exception de base de données"""
+    """Test card update with database exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.update_card.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -117,11 +117,11 @@ def test_update_card_db_exception(mock_dao, card_service, sample_card, capsys):
     assert "Failed to update card in DB" in captured.out
 
 
-# ========== Tests pour delete_card ==========
+# ========== Tests for delete_card ==========
 
 @patch('service.card_service.CardDao')
 def test_delete_card_success(mock_dao, card_service):
-    """Test de suppression réussie d'une carte"""
+    """Test successful card deletion"""
     mock_dao_instance = Mock()
     mock_dao_instance.delete_card.return_value = True
     mock_dao.return_value = mock_dao_instance
@@ -133,7 +133,7 @@ def test_delete_card_success(mock_dao, card_service):
 
 
 def test_delete_card_invalid_input(card_service, capsys):
-    """Test de suppression avec une entrée invalide"""
+    """Test card deletion with invalid input"""
     result = card_service.delete_card("not an int")
     
     assert result is None
@@ -143,7 +143,7 @@ def test_delete_card_invalid_input(card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_delete_card_db_exception(mock_dao, card_service, capsys):
-    """Test de suppression avec une exception de base de données"""
+    """Test card deletion with database exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.delete_card.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -155,11 +155,11 @@ def test_delete_card_db_exception(mock_dao, card_service, capsys):
     assert "Failed to delete card from DB" in captured.out
 
 
-# ========== Tests pour id_search ==========
+# ========== Tests for id_search ==========
 
 @patch('service.card_service.CardDao')
 def test_id_search_success(mock_dao, card_service, sample_card):
-    """Test de recherche par ID réussie"""
+    """Test successful search by ID"""
     mock_dao_instance = Mock()
     mock_dao_instance.get_highest_id.return_value = 100
     mock_dao_instance.id_search.return_value = sample_card
@@ -172,7 +172,7 @@ def test_id_search_success(mock_dao, card_service, sample_card):
 
 
 def test_id_search_invalid_type(card_service, capsys):
-    """Test de recherche avec un type d'ID invalide"""
+    """Test search with invalid ID type"""
     result = card_service.id_search("not an int")
     
     assert result is None
@@ -181,7 +181,7 @@ def test_id_search_invalid_type(card_service, capsys):
 
 
 def test_id_search_negative_id(card_service, capsys):
-    """Test de recherche avec un ID négatif"""
+    """Test search with negative ID"""
     result = card_service.id_search(-1)
     
     assert result is None
@@ -191,7 +191,7 @@ def test_id_search_negative_id(card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_id_search_id_too_high(mock_dao, card_service, capsys):
-    """Test de recherche avec un ID trop élevé"""
+    """Test search with ID too high"""
     mock_dao_instance = Mock()
     mock_dao_instance.get_highest_id.return_value = 100
     mock_dao.return_value = mock_dao_instance
@@ -205,7 +205,7 @@ def test_id_search_id_too_high(mock_dao, card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_id_search_db_exception_get_max_id(mock_dao, card_service, capsys):
-    """Test de recherche avec exception lors de la récupération de l'ID max"""
+    """Test search with exception when retrieving max ID"""
     mock_dao_instance = Mock()
     mock_dao_instance.get_highest_id.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -219,7 +219,7 @@ def test_id_search_db_exception_get_max_id(mock_dao, card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_id_search_db_exception_fetch(mock_dao, card_service, capsys):
-    """Test de recherche avec exception lors de la récupération de la carte"""
+    """Test search with exception when fetching card"""
     mock_dao_instance = Mock()
     mock_dao_instance.get_highest_id.return_value = 100
     mock_dao_instance.id_search.side_effect = Exception("DB Error")
@@ -232,11 +232,11 @@ def test_id_search_db_exception_fetch(mock_dao, card_service, capsys):
     assert "Failed to fetch card from DB" in captured.out
 
 
-# ========== Tests pour name_search ==========
+# ========== Tests for name_search ==========
 
 @patch('service.card_service.CardDao')
 def test_name_search_success(mock_dao, card_service, sample_card):
-    """Test de recherche par nom réussie"""
+    """Test successful search by name"""
     mock_dao_instance = Mock()
     mock_dao_instance.name_search.return_value = [sample_card]
     mock_dao.return_value = mock_dao_instance
@@ -248,7 +248,7 @@ def test_name_search_success(mock_dao, card_service, sample_card):
 
 
 def test_name_search_invalid_type(card_service, capsys):
-    """Test de recherche avec un type de nom invalide"""
+    """Test search with invalid name type"""
     result = card_service.name_search(123)
     
     assert result is None
@@ -257,7 +257,7 @@ def test_name_search_invalid_type(card_service, capsys):
 
 
 def test_name_search_empty_string(card_service, capsys):
-    """Test de recherche avec un nom vide"""
+    """Test search with empty name"""
     result = card_service.name_search("   ")
     
     assert result is None
@@ -267,7 +267,7 @@ def test_name_search_empty_string(card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_name_search_db_exception(mock_dao, card_service, capsys):
-    """Test de recherche avec exception de base de données"""
+    """Test search with database exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.name_search.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -279,12 +279,12 @@ def test_name_search_db_exception(mock_dao, card_service, capsys):
     assert "Failed to fetch card from DB" in captured.out
 
 
-# ========== Tests pour semantic_search ==========
+# ========== Tests for semantic_search ==========
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.embedding')
 def test_semantic_search_success(mock_embedding, mock_dao, card_service, sample_card):
-    """Test de recherche sémantique réussie"""
+    """Test successful semantic search"""
     mock_embedding.return_value = [0.1, 0.2, 0.3]
     
     mock_dao_instance = Mock()
@@ -300,12 +300,12 @@ def test_semantic_search_success(mock_embedding, mock_dao, card_service, sample_
     mock_embedding.assert_called_once_with("Blue bird")
 
 
-# ========== Tests pour semantic_search_shortEmbed ==========
+# ========== Tests for semantic_search_shortEmbed ==========
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.embedding')
 def test_semantic_search_short_embed_success(mock_embedding, mock_dao, card_service, sample_card):
-    """Test de recherche sémantique avec embedding court réussie"""
+    """Test successful semantic search with short embedding"""
     mock_embedding.return_value = [0.1, 0.2, 0.3]
     
     mock_dao_instance = Mock()
@@ -321,12 +321,12 @@ def test_semantic_search_short_embed_success(mock_embedding, mock_dao, card_serv
     mock_embedding.assert_called_once_with("Red dragon")
 
 
-# ========== Tests pour view_random_card ==========
+# ========== Tests for view_random_card ==========
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.random.randint')
 def test_view_random_card_success(mock_randint, mock_dao, card_service, sample_card):
-    """Test d'affichage d'une carte aléatoire réussie"""
+    """Test successful random card display"""
     mock_randint.return_value = 5
     
     mock_dao_instance = Mock()
@@ -340,11 +340,11 @@ def test_view_random_card_success(mock_randint, mock_dao, card_service, sample_c
     mock_randint.assert_called_once_with(0, 100)
 
 
-# ========== Tests pour filter_search ==========
+# ========== Tests for filter_search ==========
 
 @patch('service.card_service.CardDao')
 def test_filter_search_success_single_filter(mock_dao, card_service, sample_card):
-    """Test de recherche avec un seul filtre réussie"""
+    """Test successful search with single filter"""
     filter1 = Filter(
         variable_filtered="manaValue",
         type_of_filtering="equal_to",
@@ -364,7 +364,7 @@ def test_filter_search_success_single_filter(mock_dao, card_service, sample_card
 
 @patch('service.card_service.CardDao')
 def test_filter_search_success_multiple_filters(mock_dao, card_service, sample_card):
-    """Test de recherche avec plusieurs filtres réussie"""
+    """Test successful search with multiple filters"""
     filter1 = Filter(
         variable_filtered="manaValue",
         type_of_filtering="equal_to",
@@ -383,12 +383,12 @@ def test_filter_search_success_multiple_filters(mock_dao, card_service, sample_c
 
     result = card_service.filter_search([filter1, filter2])
 
-    # L'intersection de [1,2,3] et [2,3,4] est [2,3]
+    # Intersection of [1,2,3] and [2,3,4] is [2,3]
     assert len(result) == 2
 
 
 def test_filter_search_invalid_categorical_variable(card_service):
-    """Test de recherche avec une variable catégorielle invalide"""
+    """Test search with invalid categorical variable"""
     filter1 = Filter(
         variable_filtered="invalid_var",
         type_of_filtering="positive",
@@ -401,7 +401,7 @@ def test_filter_search_invalid_categorical_variable(card_service):
 
 
 def test_filter_search_invalid_numerical_variable(card_service):
-    """Test de recherche avec une variable numérique invalide"""
+    """Test search with invalid numerical variable"""
     filter1 = Filter(
         variable_filtered="invalid_var",
         type_of_filtering="equal_to",
@@ -414,7 +414,7 @@ def test_filter_search_invalid_numerical_variable(card_service):
 
 
 def test_filter_search_invalid_filter_type(card_service):
-    """Test de recherche avec un type de filtre invalide"""
+    """Test search with invalid filter type"""
     filter1 = Filter(
         variable_filtered="manaValue",
         type_of_filtering="invalid_type",
@@ -427,11 +427,11 @@ def test_filter_search_invalid_filter_type(card_service):
 
 
 def test_filter_search_invalid_filtering_value_type(card_service):
-    """Test avec une valeur de filtrage de type invalide pour un filtre catégoriel"""
+    """Test with invalid filtering value type for categorical filter"""
     filter1 = Filter(
         variable_filtered="color",
         type_of_filtering="positive",
-        filtering_value=123  # Devrait être un string
+        filtering_value=123  # Should be a string
     )
     
     result = card_service.filter_search([filter1])
@@ -441,7 +441,7 @@ def test_filter_search_invalid_filtering_value_type(card_service):
 
 @patch('service.card_service.CardDao')
 def test_filter_search_no_common_results(mock_dao, card_service):
-    """Test de recherche sans résultats communs"""
+    """Test search with no common results"""
     filter1 = Filter(
         variable_filtered="manaValue",
         type_of_filtering="equal_to",
@@ -454,7 +454,7 @@ def test_filter_search_no_common_results(mock_dao, card_service):
     )
     
     mock_dao_instance = Mock()
-    mock_dao_instance.filter_dao.side_effect = [[1, 2], [3, 4]]  # Pas d'intersection
+    mock_dao_instance.filter_dao.side_effect = [[1, 2], [3, 4]]  # No intersection
     mock_dao.return_value = mock_dao_instance
 
     result = card_service.filter_search([filter1, filter2])
@@ -464,7 +464,7 @@ def test_filter_search_no_common_results(mock_dao, card_service):
 
 @patch('service.card_service.CardDao')
 def test_filter_search_one_filter_returns_empty(mock_dao, card_service):
-    """Test de recherche où un filtre ne retourne rien"""
+    """Test search where one filter returns nothing"""
     filter1 = Filter(
         variable_filtered="manaValue",
         type_of_filtering="equal_to",
@@ -480,11 +480,11 @@ def test_filter_search_one_filter_returns_empty(mock_dao, card_service):
     assert result == []
 
 
-# ========== Tests pour add_favourite_card ==========
+# ========== Tests for add_favourite_card ==========
 
 @patch('service.card_service.CardDao')
 def test_add_favourite_card_success_added(mock_dao, card_service, capsys):
-    """Test d'ajout réussi d'une carte aux favoris"""
+    """Test successful addition of card to favorites"""
     mock_dao_instance = Mock()
     mock_dao_instance.add_favourite_card.return_value = "ADDED"
     mock_dao.return_value = mock_dao_instance
@@ -498,7 +498,7 @@ def test_add_favourite_card_success_added(mock_dao, card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_add_favourite_card_already_exists(mock_dao, card_service, capsys):
-    """Test d'ajout d'une carte déjà dans les favoris"""
+    """Test adding card already in favorites"""
     mock_dao_instance = Mock()
     mock_dao_instance.add_favourite_card.return_value = "EXISTS"
     mock_dao.return_value = mock_dao_instance
@@ -512,7 +512,7 @@ def test_add_favourite_card_already_exists(mock_dao, card_service, capsys):
 
 @patch('service.card_service.CardDao')
 def test_add_favourite_card_error(mock_dao, card_service, capsys):
-    """Test d'ajout avec erreur"""
+    """Test adding card with error"""
     mock_dao_instance = Mock()
     mock_dao_instance.add_favourite_card.return_value = "ERROR"
     mock_dao.return_value = mock_dao_instance
@@ -525,14 +525,14 @@ def test_add_favourite_card_error(mock_dao, card_service, capsys):
 
 
 def test_add_favourite_card_invalid_user_id_type(card_service):
-    """Test d'ajout avec un type d'user_id invalide"""
+    """Test adding card with invalid user_id type"""
     result = card_service.add_favourite_card("not an int", 10)
 
     assert result is False
 
 
 def test_add_favourite_card_invalid_card_id_type(card_service):
-    """Test d'ajout avec un type d'idCard invalide"""
+    """Test adding card with invalid idCard type"""
     result = card_service.add_favourite_card(1, "not an int")
 
     assert result is False
@@ -540,7 +540,7 @@ def test_add_favourite_card_invalid_card_id_type(card_service):
 
 @patch('service.card_service.CardDao')
 def test_add_favourite_card_exception(mock_dao, card_service):
-    """Test d'ajout avec exception"""
+    """Test adding card with exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.add_favourite_card.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -550,11 +550,11 @@ def test_add_favourite_card_exception(mock_dao, card_service):
     assert result is False
 
 
-# ========== Tests pour list_favourite_cards ==========
+# ========== Tests for list_favourite_cards ==========
 
 @patch('service.card_service.CardDao')
 def test_list_favourite_cards_success(mock_dao, card_service, sample_card):
-    """Test de listage des cartes favorites réussi"""
+    """Test successful listing of favorite cards"""
     mock_dao_instance = Mock()
     mock_dao_instance.list_favourite_cards.return_value = [sample_card]
     mock_dao.return_value = mock_dao_instance
@@ -566,7 +566,7 @@ def test_list_favourite_cards_success(mock_dao, card_service, sample_card):
 
 
 def test_list_favourite_cards_invalid_user_id_type(card_service):
-    """Test de listage avec un type d'user_id invalide"""
+    """Test listing with invalid user_id type"""
     result = card_service.list_favourite_cards("not an int")
 
     assert result is False
@@ -574,7 +574,7 @@ def test_list_favourite_cards_invalid_user_id_type(card_service):
 
 @patch('service.card_service.CardDao')
 def test_list_favourite_cards_exception(mock_dao, card_service):
-    """Test de listage avec exception"""
+    """Test listing with exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.list_favourite_cards.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -584,11 +584,11 @@ def test_list_favourite_cards_exception(mock_dao, card_service):
     assert result is False
 
 
-# ========== Tests pour delete_favourite_card ==========
+# ========== Tests for delete_favourite_card ==========
 
 @patch('service.card_service.CardDao')
 def test_delete_favourite_card_success(mock_dao, card_service):
-    """Test de suppression d'une carte des favoris réussie"""
+    """Test successful removal of card from favorites"""
     mock_dao_instance = Mock()
     mock_dao_instance.delete_favourite_card.return_value = True
     mock_dao.return_value = mock_dao_instance
@@ -600,14 +600,14 @@ def test_delete_favourite_card_success(mock_dao, card_service):
 
 
 def test_delete_favourite_card_invalid_user_id_type(card_service):
-    """Test de suppression avec un type d'user_id invalide"""
+    """Test removal with invalid user_id type"""
     result = card_service.delete_favourite_card("not an int", 10)
 
     assert result is False
 
 
 def test_delete_favourite_card_invalid_card_id_type(card_service):
-    """Test de suppression avec un type d'idCard invalide"""
+    """Test removal with invalid idCard type"""
     result = card_service.delete_favourite_card(1, "not an int")
 
     assert result is False
@@ -615,7 +615,7 @@ def test_delete_favourite_card_invalid_card_id_type(card_service):
 
 @patch('service.card_service.CardDao')
 def test_delete_favourite_card_exception(mock_dao, card_service):
-    """Test de suppression avec exception"""
+    """Test removal with exception"""
     mock_dao_instance = Mock()
     mock_dao_instance.delete_favourite_card.side_effect = Exception("DB Error")
     mock_dao.return_value = mock_dao_instance
@@ -625,11 +625,11 @@ def test_delete_favourite_card_exception(mock_dao, card_service):
     assert result is False
 
 
-# ========== Tests pour cardModel_to_Card ==========
+# ========== Tests for cardModel_to_Card ==========
 
 def test_card_model_to_card_conversion(card_service):
-    """Test de conversion d'un modèle de carte en objet Card"""
-    # Créer un mock de card_model avec tous les attributs nécessaires
+    """Test conversion from card model to Card object"""
+    # Create a mock card_model with all necessary attributes
     card_model = Mock()
     card_model.id_card = 1
     card_model.layout = "normal"
@@ -676,12 +676,12 @@ def test_card_model_to_card_conversion(card_service):
     assert result.mana_value == 3
 
 
-# ========== Tests d'intégration ==========
+# ========== Integration tests ==========
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.random.randint')
 def test_integration_random_card_returns_valid_card(mock_randint, mock_dao):
-    """Test d'intégration : view_random_card retourne une carte valide"""
+    """Integration test: view_random_card returns a valid card"""
     mock_randint.return_value = 5
     
     sample_card = Card(
@@ -705,7 +705,7 @@ def test_integration_random_card_returns_valid_card(mock_randint, mock_dao):
 
 @patch('service.card_service.CardDao')
 def test_integration_filter_search_with_multiple_filters_returns_intersection(mock_dao):
-    """Test d'intégration : filter_search retourne bien l'intersection des résultats"""
+    """Integration test: filter_search returns the intersection of results"""
     filter1 = Filter("manaValue", "equal_to", 3)
     filter2 = Filter("power", "higher_than", 2)
     
@@ -724,8 +724,8 @@ def test_integration_filter_search_with_multiple_filters_returns_intersection(mo
     
     mock_dao_instance = Mock()
     mock_dao_instance.filter_dao.side_effect = [
-        [1, 2, 3, 4],  # Résultats du premier filtre
-        [2, 3, 5, 6]   # Résultats du deuxième filtre
+        [1, 2, 3, 4],  # Results from first filter
+        [2, 3, 5, 6]   # Results from second filter
     ]
     mock_dao_instance.id_search.side_effect = [card1, card2]
     mock_dao.return_value = mock_dao_instance
@@ -733,7 +733,7 @@ def test_integration_filter_search_with_multiple_filters_returns_intersection(mo
     service = CardService()
     result = service.filter_search([filter1, filter2])
 
-    # L'intersection est [2, 3]
+    # Intersection is [2, 3]
     assert len(result) == 2
     assert all(card.id_card in [2, 3] for card in result)
 
