@@ -346,16 +346,27 @@ async def user_by_id(user_id: int, current_user=Depends(verify_admin)):
 
 #update user
 @app.put("/user/{id_user}", tags=["Database management : user"])
-def update_user(id_user: int, j: userModel):
-    """Updating of a user"""
-    logging.info(f"updating of user {id_user}")
+def update_user(
+    id_user: int,
+    j: userModel,
+    current_user = Depends(verify_token)
+):
+    """Updating a user securely (self-update or admin)"""
+    logging.info(f"Updating of user {id_user}")
+
+    # Autoriser self-update OU admin
+    if current_user.user_id != id_user and not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to update this user"
+        )
 
     updated_user = user_service.update_user(id_user, j.username, j.password)
 
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found or update failed")
 
-    return {"message": f"user {updated_user.username} updated"}
+    return {"message": f"user {updated_user.username} updated successfully"}
 
 
 
