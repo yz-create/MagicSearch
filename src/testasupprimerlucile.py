@@ -14,7 +14,7 @@ color_filterW = Filter(
     type_of_filtering="positive",
     filtering_value="W"
 )
-color_filterB = Filter(
+color_filterY = Filter(
     variable_filtered="color",
     type_of_filtering="positive",
     filtering_value="B"
@@ -40,7 +40,7 @@ toughness_filter= Filter(
     filtering_value=1
 )
 #print(carddao.filter_dao(type_filter))
-filtertestlist=[toughness_filter, mana_filter, color_filterB]
+filtertestlist=[color_filterY]
 
 
 print(cardservice.filter_search(filtertestlist))
