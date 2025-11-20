@@ -29,7 +29,6 @@ tags = [
         "name": "Your very own favourite cards list",
         "description": "Management of the User's favourite cards list ",
     },
-    
     {
         "name": "Database management : cards",
         "description": "Admin operations for card management",
@@ -237,16 +236,16 @@ async def semantic_search_shortEmbed(search):
     return cards_as_dict
 
 
-# get a filtered list of cards : here instead of showing ALL the cards that match the filters we 
+# get a filtered list of cards : here instead of showing ALL the cards that match the filters we
 # page the result !
 # card_Service().filter_num_service(self, filter: Filter)
 @app.post("/card/filter/{filterModel, page}", tags=["Roaming in the MagicSearch Database"])
 async def filter_search(
-    filters: List[FilterModel], 
+    filters: List[FilterModel],
     page: int = Query(1, ge=1, description="Page number")
      ):
     """
-    Filters with pagination - allows you to get the result of a filter quickly even if it returns 
+    Filters with pagination - allows you to get the result of a filter quickly even if it returns
     thousands of results
     """
     logging.info(f"Filtering with {len(filters)} filters, page {page}")

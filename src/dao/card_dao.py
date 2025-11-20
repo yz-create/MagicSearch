@@ -982,7 +982,6 @@ class CardDao:
 
         return (card)
 
-
     def get_list_from_fetchall(self, res, column_name: str) -> list:
         """
         To transform a fetchall (which is a RealDictRow) of elements with one column into a list
@@ -1031,7 +1030,7 @@ class CardDao:
             cards.append(CardDao().id_search(card["idCard"]))
         return cards
 
-    def filter_dao(self, filter: Filter)->list[int]:
+    def filter_dao(self, filter: Filter) -> list[int]:
         """"
         This method selects in the database the elements
         corresponding to the parameters of the filter
@@ -1050,7 +1049,7 @@ class CardDao:
         Return :
         --------
         list[int]
-            list th ids of all the cards corresponding to the filter 
+            list th ids of all the cards corresponding to the filter
         """
         try:
             variable_filtered = filter.variable_filtered
@@ -1107,7 +1106,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
-                
+
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1118,7 +1117,7 @@ class CardDao:
                         sql.SQL(sql_comparator)
                     )
                     sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
-                
+
                 else:
                     sql_query = sql.SQL(
                         'SELECT "idCard" '
@@ -1165,7 +1164,6 @@ class CardDao:
                 res = cursor.fetchone()
 
         return res['max']
-
 
     def get_similar_entries(self, conn, search_emb, use_short_embed=False):
         """
@@ -1254,7 +1252,7 @@ class CardDao:
         Return:
         -------
         list[Card]
-            list of cards in the list of favourites of the user    
+            list of cards in the list of favourites of the user
         """
         card_dao = CardDao()
         favourites = []

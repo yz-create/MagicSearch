@@ -208,14 +208,14 @@ class CardService():
         """
         Service method for searching by filtering : checks if it is a valid filter and if it is,
         calls the filtering DAO method for each filter un the list and only keeps the cards common
-        to the different filtering. The process is paged meaning that cards 
+        to the different filtering. The process is paged meaning that cards
         are returned 50 at a time.
 
         Parameters :
         ------------
         filters : list[Filter]
             the list of filters we want to apply to our research
-        page : int 
+        page : int
             starts at 1
         page_size : int
             number of cards per page
@@ -223,8 +223,8 @@ class CardService():
         Return :
         --------
         dict
-            returns 'count' the number of result for filters, 'page' the page you are on, 
-            'total_pages' the number of pages of result and 
+            returns 'count' the number of result for filters, 'page' the page you are on,
+            'total_pages' the number of pages of result and
             'cards' the 50 cards of this page that match the filters
         """
         try:
@@ -265,8 +265,8 @@ class CardService():
                 if not filters:
                     logging.warning("Empty filters list")
                     return {"count": 0, "page": page, "total_pages": 0, "cards": []}
-                   
-            # we apply each filter and get the card ids corresponding 
+
+            # we apply each filter and get the card ids corresponding
             card_ids_sets = []
             for filter in filters:
                 ids = CardDao().filter_dao(filter)
@@ -284,7 +284,7 @@ class CardService():
             if total_count == 0:
                 logging.warning("No common results for all filters")
                 return {"count": 0, "page": page, "total_pages": 0, "cards": []}
-            
+
             # paging
             start_idx = (page - 1) * 50
             end_idx = start_idx + 50
