@@ -56,11 +56,13 @@ class UserService:
         return self.user_dao.get_by_id(user_id)
 
     @log
-    def delete(self, current_user, username: str) -> bool:
-        """Delete a user account."""
-        if not current_user.is_admin:
-            raise HTTPException(status_code=403, detail="Admin rights required")
-        return self.user_dao.delete(username)
+    def delete(self, user_id: int) -> bool:
+        """Delete a user account by user ID.
+        
+        CORRECTION: Signature modifiée pour accepter user_id au lieu de current_user + username.
+        La vérification admin devrait être faite dans le contrôleur/route, pas ici.
+        """
+        return self.user_dao.delete(user_id)
 
     @log
     def display_all(self) -> str:
@@ -93,17 +95,19 @@ class UserService:
         return user
     
     @log
-    def update_user(self, user_id: int, username: str, password: str) -> User | None:
+    def update_user(self, user_id: int, username: str, password: str) -> tuple[User] | None:
         """
         Update username and/or password for a user.
         Calls the DAO update function.
-    """
-
+        
+        CORRECTION: Retourne maintenant un tuple (User,) au lieu d'un User directement.
+        """
         # Appeler le DAO pour modifier en base
         updated_user = self.user_dao.update(user_id, username, password)
 
-        # Si le DAO retourne None => l’utilisateur n’existe pas ou erreur SQL
+        # Si le DAO retourne None => l'utilisateur n'existe pas ou erreur SQL
         if not updated_user:
             return None
 
-        return updated_user
+        # CORRECTION: Retourner un tuple contenant l'utilisateur
+        return (updated_user,)
