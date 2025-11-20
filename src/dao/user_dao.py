@@ -266,5 +266,3 @@ class UserDao:
             password=updated["password"],
             is_admin=updated["isAdmin"]
         )
-
-
