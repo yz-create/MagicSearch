@@ -752,33 +752,50 @@ def test_integration_filter_search_with_multiple_filters_returns_intersection(mo
     filter1 = Filter("manaValue", "equal_to", 3)
     filter2 = Filter("power", "higher_than", 2)
 
-    card1 = Card(
-        id_card=2,
-        layout="normal",
-        name="Card 2",
-        type_line="Creature"
-    )
-    card2 = Card(
-        id_card=3,
-        layout="normal",
-        name="Card 3",
-        type_line="Creature"
-    )
+    # mock of card with show_card()
+    mock_card1 = Mock()
+    mock_card1.show_card.return_value = {
+        "idCard": 2,
+        "name": "Card 2",
+        "layout": "normal",
+        "type": "Creature"
+    }
+
+    mock_card2 = Mock()
+    mock_card2.show_card.return_value = {
+        "idCard": 3,
+        "name": "Card 3",
+        "layout": "normal",
+        "type": "Creature"
+    }
 
     mock_dao_instance = Mock()
     mock_dao_instance.filter_dao.side_effect = [
         [1, 2, 3, 4],  # Results from first filter
         [2, 3, 5, 6]   # Results from second filter
     ]
-    mock_dao_instance.id_search.side_effect = [card1, card2]
+    # id_search is called twice
+    mock_dao_instance.id_search.side_effect = [mock_card1, mock_card2]
     mock_dao.return_value = mock_dao_instance
 
     service = CardService()
-    result = service.filter_search([filter1, filter2])
+    result = service.filter_search([filter1, filter2], page=1)
 
-    # Intersection is [2, 3]
-    assert len(result) == 2
-    assert all(card.id_card in [2, 3] for card in result)
+    # filter_search returns a dict (we page the result)
+    assert result["count"] == 2  # Intersection is [2, 3]
+    assert result["page"] == 1
+    assert result["total_pages"] == 1
+    assert len(result["cards"]) == 2
+
+    # check that we return the right cards
+    card_ids = [card["idCard"] for card in result["cards"]]
+    assert set(card_ids) == {2, 3}
+
+    # check that filter_dao was called twice (once per filter)
+    assert mock_dao_instance.filter_dao.call_count == 2
+
+    # check that id_search is called twice (once per card in the intersection)
+    assert mock_dao_instance.id_search.call_count == 2
 
 
 if __name__ == "__main__":

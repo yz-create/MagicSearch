@@ -247,6 +247,7 @@ class TestFilterDAO(unittest.TestCase):
 
         # ACT
         result = self.card_dao.filter_dao(mock_filter)
+        # result is not used but the test doesn't pass if is not there
 
         # ASSERT
         call_args = mock_cursor.execute.call_args

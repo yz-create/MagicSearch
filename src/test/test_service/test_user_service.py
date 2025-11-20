@@ -286,4 +286,3 @@ def test_update_user_returns_tuple():
 
     assert isinstance(res, tuple)
     assert isinstance(res[0], User)
-
