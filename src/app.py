@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
@@ -109,7 +109,7 @@ class cardModel(BaseModel):
     types: list | None = None
 
 
-class AbstractFilterModel(BaseModel):
+class FilterModel(BaseModel):
     variable_filtered: str
     type_of_filtering: str
     filtering_value: Union[int, str]
@@ -237,16 +237,23 @@ async def semantic_search_shortEmbed(search):
     return cards_as_dict
 
 
-# get a filtered list of cards
-# card_Service().filter_num_service(self, filter: AbstractFilter)
-@app.get("/card/AbstractFilterModel", tags=["Roaming in the MagicSearch Database"])
-async def filter_search(filters: List[AbstractFilterModel]):
-    """Filters the database based on a list of filters"""
-    logging.info("Filters the database based on a list of filters")
-    cards = card_service.filter_search(filters)
+# get a filtered list of cards : here instead of showing ALL the cards that match the filters we 
+# page the result !
+# card_Service().filter_num_service(self, filter: Filter)
+@app.post("/card/filter/{filterModel, page}", tags=["Roaming in the MagicSearch Database"])
+async def filter_search(
+    filters: List[FilterModel], 
+    page: int = Query(1, ge=1, description="Page number")
+     ):
+    """
+    Filters with pagination - allows you to get the result of a filter quickly even if it returns 
+    thousands of results
+    """
+    logging.info(f"Filtering with {len(filters)} filters, page {page}")
 
-    return [card.show_card() for card in cards]
-    
+    result = card_service.filter_search(filters, page)
+    return result
+
 
 # FAVOURITE CARDS
 # add a favourite card
@@ -350,7 +357,7 @@ async def user_by_id(user_id: int, current_user=Depends(verify_admin)):
 def update_user(
     id_user: int,
     j: userModel,
-    current_user = Depends(verify_token)
+    current_user=Depends(verify_token)
 ):
     """Updating a user securely (self-update or admin)"""
     logging.info(f"Updating of user {id_user}")

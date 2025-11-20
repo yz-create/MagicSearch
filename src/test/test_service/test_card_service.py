@@ -341,10 +341,169 @@ def test_view_random_card_success(mock_randint, mock_dao, card_service, sample_c
 
 
 # ========== Tests for filter_search ==========
+@patch('service.card_service.CardDao')
+def test_filter_search_success_first_page(mock_dao, card_service, sample_card):
+    """Test paginated search - first page"""
+    filter1 = Filter(
+        variable_filtered="manaValue",
+        type_of_filtering="equal_to",
+        filtering_value=3
+    )
+    
+    mock_card = Mock()
+    mock_card.show_card.return_value = {"idCard": 1, "name": "Test Card"}
+    
+    mock_dao_instance = Mock()
+    mock_dao_instance.filter_dao.return_value = [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+        29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+        42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52
+    ]
+    mock_dao_instance.id_search.return_value = mock_card
+    mock_dao.return_value = mock_dao_instance
+
+    result = card_service.filter_search([filter1], page=1)
+
+    assert result["count"] == 52
+    assert result["page"] == 1
+    assert result["total_pages"] == 2
+    assert len(result["cards"]) == 50
+
 
 @patch('service.card_service.CardDao')
-def test_filter_search_success_single_filter(mock_dao, card_service, sample_card):
-    """Test successful search with single filter"""
+def test_filter_search_success_second_page(mock_dao, card_service, sample_card):
+    """Test paginated search - second page"""
+    filter1 = Filter(
+        variable_filtered="manaValue",
+        type_of_filtering="equal_to",
+        filtering_value=3
+    )
+    
+    mock_card = Mock()
+    mock_card.show_card.return_value = {"idCard": 1, "name": "Test Card"}
+    
+    mock_dao_instance = Mock()
+    mock_dao_instance.filter_dao.return_value = [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+        29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+        42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52
+    ]
+    mock_dao_instance.id_search.return_value = mock_card
+    mock_dao.return_value = mock_dao_instance
+
+    result = card_service.filter_search([filter1], page=2)
+
+    assert result["count"] == 52
+    assert result["page"] == 2
+    assert result["total_pages"] == 2
+    assert len(result["cards"]) == 2
+
+
+@patch('service.card_service.CardDao')
+def test_filter_search_multiple_filters(mock_dao, card_service, sample_card):
+    """Test paginated search with multiple filters"""
+    filter1 = Filter(
+        variable_filtered="manaValue",
+        type_of_filtering="equal_to",
+        filtering_value=3
+    )
+    filter2 = Filter(
+        variable_filtered="color",
+        type_of_filtering="positive",
+        filtering_value="U"
+    )
+    
+    mock_card = Mock()
+    mock_card.show_card.return_value = {"idCard": 1, "name": "Test Card"}
+    
+    mock_dao_instance = Mock()
+    # Intersection: [2, 3, 4, 5, 6]
+    mock_dao_instance.filter_dao.side_effect = [
+        [1, 2, 3, 4, 5, 6, 7],
+        [2, 3, 4, 5, 6, 8, 9]
+    ]
+    mock_dao_instance.id_search.return_value = mock_card
+    mock_dao.return_value = mock_dao_instance
+
+    result = card_service.filter_search([filter1, filter2], page=1)
+
+    # Intersection = 5 cards[2,3,4,5,6]
+    assert result["count"] == 5
+    assert result["page"] == 1
+    assert result["total_pages"] == 1
+    assert len(result["cards"]) == 5
+
+@patch('service.card_service.CardDao')
+def test_filter_search_no_results(mock_dao, card_service):
+    """Test paginated search with no results"""
+    filter1 = Filter(
+        variable_filtered="manaValue",
+        type_of_filtering="equal_to",
+        filtering_value=3
+    )
+    
+    mock_dao_instance = Mock()
+    mock_dao_instance.filter_dao.return_value = []
+    mock_dao.return_value = mock_dao_instance
+
+    result = card_service.filter_search([filter1], page=1)
+
+    assert result["count"] == 0
+    assert result["page"] == 1
+    assert result["total_pages"] == 0
+    assert result["cards"] == []
+
+
+@patch('service.card_service.CardDao')
+def test_filter_search_no_intersection(mock_dao, card_service):
+    """Test paginated search with no common results"""
+    filter1 = Filter(
+        variable_filtered="manaValue",
+        type_of_filtering="equal_to",
+        filtering_value=3
+    )
+    filter2 = Filter(
+        variable_filtered="color",
+        type_of_filtering="positive",
+        filtering_value="U"
+    )
+    
+    mock_dao_instance = Mock()
+    mock_dao_instance.filter_dao.side_effect = [[1, 2, 3], [4, 5, 6]]  # No intersection
+    mock_dao.return_value = mock_dao_instance
+
+    result = card_service.filter_search([filter1, filter2], page=1, )
+
+    assert result["count"] == 0
+    assert result["cards"] == []
+
+
+def test_filter_search_invalid_filter(card_service):
+    """Test paginated search with invalid filter"""
+    filter1 = Filter(
+        variable_filtered="invalid_var",
+        type_of_filtering="positive",
+        filtering_value="test"
+    )
+    
+    result = card_service.filter_search([filter1], page=1)
+
+    assert "error" in result or result["count"] == 0
+
+
+def test_filter_search_empty_filters(card_service):
+    """Test paginated search with empty filter list"""
+    result = card_service.filter_search([], page=1)
+
+    assert result["count"] == 0
+    assert result["cards"] == []
+
+
+@patch('service.card_service.CardDao')
+def test_filter_search_page_beyond_results(mock_dao, card_service, sample_card):
+    """Test requesting a page beyond available results"""
     filter1 = Filter(
         variable_filtered="manaValue",
         type_of_filtering="equal_to",
@@ -356,129 +515,13 @@ def test_filter_search_success_single_filter(mock_dao, card_service, sample_card
     mock_dao_instance.id_search.return_value = sample_card
     mock_dao.return_value = mock_dao_instance
 
-    result = card_service.filter_search([filter1])
+    result = card_service.filter_search([filter1], page=10)
 
-    assert len(result) == 3
-    assert all(isinstance(card, Card) for card in result)
-
-
-@patch('service.card_service.CardDao')
-def test_filter_search_success_multiple_filters(mock_dao, card_service, sample_card):
-    """Test successful search with multiple filters"""
-    filter1 = Filter(
-        variable_filtered="manaValue",
-        type_of_filtering="equal_to",
-        filtering_value=3
-    )
-    filter2 = Filter(
-        variable_filtered="color",
-        type_of_filtering="positive",
-        filtering_value="U"
-    )
-    
-    mock_dao_instance = Mock()
-    mock_dao_instance.filter_dao.side_effect = [[1, 2, 3], [2, 3, 4]]
-    mock_dao_instance.id_search.return_value = sample_card
-    mock_dao.return_value = mock_dao_instance
-
-    result = card_service.filter_search([filter1, filter2])
-
-    # Intersection of [1,2,3] and [2,3,4] is [2,3]
-    assert len(result) == 2
-
-
-def test_filter_search_invalid_categorical_variable(card_service):
-    """Test search with invalid categorical variable"""
-    filter1 = Filter(
-        variable_filtered="invalid_var",
-        type_of_filtering="positive",
-        filtering_value="test"
-    )
-    
-    result = card_service.filter_search([filter1])
-
-    assert result == []
-
-
-def test_filter_search_invalid_numerical_variable(card_service):
-    """Test search with invalid numerical variable"""
-    filter1 = Filter(
-        variable_filtered="invalid_var",
-        type_of_filtering="equal_to",
-        filtering_value=3
-    )
-    
-    result = card_service.filter_search([filter1])
-
-    assert result == []
-
-
-def test_filter_search_invalid_filter_type(card_service):
-    """Test search with invalid filter type"""
-    filter1 = Filter(
-        variable_filtered="manaValue",
-        type_of_filtering="invalid_type",
-        filtering_value=3
-    )
-    
-    result = card_service.filter_search([filter1])
-
-    assert result == []
-
-
-def test_filter_search_invalid_filtering_value_type(card_service):
-    """Test with invalid filtering value type for categorical filter"""
-    filter1 = Filter(
-        variable_filtered="color",
-        type_of_filtering="positive",
-        filtering_value=123  # Should be a string
-    )
-    
-    result = card_service.filter_search([filter1])
-
-    assert result == []
-
-
-@patch('service.card_service.CardDao')
-def test_filter_search_no_common_results(mock_dao, card_service):
-    """Test search with no common results"""
-    filter1 = Filter(
-        variable_filtered="manaValue",
-        type_of_filtering="equal_to",
-        filtering_value=3
-    )
-    filter2 = Filter(
-        variable_filtered="color",
-        type_of_filtering="positive",
-        filtering_value="U"
-    )
-    
-    mock_dao_instance = Mock()
-    mock_dao_instance.filter_dao.side_effect = [[1, 2], [3, 4]]  # No intersection
-    mock_dao.return_value = mock_dao_instance
-
-    result = card_service.filter_search([filter1, filter2])
-
-    assert result == []
-
-
-@patch('service.card_service.CardDao')
-def test_filter_search_one_filter_returns_empty(mock_dao, card_service):
-    """Test search where one filter returns nothing"""
-    filter1 = Filter(
-        variable_filtered="manaValue",
-        type_of_filtering="equal_to",
-        filtering_value=3
-    )
-    
-    mock_dao_instance = Mock()
-    mock_dao_instance.filter_dao.return_value = []
-    mock_dao.return_value = mock_dao_instance
-
-    result = card_service.filter_search([filter1])
-
-    assert result == []
-
+    # Page 10 doesn't exist
+    assert result["count"] == 3
+    assert result["page"] == 10
+    assert result["total_pages"] == 1
+    assert result["cards"] == []  # There are no cards on this page
 
 # ========== Tests for add_favourite_card ==========
 

@@ -204,23 +204,32 @@ class CardService():
 
         return self.id_search(idrand)
 
-    def filter_search(self, filters: list[Filter]) -> list[Card]:
+    def filter_search(self, filters: list[Filter], page: int = 1) -> dict:
         """
         Service method for searching by filtering : checks if it is a valid filter and if it is,
         calls the filtering DAO method for each filter un the list and only keeps the cards common
-        to the different filtering
+        to the different filtering. The process is paged meaning that cards 
+        are returned 50 at a time.
 
         Parameters :
         ------------
         filters : list[Filter]
             the list of filters we want to apply to our research
+        page : int 
+            starts at 1
+        page_size : int
+            number of cards per page
 
         Return :
         --------
-        List[Card]
-            The Cards corresponding to our filter
+        dict
+            returns 'count' the number of result for filters, 'page' the page you are on, 
+            'total_pages' the number of pages of result and 
+            'cards' the 50 cards of this page that match the filters
         """
         try:
+            if not isinstance(page, int):
+                raise TypeError("'page' must be an integer")
             # we check if the filters are valid
             for filter in filters:
                 variable_filtered = filter.variable_filtered
@@ -255,35 +264,48 @@ class CardService():
                         )
                 if not filters:
                     logging.warning("Empty filters list")
-                    return []
-
+                    return {"count": 0, "page": page, "total_pages": 0, "cards": []}
+                   
             # we apply each filter and get the card ids corresponding 
             card_ids_sets = []
             for filter in filters:
                 ids = CardDao().filter_dao(filter)
                 if not ids:  # Si un filtre ne retourne rien, le résultat final est vide
                     logging.warning(f"No results for filter: {filter}")
-                    return []
+                    return {"count": 0, "page": page, "total_pages": 0, "cards": []}
                 card_ids_sets.append(set(ids))
 
-            common_ids = set.intersection(*card_ids_sets)
+            common_ids_set = set.intersection(*card_ids_sets)
+            common_ids = sorted(list(common_ids_set))
+            total_count = len(common_ids)
+            total_pages = (total_count + 50 - 1) // 50
 
-            if not common_ids:
-                logging.warning(f"No common results for all filters")
-                return []
-
-            magicsearch_filtered = []
-            for card_id in common_ids:
+            # if there are no cards matching the filters
+            if total_count == 0:
+                logging.warning("No common results for all filters")
+                return {"count": 0, "page": page, "total_pages": 0, "cards": []}
+            
+            # paging
+            start_idx = (page - 1) * 50
+            end_idx = start_idx + 50
+            page_ids = common_ids[start_idx:end_idx]
+            # only getting the cards of the page we're on
+            page_cards = []
+            for card_id in page_ids:
                 card = CardDao().id_search(card_id)
                 if card:
-                    magicsearch_filtered.append(card)
-
-            logging.info(f"Filter search completed: {len(magicsearch_filtered)} cards found")
-            return magicsearch_filtered
+                    page_cards.append(card.show_card())
+                logging.info(f"Returned {len(page_cards)} cards from {total_count} total")
+            return {
+                "count": total_count,
+                "page": page,
+                "total_pages": total_pages,
+                "cards": page_cards
+            }
 
         except Exception as e:
             logging.error(f"Error in filter_search: {e}")
-            return []
+            return {"error": str(e), "count": 0, "cards": []}
 
     def add_favourite_card(self, user_id: int, idCard: int) -> bool:
         """"Check whether the idCard exists and adds it to the list of

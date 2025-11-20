@@ -1033,7 +1033,7 @@ class CardDao:
 
     def filter_dao(self, filter: Filter)->list[int]:
         """"
-        This function checks that this is filter object and selects in the database the elements
+        This method selects in the database the elements
         corresponding to the parameters of the filter
         First the function checks that type_of_filtering is in ["higher_than", "lower_than",
         "equal_to", "positive", "negative] as it is the easiest way to exclude non-filter objects
