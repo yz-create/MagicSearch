@@ -2,6 +2,7 @@ from tabulate import tabulate
 from utils.log_decorator import log
 from business_object.user import User
 from dao.user_dao import UserDao
+from fastapi import HTTPException
 from db_connection import DBConnection
 import logging
 
