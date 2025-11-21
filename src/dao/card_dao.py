@@ -53,8 +53,6 @@ class CardDao:
         return result[id_column]
 
     def get_embed(self, card: Card):
-        # Convertir la carte en texte puis calculer l'embedding
-        # Construire le texte à partir de l'objet Card
         fields = [
             card.name or "",
             card.type_line or "",
@@ -70,13 +68,12 @@ class CardDao:
             f"Loyalty: {card.loyalty}" if card.loyalty else ""
         ]
 
-        text_to_embed = " | ".join([f for f in fields if f])  # Filtrer les chaînes vides
+        text_to_embed = " | ".join([f for f in fields if f])
         if card.text:
             text_to_embed_short = card.name + ": " + card.text
         else:
             text_to_embed_short = card.name
 
-        # Calculer l'embedding
         card_embedding = embedding(text_to_embed)
         card_short_embedding = embedding(text_to_embed_short)
 
@@ -87,24 +84,18 @@ class CardDao:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
 
-                # étapes 1, 2 et 3 avec _get_or_create_id
-
-                # 1.1 Layout
                 id_layout = self._get_or_create_id(
                     cursor, "Layout", "idLayout", "name", card.layout
                     )
 
-                # 1.2 Type (le type principal)
                 id_type = self._get_or_create_id(cursor, "Type", "idType", "name", card.type_line)
 
-                # 1.3 FirstPrinting (Set)
                 id_first_printing = None
                 if card.first_printing:
                     id_first_printing = self._get_or_create_id(
                         cursor, "Set", "idSet", "name", card.first_printing
                         )
 
-                # 1.4 LeadershipSkills
                 id_leadership = None
                 if card.leadership_skills:
                     cursor.execute(
@@ -137,23 +128,19 @@ class CardDao:
                         res_leadership = cursor.fetchone()
                     id_leadership = res_leadership["idLeadership"]
 
-                # 1.5 Legalities
                 id_legalities = None
                 if card.legalities:
-                    # Récupérer les LegalityType pour conversion
                     cursor.execute('SELECT * FROM "LegalityType" ORDER BY "idLegalityType" ASC')
                     res_legality_types = cursor.fetchall()
                     legality_type_map = {
                         lt["type"]: lt["idLegalityType"] for lt in res_legality_types
                         }
 
-                    # Convertir les noms de légalité en IDs
                     legality_ids = {}
                     for format_name, legality_status in card.legalities.items():
                         if legality_status in legality_type_map:
                             legality_ids[format_name] = legality_type_map[legality_status]
 
-                    # Construire la requête de recherche
                     if legality_ids:
                         where_clauses = ' AND '.join(
                             [f'"{k}" = %({k})s' for k in legality_ids.keys()]
@@ -174,7 +161,6 @@ class CardDao:
                             res_legality = cursor.fetchone()
                         id_legalities = res_legality["idLegality"]
 
-                # 1.6 Colors (préparation des IDs)
                 color_ids = {}
                 if card.colors:
                     for color in card.colors:
@@ -182,7 +168,6 @@ class CardDao:
                             cursor, "Color", "idColor", "colorName", color
                             )
 
-                # 1.7 ColorIdentity (préparation des IDs)
                 color_identity_ids = {}
                 if card.color_identity:
                     for color in card.color_identity:
@@ -193,7 +178,6 @@ class CardDao:
                         else:
                             color_identity_ids[color] = color_ids[color]
 
-                # 1.8 ColorIndicator (préparation des IDs)
                 color_indicator_ids = {}
                 if card.color_indicator:
                     for color in card.color_indicator:
@@ -206,7 +190,6 @@ class CardDao:
                         else:
                             color_indicator_ids[color] = color_identity_ids[color]
 
-                # 1.9 Keywords (préparation des IDs)
                 keyword_ids = {}
                 if card.keywords:
                     for keyword in card.keywords:
@@ -214,7 +197,6 @@ class CardDao:
                             cursor, "Keyword", "idKeyword", "name", keyword
                             )
 
-                # 1.10 Types (préparation des IDs)
                 type_ids = {}
                 if card.types:
                     for type_name in card.types:
@@ -222,7 +204,6 @@ class CardDao:
                             cursor, "Type", "idType", "name", type_name
                             )
 
-                # 1.11 Subtypes (préparation des IDs)
                 subtype_ids = {}
                 if card.subtypes:
                     for subtype in card.subtypes:
@@ -230,7 +211,6 @@ class CardDao:
                             cursor, "Subtype", "idSubtype", "name", subtype
                             )
 
-                # 1.12 Supertypes (préparation des IDs)
                 supertype_ids = {}
                 if card.supertypes:
                     for supertype in card.supertypes:
@@ -238,7 +218,6 @@ class CardDao:
                             cursor, "Supertype", "idSupertype", "name", supertype
                             )
 
-                # 1.13 Printings/Sets (préparation des IDs)
                 printing_ids = {}
                 if card.printings:
                     for printing in card.printings:
@@ -265,26 +244,6 @@ class CardDao:
         bool
             True if creation succeeded, False otherwise
         """
-
-        # plusieurs étapes :
-        # 1° lecture de toutes les nouvelles variables et de leur clés associées si elles existent
-        # 2° vérification de l'existence de ces valeurs séparément dans chaque tables associées
-        # 3° ajout de ces valeurs dans leur table associée si elles n'existaient pas
-        # 4° ajout des informations de chaque valeurs de la nouvelle carte dans la table Card grace
-        #    à leur clé étrangère
-        # 5° rajouter l'id de la carte dans les tables : PurchaseURLs, Ruling, ForeignData
-
-        # liste de nos tables :
-        # tables des cartes : "Card", "Colors", "ColorIdentity", "ColorIndicator", -> "ForeignData",
-        # "Keywords", "Legality", "Printings", -> "PurchaseURLs", -> "Ruling", "Subtypes",
-        # "Supertypes", "Types"
-        # table des users : "Favourite"
-
-        # Pour l'étape 1 : on doit vérifier les tables Type, Layout, FirstPrinting,
-        # LeadershipSkills, Legalities, Colors, ColorIdentity ColorIndicator, Keywords, Types,
-        # Subtypes, Printings/Sets
-
-        # Générer le nouvel ID de carte
         next_card_id = self.get_highest_id() + 1
         card_embedding, card_short_embedding = CardDao().get_embed(card)
 
@@ -298,7 +257,6 @@ class CardDao:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
 
-                # 4° création de la carte dans la table Card
                 cursor.execute(
                     """
                     INSERT INTO "Card" (
@@ -356,9 +314,6 @@ class CardDao:
 
                 id_card = result["idCard"]
 
-                # insertion dans les tables de jonction
-
-                # Colors
                 for color, id_color in color_ids.items():
                     cursor.execute(
                         '''INSERT INTO "Colors"("idCard", "idColor")
@@ -366,7 +321,6 @@ class CardDao:
                         {"idCard": id_card, "idColor": id_color}
                     )
 
-                # ColorIdentity
                 for color, id_color in color_identity_ids.items():
                     cursor.execute(
                         '''INSERT INTO "ColorIdentity"("idCard", "idColor")
@@ -374,7 +328,6 @@ class CardDao:
                         {"idCard": id_card, "idColor": id_color}
                     )
 
-                # ColorIndicator
                 for color, id_color in color_indicator_ids.items():
                     cursor.execute(
                         '''INSERT INTO "ColorIndicator"("idCard", "idColor")
@@ -382,7 +335,6 @@ class CardDao:
                         {"idCard": id_card, "idColor": id_color}
                     )
 
-                # Keywords
                 for keyword, id_keyword in keyword_ids.items():
                     cursor.execute(
                         '''INSERT INTO "Keywords"("idCard", "idKeyword")
@@ -390,7 +342,6 @@ class CardDao:
                         {"idCard": id_card, "idKeyword": id_keyword}
                     )
 
-                # Types
                 for type_name, id_t in type_ids.items():
                     cursor.execute(
                         '''INSERT INTO "Types"("idCard", "idType")
@@ -398,7 +349,6 @@ class CardDao:
                         {"idCard": id_card, "idType": id_t}
                     )
 
-                # Subtypes
                 for subtype, id_subtype in subtype_ids.items():
                     cursor.execute(
                         '''INSERT INTO "Subtypes"("idCard", "idSubtype")
@@ -406,7 +356,6 @@ class CardDao:
                         {"idCard": id_card, "idSubtype": id_subtype}
                     )
 
-                # Supertypes
                 for supertype, id_supertype in supertype_ids.items():
                     cursor.execute(
                         '''INSERT INTO "Supertypes"("idCard", "idSupertype")
@@ -414,7 +363,6 @@ class CardDao:
                         {"idCard": id_card, "idSupertype": id_supertype}
                     )
 
-                # Printings
                 for printing, id_printing in printing_ids.items():
                     cursor.execute(
                         '''INSERT INTO "Printings"("idCard", "idSet")
@@ -422,16 +370,13 @@ class CardDao:
                         {"idCard": id_card, "idSet": id_printing}
                     )
 
-                # PurchaseURLs
                 if card.purchase_urls:
                     CardDao().insert_purchase_url(cursor, id_card, card)
 
-                # ForeignData
                 if card.foreign_data:
                     for foreign in card.foreign_data:
                         CardDao().insert_foreign_data(cursor, id_card, foreign)
 
-                # Rulings
                 if card.rulings:
                     for ruling in card.rulings:
                         CardDao().insert_ruling(cursor, id_card, ruling)
@@ -547,7 +492,6 @@ class CardDao:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO defaultdb, public;')
 
-                # 4° création de la carte dans la table Card
                 cursor.execute(
                     """
                     UPDATE "Card"
@@ -614,7 +558,6 @@ class CardDao:
 
                 id_card = card.id_card
 
-                # Colors
                 CardDao().delete_from_table(cursor, "Colors", id_card)
                 for color, id_color in color_ids.items():
                     cursor.execute(
@@ -623,7 +566,6 @@ class CardDao:
                         {"idCard": id_card, "idColor": id_color}
                     )
 
-                # ColorIdentity
                 CardDao().delete_from_table(cursor, "ColorIdentity", id_card)
                 for color, id_color in color_identity_ids.items():
                     cursor.execute(
@@ -632,7 +574,6 @@ class CardDao:
                         {"idCard": id_card, "idColor": id_color}
                     )
 
-                # ColorIndicator
                 CardDao().delete_from_table(cursor, "ColorIndicator", id_card)
                 for color, id_color in color_indicator_ids.items():
                     cursor.execute(
@@ -641,7 +582,6 @@ class CardDao:
                         {"idCard": id_card, "idColor": id_color}
                     )
 
-                # Keywords
                 CardDao().delete_from_table(cursor, "Keywords", id_card)
                 for keyword, id_keyword in keyword_ids.items():
                     cursor.execute(
@@ -650,7 +590,6 @@ class CardDao:
                         {"idCard": id_card, "idKeyword": id_keyword}
                     )
 
-                # Types
                 CardDao().delete_from_table(cursor, "Types", id_card)
                 for type_name, id_t in type_ids.items():
                     cursor.execute(
@@ -659,7 +598,6 @@ class CardDao:
                         {"idCard": id_card, "idType": id_t}
                     )
 
-                # Subtypes
                 CardDao().delete_from_table(cursor, "Subtypes", id_card)
                 for subtype, id_subtype in subtype_ids.items():
                     cursor.execute(
@@ -668,7 +606,6 @@ class CardDao:
                         {"idCard": id_card, "idSubtype": id_subtype}
                     )
 
-                # Supertypes
                 CardDao().delete_from_table(cursor, "Supertypes", id_card)
                 for supertype, id_supertype in supertype_ids.items():
                     cursor.execute(
@@ -677,7 +614,6 @@ class CardDao:
                         {"idCard": id_card, "idSupertype": id_supertype}
                     )
 
-                # Printings
                 CardDao().delete_from_table(cursor, "Printings", id_card)
                 for printing, id_printing in printing_ids.items():
                     cursor.execute(
@@ -686,18 +622,15 @@ class CardDao:
                         {"idCard": id_card, "idSet": id_printing}
                     )
 
-                # PurchaseURLs
                 CardDao().delete_from_table(cursor, "PurchaseURLs", id_card)
                 if card.purchase_urls:
                     CardDao().insert_purchase_url(cursor, id_card, card)
 
-                # ForeignData
                 CardDao().delete_from_table(cursor, "ForeignData", id_card)
                 if card.foreign_data:
                     for foreign in card.foreign_data:
                         CardDao().insert_foreign_data(cursor, id_card, foreign)
 
-                # Rulings
                 CardDao().delete_from_table(cursor, "Ruling", id_card)
                 if card.rulings:
                     for ruling in card.rulings:
@@ -1105,7 +1038,7 @@ class CardDao:
                     ).format(
                         sql.SQL(sql_comparator)
                     )
-                    sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
+                    sql_parameter = [r'^\d+$', filtering_value]
 
                 elif variable_filtered == "toughness":
                     sql_query = sql.SQL(
@@ -1116,7 +1049,7 @@ class CardDao:
                     ).format(
                         sql.SQL(sql_comparator)
                     )
-                    sql_parameter = [r'^\d+$', filtering_value]  # I added a r, watch out if it bugs
+                    sql_parameter = [r'^\d+$', filtering_value]
 
                 else:
                     sql_query = sql.SQL(
