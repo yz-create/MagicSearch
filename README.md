@@ -3,9 +3,12 @@
 Welcome in the promised land of trading card games players! By following these instructions, you will access our API where we gave our blood and tears to provide you with a diversity of searching tools !
 
 ## Before accessing the app, it is necessary to have a PostgreSQL ready
-To do so, go to https://datalab.sspcloud.fr, and create a PostgreSQL service. \\
-This PostgreSQL service needs to be configured with pgvector. \\
-To do so, when creating the service, go into the PostgreSQL section, then Image section, Image name, and select inseefrlab/onyxia-postgresql-pgvector. \\
+To do so, go to https://datalab.sspcloud.fr, and create a PostgreSQL service. 
+
+This PostgreSQL service needs to be configured with pgvector. 
+
+To do so, when creating the service, go into the PostgreSQL section, then Image section, Image name, and select inseefrlab/onyxia-postgresql-pgvector. 
+
 Once this is done, a pop-up should open, giving you something like this:
 
     Hostname : *a hostname*
@@ -26,9 +29,12 @@ Now, go into the MagicSearch root of the project on VSCode, and create a .env fi
 After this, you are able to reset the database to fill it, and then you can use the app.
 
 ## To reset the database in case of need :
-Download AtomicCards.json on https://mtgjson.com/downloads/all-files/ \\
-Put it in the root repository \\
-Run embed_batch.py as a main to obtain all embeddings of the cards in the database \\
+Download AtomicCards.json on https://mtgjson.com/downloads/all-files/ 
+
+Put it in the root repository 
+
+Run embed_batch.py as a main to obtain all embeddings of the cards in the database 
+
 Start reset_database.py as a main to reset the database
 
 ## To access the app :
@@ -68,9 +74,12 @@ If you want to keep an argument empty :
 - If it's a list, keep the list empty
 - If it's a dict, keep the dict empty
 
-If you look at the model that should be used to create or update a card, you might notice that some arguments either are of a dict type or a list of dict. \\
-Those arguments are : "foreign_data", "leadership_skills", "legalities", "purchase_urls" and "rulings". \\
-None of those arguments are mandatory, therefore,  \\
+If you look at the model that should be used to create or update a card, you might notice that some arguments either are of a dict type or a list of dict. 
+
+Those arguments are : "foreign_data", "leadership_skills", "legalities", "purchase_urls" and "rulings". 
+
+None of those arguments are mandatory, therefore, if you don't want them to have any values, keep them with an empty dict or list.
+
 Since the columns in those dict are fixed, you need to make sure to use the correct ones, so here's the template for each of those:
 
 "foreignData" is a list of dict.
@@ -141,8 +150,10 @@ For "rulings", it is a list of dict and all columns are mandatory. In the date c
     ]
 
 ## To update a card using the API
-The id_card you put is the card that is gonna get updated. \\
-You need to still write everything you don't want to get changed. If you keep a column empty, the card will get updated to have no value in that column. \\
+The id_card you put is the card that is gonna get updated. 
+
+You need to still write everything you don't want to get changed. If you keep a column empty, the card will get updated to have no value in that column. 
+
 Otherwise, same rules as creating a card when it comes to the dict values.
 
 ## To do a filtered search using the API
@@ -154,46 +165,50 @@ The input is a list of "filter" objects and an integer 'page', with the followin
         "filtering_value": "string" or int
     }
 
-"variable_filtered" is the variable on which we apply the filter \\
-"type_of_filtering" is the way we want to apply the filter \\
-"filtering_value" is a value around which the filter operates \\
+"variable_filtered" is the variable on which we apply the filter 
+
+"type_of_filtering" is the way we want to apply the filter 
+
+"filtering_value" is a value around which the filter operates 
 
 The point of the input being a list of filters is that filters can be cumulative, by listing filters you get a more precise fit to your requirements (see the example).
 
 The point of the integer is to page the results : instead of getting the thousands of cards matching your description you get for 'page'=1 the 50 first cards and for 'page'=2 the next 50 cards etc.
 
 ### Categorical filter
-"variable_filtered" : str \\
-    The filter can be applied only to the following list of categorical variables : \\
-    -"type" \\
-    -"color"
 
-"type_of_filtering" : str \\
-    A filter on categorical variables can be applied in only two ways : \\
-    -"positive" : we select all the cards that have the "filtering_value" in the "variable_filtered" \\
-    -"negative" : we select all the cards EXCEPT the ones that have the "filtering_value" in the "variable_filtered"
+    "variable_filtered" : str 
+        The filter can be applied only to the following list of categorical variables : 
+        -"type" 
+        -"color"
 
-"filtering_value" :str \\
-    Could be anything but, for your information:  \\
-    -the variable "type" mostly has the modalities "Land", "Creature", "Enchantment", "Artifact", "Sorcerie", "Instant", "Interrupt" and "Planeswalker" \\
-    -the variable "color" mostly refers to "B" (black), "U" (blue), "R" (red), "W" (white), "G" (green)
+    "type_of_filtering" : str 
+        A filter on categorical variables can be applied in only two ways : 
+        -"positive" : we select all the cards that have the "filtering_value" in the "variable_filtered" 
+        -"negative" : we select all the cards EXCEPT the ones that have the "filtering_value" in the "variable_filtered"
+
+    "filtering_value" :str 
+        Could be anything but, for your information:  
+        -the variable "type" mostly has the modalities "Land", "Creature", "Enchantment", "Artifact", "Sorcerie", "Instant", "Interrupt" and "Planeswalker" 
+        -the variable "color" mostly refers to "B" (black), "U" (blue), "R" (red), "W" (white), "G" (green)
 
 ### Numerical filter
-"variable_filtered" : str \\
-    The filter can be applied only to the following list of numerical variables : \\
-    -"power" \\
-    -"toughness" \\
-    -"manaValue" \\
-    -"edhrecRank"
 
-"type_of_filtering" : str \\
-    A filter on categorical variables can be applied in only two ways : \\
-    -"higher_than" : we select all the cards that have a value in their "variable_filtered" higher than the "filtering_value" \\
-    -"equal_to": same idea \\
-    -"lower_than" : ditto
+    "variable_filtered" : str 
+        The filter can be applied only to the following list of numerical variables : 
+        -"power" 
+        -"toughness" 
+        -"manaValue" 
+        -"edhrecRank"
 
-"filtering_value" :int \\
-    Could be anything.
+    "type_of_filtering" : str 
+        A filter on categorical variables can be applied in only two ways : 
+        -"higher_than" : we select all the cards that have a value in their "variable_filtered" higher than the "filtering_value" 
+        -"equal_to": same idea 
+        -"lower_than" : ditto
+
+    "filtering_value" :int 
+        Could be anything.
 
 ### An enlightening example
 
