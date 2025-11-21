@@ -187,3 +187,14 @@ Your input in the list of filters would be :
     "filtering_value": "U"
   }
 ]
+
+## To login using the API
+Fill in the username and password fields with the exact credentials you used when creating your account. For the password field, make sure to leave the word "password" as it is. The last three fields should be left empty.
+
+Once you’ve entered your credentials, you will gain access to features based on your status (Admin or Not). To authenticate, enter the same information in the "Authorize" section to proceed.
+
+## To delete a user using the API
+You can delete a user from the database only if you have Admin access. To do this, you will need to provide only the username of the user you want to delete.
+
+## To retrieve informations about a User knowing his id using the API
+If you have Admin permissions, you can retrieve a user's information by entering their user ID. This will return the username, password, and permissions (Admin or Not) of the user.
