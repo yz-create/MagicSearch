@@ -238,6 +238,9 @@ Your input in the list of filters would be :
   }
 ]
 
+## To create an account using the API
+Replace string next to username  the with the username that you want and keep the quatation marks. Do the same for the password.
+
 ## To login using the API
 Fill in the username and password fields with the exact credentials you used when creating your account. For the password field, make sure to leave the word "password" as it is. The last three fields should be left empty.
 
@@ -248,3 +251,6 @@ You can delete a user from the database only if you have Admin access. To do thi
 
 ## To retrieve informations about a User knowing his id using the API
 If you have Admin permissions, you can retrieve a user's information by entering their user ID. This will return the username, password, and permissions (Admin or Not) of the user.
+
+## To update a user using the API
+You can update a user from the database only if you have Admin access. To do this, you will need to provide id of the user. Then, you can change the username and or the password.
