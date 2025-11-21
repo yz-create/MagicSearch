@@ -1204,9 +1204,10 @@ class CardDao:
                 card = card_dao.id_search(card_id)
                 if card:
                     favourites.append(card)
+            return favourites
         except Exception as e:
             logging.error(f"Error while listing users: {e}")
-        return favourites
+            return False
 
     def delete_favourite_card(self, user_id: int, id_card: int) -> bool:
         """
