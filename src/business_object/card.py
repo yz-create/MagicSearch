@@ -121,10 +121,6 @@ class Card:
     def get_embedded(self): return self._embedded
     def get_short_embedded(self): return self._short_embedded
 
-    """
-        leadership_skills: dict = None,
-        legalities: dict = None,
-        purchase_urls: dict = None,"""
 
     def show_card(self):
         card_dict = {"id_card": self.id_card,
