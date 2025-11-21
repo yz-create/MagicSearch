@@ -1,14 +1,9 @@
 from tabulate import tabulate
-
 from utils.log_decorator import log
-from utils.security import hash_password
-
 from business_object.user import User
 from dao.user_dao import UserDao
 from db_connection import DBConnection
 import logging
-from psycopg2.extras import DictCursor
-from fastapi import HTTPException, Depends
 
 
 class UserService:
@@ -28,7 +23,7 @@ class UserService:
         result = self.user_dao.create(new_user)
         if result == "CREATED":
             print(f"User '{username}' created successfully!")
-            return new_user 
+            return new_user
         elif result == "EXISTS":
             print(f"Username '{username}' already exists!")
             return None
@@ -57,8 +52,7 @@ class UserService:
 
     @log
     def delete(self, user_id: int) -> bool:
-        """Delete a user account by user ID.
-        
+        """Delete a user account by user ID 
         CORRECTION: Signature modifiée pour accepter user_id au lieu de current_user + username.
         La vérification admin devrait être faite dans le contrôleur/route, pas ici.
         """
@@ -93,13 +87,12 @@ class UserService:
 
         logging.info(f"User {username} logged in successfully.")
         return user
-    
+
     @log
     def update_user(self, user_id: int, username: str, password: str) -> tuple[User] | None:
         """
         Update username and/or password for a user.
-        Calls the DAO update function.
-        
+        Calls the DAO update function.      
         CORRECTION: Retourne maintenant un tuple (User,) au lieu d'un User directement.
         """
         # Appeler le DAO pour modifier en base
