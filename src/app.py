@@ -141,12 +141,12 @@ async def create_user(j: userModel):
     """Create a new user"""
     logging.info("creating a user")
 
-    # Vérifier si le nom d'utilisateur existe déjà
+    # username already exists?
     existing_user = user_service.find_by_username(j.username)
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already used")
 
-    # Créer l'utilisateur
+    # Creating the user
     user = user_service.create_user(j.username, j.password)
     if not user:
         raise HTTPException(status_code=500, detail="Error while creating the user")
@@ -156,7 +156,7 @@ async def create_user(j: userModel):
 # user sign in
 
 
-# ajout pour le système de connexion avec token
+# log in system with token
 @app.post("/login", tags=["User : log in !"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
