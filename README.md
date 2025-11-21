@@ -35,11 +35,14 @@ Start reset_database.py as a main to reset the database
 Install all modules in requirements.txt : 
 - pip install -r requirements.txt 
 Have the src folder as the root for executing files :
-- In the .env : PYTHONPATH="/home/onyxia/work/MagicSearch/src"
-- Then do : export PYTHONPATH=/home/onyxia/work/MagicSearch/src:$PYTHONPATH
+- In the .env : 
+    PYTHONPATH="/home/onyxia/work/MagicSearch/src"
+- Then do : 
+    export PYTHONPATH=/home/onyxia/work/MagicSearch/src:$PYTHONPATH
 Then, you need to export an api token to use the features using embeddings :
 - Go on https://llm.lab.sspcloud.fr/ << Settings << Account << copy the API token
-- Put in the terminal : export API_TOKEN= followed by the token you just copied
+- Put in the terminal : 
+    export API_TOKEN= followed by the token you just copied
 Go to the module src/app.py :
 - Run this python file
 - At the bottom right of your screen, you should have a pop-up giving you the option to "Open in Browser", click it
