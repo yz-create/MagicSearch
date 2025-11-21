@@ -2,6 +2,35 @@
 
 Welcome in the promised land of trading card games players! By following these instructions, you will access our API where we gave our blood and tears to provide you with a diversity of searching tools !
 
+## Before accessing the app, it is necessary to have a PostgreSQL ready
+To do so, go to https://datalab.sspcloud.fr, and create a PostgreSQL service.
+This PostgreSQL service needs to be configured with pgvector.
+To do so, when creating the service, go into the PostgreSQL section, then Image section, Image name, and select inseefrlab/onyxia-postgresql-pgvector.
+Once this is done, a pop-up should open, giving you something like this:
+
+    Hostname : *a hostname*
+    Port : *a port*
+    Database : defaultdb
+    Username : *a username*
+    Password : *a password
+
+Now, go into the MagicSearch root of the project on VSCode, and create a .env file. In it, you should put :
+
+    POSTGRES_HOST=*the hostname*
+    POSTGRES_PORT=*the port*
+    POSTGRES_DATABASE=defaultdb
+    POSTGRES_USER=*the user*
+    POSTGRES_PASSWORD=*the password*
+    POSTGRES_SCHEMA=projet
+
+After this, you are able to reset the database to fill it, and then you can use the app.
+
+## To reset the database in case of need :
+Download AtomicCards.json on https://mtgjson.com/downloads/all-files/
+Put it in the root repository
+Run embed_batch.py as a main to obtain all embeddings of the cards in the database
+Start reset_database.py as a main to reset the database
+
 ## To access the app :
 Install all modules in requirements.txt : 
 - pip install -r requirements.txt 
@@ -15,13 +44,7 @@ Go to the module src/app.py :
 - Run this python file
 - At the bottom right of your screen, you should have a pop-up giving you the option to "Open in Browser", click it
  
-When you want to close the API make sure to write ctrl+c in your terminal !
-
-## To reset the database in case of need :
-Download AtomicCards.json on https://mtgjson.com/downloads/all-files/
-Put it in the root repository
-Run embed_batch.py as a main to obtain all embeddings of the cards in the database
-Start reset_database.py as a main to reset the database
+When you want to close the API make sure to write Ctrl+C in your terminal !
 
 ## To create all the cards embedding if necessary :
 Execute embed_batch.py (takes approximately 30 minutes)
