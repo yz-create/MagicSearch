@@ -2,7 +2,7 @@ import pytest
 from business_object.card import Card
 
 
-# ========== Fixtures ==========
+# Fixtures 
 
 @pytest.fixture
 def card_all_collections_initialized():
@@ -62,9 +62,9 @@ def complete_card_for_display():
     )
 
 
-# ========== Tests for show_card() ==========
+# Tests show_card
 
-def test_show_card_returns_dict(card_all_collections_initialized):
+def test_show_card_value(card_all_collections_initialized):
     """Test that show_card returns a dictionary"""
     result = card_all_collections_initialized.show_card()
     assert isinstance(result, dict)
@@ -418,7 +418,7 @@ def test_show_card_with_false_boolean():
     assert result["has_alternative_deck_limit"] is False
 
 
-# ========== Tests for __str__() ==========
+# Tests for __str__
 
 def test_str_basic_card():
     """Test __str__ with a basic card"""
@@ -483,7 +483,7 @@ def test_str_card_with_quotes_in_name():
     assert result == 'Card(name=Card "The Great", id=10)'
 
 
-# ========== Tests for __repr__() ==========
+# Tests for __repr__
 
 def test_repr_basic_card():
     """Test __repr__ with a basic card"""
@@ -530,7 +530,7 @@ def test_repr_equals_str_various_cards():
         assert str(card) == repr(card)
 
 
-# ========== Integration tests ==========
+# More tests
 
 def test_show_card_then_str():
     """Test that show_card and str work together"""

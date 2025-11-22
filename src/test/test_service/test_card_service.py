@@ -6,7 +6,7 @@ from business_object.filter import Filter
 from service.card_service import CardService
 
 
-# ========== Fixtures ==========
+# Fixtures
 
 @pytest.fixture
 def card_service():
@@ -40,7 +40,7 @@ def sample_filter():
     )
 
 
-# ========== Tests for create_card ==========
+# Tests for create_card
 
 @patch('service.card_service.CardDao')
 def test_create_card_success(mock_dao, card_service, sample_card):
@@ -78,7 +78,7 @@ def test_create_card_db_exception(mock_dao, card_service, sample_card, capsys):
     assert "Failed to create card in DB" in captured.out
 
 
-# ========== Tests for update_card ==========
+# Tests for update_card
 
 @patch('service.card_service.CardDao')
 def test_update_card_success(mock_dao, card_service, sample_card):
@@ -116,7 +116,7 @@ def test_update_card_db_exception(mock_dao, card_service, sample_card, capsys):
     assert "Failed to update card in DB" in captured.out
 
 
-# ========== Tests for delete_card ==========
+# Tests for delete_card
 
 @patch('service.card_service.CardDao')
 def test_delete_card_success(mock_dao, card_service):
@@ -154,7 +154,7 @@ def test_delete_card_db_exception(mock_dao, card_service, capsys):
     assert "Failed to delete card from DB" in captured.out
 
 
-# ========== Tests for id_search ==========
+# Tests for id_search
 
 @patch('service.card_service.CardDao')
 def test_id_search_success(mock_dao, card_service, sample_card):
@@ -231,7 +231,7 @@ def test_id_search_db_exception_fetch(mock_dao, card_service, capsys):
     assert "Failed to fetch card from DB" in captured.out
 
 
-# ========== Tests for name_search ==========
+# Tests for name_search
 
 @patch('service.card_service.CardDao')
 def test_name_search_success(mock_dao, card_service, sample_card):
@@ -278,7 +278,7 @@ def test_name_search_db_exception(mock_dao, card_service, capsys):
     assert "Failed to fetch card from DB" in captured.out
 
 
-# ========== Tests for semantic_search ==========
+# Tests for semantic_search
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.embedding')
@@ -299,7 +299,7 @@ def test_semantic_search_success(mock_embedding, mock_dao, card_service, sample_
     mock_embedding.assert_called_once_with("Blue bird")
 
 
-# ========== Tests for semantic_search_shortEmbed ==========
+# Tests for semantic_search_shortEmbed
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.embedding')
@@ -320,7 +320,7 @@ def test_semantic_search_short_embed_success(mock_embedding, mock_dao, card_serv
     mock_embedding.assert_called_once_with("Red dragon")
 
 
-# ========== Tests for view_random_card ==========
+# Tests for view_random_card
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.random.randint')
@@ -339,7 +339,8 @@ def test_view_random_card_success(mock_randint, mock_dao, card_service, sample_c
     mock_randint.assert_called_once_with(0, 100)
 
 
-# ========== Tests for filter_search ==========
+# Tests for filter_search
+
 @patch('service.card_service.CardDao')
 def test_filter_search_success_first_page(mock_dao, card_service, sample_card):
     """Test paginated search - first page"""
@@ -524,7 +525,8 @@ def test_filter_search_page_beyond_results(mock_dao, card_service, sample_card):
     assert result["cards"] == []  # There are no cards on this page
 
 
-# ========== Tests for add_favourite_card ==========
+# Tests for add_favourite_card
+
 @patch('service.card_service.CardDao')
 def test_add_favourite_card_success_added(mock_dao, card_service, capsys):
     """Test successful addition of card to favorites"""
@@ -593,7 +595,7 @@ def test_add_favourite_card_exception(mock_dao, card_service):
     assert result is False
 
 
-# ========== Tests for list_favourite_cards ==========
+# Tests for list_favourite_cards 
 
 @patch('service.card_service.CardDao')
 def test_list_favourite_cards_success(mock_dao, card_service, sample_card):
@@ -627,7 +629,7 @@ def test_list_favourite_cards_exception(mock_dao, card_service):
     assert result is False
 
 
-# ========== Tests for delete_favourite_card ==========
+# Tests for delete_favourite_card 
 
 @patch('service.card_service.CardDao')
 def test_delete_favourite_card_success(mock_dao, card_service):
@@ -668,7 +670,7 @@ def test_delete_favourite_card_exception(mock_dao, card_service):
     assert result is False
 
 
-# ========== Tests for cardModel_to_Card ==========
+# Tests for cardModel_to_Card 
 
 def test_card_model_to_card_conversion(card_service):
     """Test conversion from card model to Card object"""
@@ -719,7 +721,7 @@ def test_card_model_to_card_conversion(card_service):
     assert result.mana_value == 3
 
 
-# ========== Integration tests ==========
+# Integration tests 
 
 @patch('service.card_service.CardDao')
 @patch('service.card_service.random.randint')
